@@ -643,6 +643,10 @@ button {
   padding: 34vh 0 16vh;
 }
 
+.team-dna-insight-page {
+  display: block;
+}
+
 .insight-eyebrow {
   margin-bottom: 12px;
 }

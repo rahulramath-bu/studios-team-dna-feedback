@@ -1,5 +1,6 @@
 import { teamDnaDataset } from './teamDnaMock.js';
 import { makePairId } from './teamDnaIds.js';
+import { buildPairInsight } from './teamDnaPairInsights.js';
 
 // Monolith integration tip: this file is the replaceable data seam. Generated
 // API hooks can feed the same view model later without leaking API shape into JSX.
@@ -28,7 +29,17 @@ export function getInsightForSelection(dataset, selectedIds) {
   }
 
   const pairId = makePairId(selectedIds[0], selectedIds[1]);
-  return dataset.insights.pairs[pairId] ?? dataset.insights.fallbackPair;
+  const firstMember = dataset.members.find((member) => member.id === selectedIds[0]);
+  const secondMember = dataset.members.find((member) => member.id === selectedIds[1]);
+
+  return (
+    dataset.insights.pairs[pairId] ??
+    buildPairInsight({
+      first: firstMember,
+      second: secondMember,
+      cards: dataset.insights.team.cards,
+    })
+  );
 }
 
 function buildFallbackPersonInsight(member, dataset) {

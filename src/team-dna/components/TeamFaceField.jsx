@@ -8,8 +8,6 @@ const DUO_MAX_NUDGE = 32;
 const SECONDARY_MIN_CENTER_DISTANCE = 126;
 const SECONDARY_MAX_NUDGE = 24;
 const NUDGE_RELAXATION_STEPS = 3;
-const HOVER_MIN_CENTER_DISTANCE = 134;
-const HOVER_MAX_NUDGE = 12;
 
 function getLayoutCenter(node) {
   return {
@@ -143,65 +141,11 @@ function resolveDuoNudges(members, selectedIds, hitboxRefs, centers) {
   return nudges;
 }
 
-function resolveHoverNudges(members, hoveredMemberId, selectedIds, centers, baseNudges) {
-  if (!hoveredMemberId || selectedIds.includes(hoveredMemberId) || !centers[hoveredMemberId]) {
-    return baseNudges;
-  }
-
-  const nudges = { ...baseNudges };
-  const hoveredNudge = nudges[hoveredMemberId] ?? { x: 0, y: 0 };
-  const hoveredCenter = {
-    x: centers[hoveredMemberId].x + hoveredNudge.x,
-    y: centers[hoveredMemberId].y + hoveredNudge.y,
-  };
-
-  for (const member of members) {
-    if (member.id === hoveredMemberId || !centers[member.id]) continue;
-
-    const memberNudge = nudges[member.id] ?? { x: 0, y: 0 };
-    const memberCenter = {
-      x: centers[member.id].x + memberNudge.x,
-      y: centers[member.id].y + memberNudge.y,
-    };
-    const dx = memberCenter.x - hoveredCenter.x;
-    const dy = memberCenter.y - hoveredCenter.y;
-    const distance = Math.hypot(dx, dy);
-
-    if (distance >= HOVER_MIN_CENTER_DISTANCE) continue;
-
-    const safeDistance = distance || 1;
-    const amount = Math.min(
-      HOVER_MAX_NUDGE,
-      (HOVER_MIN_CENTER_DISTANCE - safeDistance) / 2
-    );
-
-    addNudge(nudges, member.id, {
-      x: (dx / safeDistance) * amount,
-      y: (dy / safeDistance) * amount,
-    });
-    nudges[member.id] = limitNudge(
-      nudges[member.id],
-      Math.max(HOVER_MAX_NUDGE, Math.hypot(memberNudge.x, memberNudge.y))
-    );
-  }
-
-  return nudges;
-}
-
-function resolveFaceNudges(members, selectedIds, hoveredMemberId, hitboxRefs) {
+function resolveFaceNudges(members, selectedIds, hitboxRefs) {
   const centers = getCenters(members, hitboxRefs);
-  const duoNudges =
-    selectedIds.length === 2
-      ? resolveDuoNudges(members, selectedIds, hitboxRefs, centers)
-      : {};
-
-  return resolveHoverNudges(
-    members,
-    hoveredMemberId,
-    selectedIds,
-    centers,
-    duoNudges
-  );
+  return selectedIds.length === 2
+    ? resolveDuoNudges(members, selectedIds, hitboxRefs, centers)
+    : {};
 }
 
 export function TeamFaceField({
@@ -269,14 +213,14 @@ export function TeamFaceField({
     return undefined;
   }, [selectedIds.length]);
 
-  // Monolith integration tip: nudges measure layout positions, not grid
+  // Monolith integration tip: duo nudges measure layout positions, not grid
   // row/column indexes, so this can survive a future horizontal rail.
   useLayoutEffect(() => {
     let animationFrame = 0;
 
     const updateNudges = () => {
       setFaceNudges(
-        resolveFaceNudges(members, selectedIds, hoveredMemberId, hitboxRefs)
+        resolveFaceNudges(members, selectedIds, hitboxRefs)
       );
     };
 
@@ -292,7 +236,7 @@ export function TeamFaceField({
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', scheduleUpdate);
     };
-  }, [members, selectedIds, hoveredMemberId]);
+  }, [members, selectedIds]);
 
   return (
     <div className="team-face-field-wrap" ref={fieldRef}>
@@ -336,7 +280,7 @@ export function TeamFaceField({
                 selectedIds.length === 2 && selectedIds.includes(member.id)
               }
               nudge={faceNudges[member.id]}
-              nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'hover'}
+              nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
               isDimmed={hasSelection && !selectedIds.includes(member.id)}
               onSelect={() => onSelectMember(member.id)}
               onHoverChange={(isHovered) =>

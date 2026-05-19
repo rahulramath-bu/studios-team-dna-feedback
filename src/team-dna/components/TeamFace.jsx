@@ -5,7 +5,6 @@ import { useTeamDnaPressable } from '../hooks/useTeamDnaPressable';
 const PRESS_SCALE = 1.08;
 const HOVER_SCALE = 1.08;
 const SELECTION_NUDGE_TRANSITION = { duration: 0.32, ease: 'easeInOut' };
-const HOVER_NUDGE_TRANSITION = { duration: 1.45, ease: 'easeInOut' };
 
 function getInitials(name) {
   return name
@@ -26,7 +25,7 @@ export const TeamFace = forwardRef(function TeamFace(
     isBlocked,
     blockedAttempt = 0,
     nudge = { x: 0, y: 0 },
-    nudgeMotion = 'hover',
+    nudgeMotion = 'idle',
     onSelect,
     onHoverChange,
     visualRef,
@@ -44,7 +43,7 @@ export const TeamFace = forwardRef(function TeamFace(
   const nudgeTransition =
     nudgeMotion === 'selection'
       ? SELECTION_NUDGE_TRANSITION
-      : HOVER_NUDGE_TRANSITION;
+      : { duration: 0.32, ease: 'easeInOut' };
 
   // Monolith integration tip: keep this as a semantic button. The custom part
   // is the Team DNA-specific face-cluster motion, not the accessibility model.
