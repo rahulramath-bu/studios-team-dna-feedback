@@ -19,7 +19,7 @@ function makeLine(start, end) {
  * It does not assume a grid, so the same selected-duo effect can survive a
  * future horizontal/mobile rail without rewriting the connection math.
  */
-export function DuoConnection({ containerRef, faceRefs, selectedIds }) {
+export function DuoConnection({ containerRef, faceRefs, selectedIds, variant = 'selected' }) {
   const [connection, setConnection] = useState(null);
 
   useLayoutEffect(() => {
@@ -85,13 +85,17 @@ export function DuoConnection({ containerRef, faceRefs, selectedIds }) {
   return (
     <svg className="duo-connection-layer" aria-hidden="true">
       <motion.path
-        className="duo-connection-line"
+        className={`duo-connection-line duo-connection-line-${variant}`}
         d={connection.path}
-        initial={{ opacity: 0 }}
-        animate={{
-          opacity: 1,
-          transition: { delay: 0.22, duration: 1, ease: [0.22, 1, 0.36, 1] },
-        }}
+        initial={{ opacity: variant === 'preview' ? 0.4 : 0 }}
+        animate={
+          variant === 'preview'
+            ? { opacity: 0.4, transition: { duration: 0 } }
+            : {
+                opacity: 1,
+                transition: { delay: 0.22, duration: 1, ease: [0.22, 1, 0.36, 1] },
+              }
+        }
         exit={{ opacity: 0, transition: { duration: 0.05, ease: 'linear' } }}
       />
     </svg>

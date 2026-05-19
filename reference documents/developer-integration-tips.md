@@ -90,6 +90,18 @@ In duo state, selected rings tighten from a separated halo into a direct outside
 
 If two selected faces are close enough that the scaled avatars/rings overlap, apply a small measured nudge away from each other. Then let that nudge ripple into nearby dimmed faces with smaller capped secondary nudges, so a selected pair does not crowd an adjacent teammate. This should be based on the actual face positions, not hardcoded grid coordinates, so the behavior can transfer to a future horizontal rail or mobile layout.
 
+Hover labels also use the nudge system. When a non-selected face is hovered, nearby faces should gently make room so the label does not crowd adjacent avatars. Keep this as measured local motion rather than changing grid spacing.
+
+Dimmed faces should restore to full opacity on hover/focus-style inspection. The dimming communicates current selection focus; it should not prevent someone from visually checking another teammate before selecting them. Keep each button's invisible hitbox stable while the inner visual layer scales down, so hover exploration still works in solo and duo states.
+
+Unavailable Team DNA members should still be pressable enough to explain why they cannot be selected. Keep the unavailable shake on its own inner animation layer so it does not compete with the visual layer's hover, press, opacity, or nudge transforms.
+
+Selected faces can have a subtle "alive" pulse, but keep it on a separate inner pulse layer so it composes with base selected scale, hover scale, press scale, nudge, and unavailable shake instead of competing with them.
+
+When exactly one face is selected, hovering another selectable face should show an immediate lightweight connection preview. Reuse the same measured connection layer, but style it thinner and more transparent than the committed duo line so it reads as "this is what would happen if you clicked."
+
+Face hover targets should be larger than the visible circular avatars. Keep the visible grid spacing, but let each button's invisible hitbox fill the cell/gap area so someone can glide across faces without hover repeatedly dropping in the space between avatars. Do not apply selection scaling to the button itself; scale only the inner visual layer.
+
 Why the measurement approach still matters: the bridge is not hardcoded to the current 3-column grid. It can survive a future View 2 rail, mobile layout, or any other face arrangement as long as `TeamFaceField` can provide refs for the selected faces.
 
 Monolith target: keep the measuring layer local to Team DNA. It is an interaction pattern for this surface, not a global design-system primitive.
@@ -104,25 +116,19 @@ The launchpad uses `useTeamDnaPressable`, inspired by BetterApart's `Pressable` 
 
 Monolith target: either replace this hook with a shared BetterUp pressable primitive if one exists, or keep it as a tiny Team DNA hook. Do not make Team DNA responsible for creating a global interaction primitive unless product/design-system engineering wants that.
 
-### Face name reveal should behave like a tooltip, not a popover
+### Face name reveal should stay inside the face cluster
 
-For hover/focus name reveal on team faces, use the lightest tooltip-style treatment.
-
-Monolith finding:
-
-- `@betterup/component-library` currently exposes `Popover`, but that is too heavy for a simple name label.
-- React Platform already depends on `@radix-ui/react-tooltip`.
-- Older/current surfaces use `BUTooltip` from `@betterup/core-react`, which wraps Radix Tooltip.
+For hover/focus name reveal on team faces, use an inline label beneath the hovered avatar rather than a tooltip/popover.
 
 Implemented direction:
 
-- In the standalone launchpad, use `TeamDnaTooltip`, a local copy of the monolith tooltip direction using the same Radix primitive under BetterUp's `BUTooltip`.
-- In the monolith, prefer a future component-library tooltip if one exists by then.
-- If no component-library tooltip exists, replace `TeamDnaTooltip` with `BUTooltip` only if the surrounding Team Tooling surface already uses/provides `TooltipProvider`; otherwise use Radix Tooltip directly with a local Team DNA wrapper.
-- Tooltip content should be just the member's full name for now.
+- The label should use ruby `Söhne Mono` styling so it feels like part of the Team DNA visual system.
+- It should appear immediately, not fade in.
 - The unavailable assessment message should stay short and human. Current copy: "Needs Team DNA first."
-- It should open on hover and keyboard focus, not only pointer hover.
-- Keep hover scale and tooltip reveal owned by `TeamFace`; the parent field should not manage per-face hover state unless layout needs it.
+- Keep the label owned by `TeamFace`; the parent field should only track hover when it needs to draw a connection preview.
+- The label belongs inside the same visual layer as the avatar so nudge/scale motion carries the name with it.
+- Do not show the label when hovering an already selected face; it is primarily for inspecting non-selected teammates.
+- Do not add tooltip dependencies for this behavior. The label is not a global design-system primitive.
 
 ### Typography token nuance: use display heading, not normal heading
 

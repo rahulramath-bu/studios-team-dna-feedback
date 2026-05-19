@@ -6,7 +6,7 @@ import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
 export function TeamDnaExperience({ dataset }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
-  const [blockedMemberId, setBlockedMemberId] = useState(null);
+  const [blockedAttempt, setBlockedAttempt] = useState(null);
   const blockedTimeoutRef = useRef(null);
   const selectableMemberIds = useMemo(
     () =>
@@ -38,12 +38,15 @@ export function TeamDnaExperience({ dataset }) {
     const member = dataset.members.find((item) => item.id === memberId);
 
     if (member?.assessmentComplete === false) {
-      setBlockedMemberId(memberId);
+      setBlockedAttempt((current) => ({
+        memberId,
+        attempt: (current?.attempt ?? 0) + 1,
+      }));
       if (blockedTimeoutRef.current) {
         window.clearTimeout(blockedTimeoutRef.current);
       }
       blockedTimeoutRef.current = window.setTimeout(() => {
-        setBlockedMemberId(null);
+        setBlockedAttempt(null);
         blockedTimeoutRef.current = null;
       }, 1300);
       return;
@@ -62,7 +65,7 @@ export function TeamDnaExperience({ dataset }) {
         <TeamFaceField
           members={dataset.members}
           selectedIds={selectedIds}
-          blockedMemberId={blockedMemberId}
+          blockedAttempt={blockedAttempt}
           onSelectMember={handleSelectMember}
         />
       </div>

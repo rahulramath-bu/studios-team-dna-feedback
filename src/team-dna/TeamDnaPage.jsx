@@ -1,6 +1,5 @@
 import React, { useMemo, useState } from 'react';
 import { TeamDnaExperience } from './TeamDnaExperience.jsx';
-import { TeamDnaTooltipProvider } from './components/TeamDnaTooltip.jsx';
 import { getTeamDna } from './data/teamDnaAdapter.js';
 import { TeamDnaDevPanel } from './dev/TeamDnaDevPanel.jsx';
 import {
@@ -20,7 +19,7 @@ export function TeamDnaPage() {
   );
 
   return (
-    <TeamDnaTooltipProvider>
+    <>
       <main className="team-dna-page" aria-label="Team DNA">
         <TeamDnaExperience dataset={scenarioDataset} />
       </main>
@@ -29,6 +28,6 @@ export function TeamDnaPage() {
         devState={devState}
         setDevState={setDevState}
       />
-    </TeamDnaTooltipProvider>
+    </>
   );
 }

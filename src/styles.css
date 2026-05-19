@@ -175,9 +175,18 @@ button {
 
 .team-face-instruction {
   margin-bottom: 42px;
+  transition: opacity 520ms ease;
+}
+
+.team-face-instruction[data-hidden] {
+  opacity: 0;
 }
 
 .team-face-grid {
+  --face-size: 98px;
+  --face-hit-width: 124px;
+  --face-hit-height: 132px;
+
   display: grid;
   grid-template-columns: repeat(3, 104px);
   gap: 34px 20px;
@@ -188,11 +197,14 @@ button {
 .team-face-button {
   position: relative;
   z-index: 1;
-  width: 98px;
-  height: 98px;
+  width: var(--face-hit-width);
+  height: var(--face-hit-height);
+  margin:
+    calc((var(--face-size) - var(--face-hit-height)) / 2)
+    calc((var(--face-size) - var(--face-hit-width)) / 2);
   padding: 0;
   border: 0;
-  border-radius: 999px;
+  border-radius: 18px;
   background: transparent;
   cursor: pointer;
   transform-origin: center;
@@ -211,10 +223,18 @@ button {
 
   fill: none;
   stroke: var(--duo-selection-accent);
-  stroke-dasharray: 8 13;
   stroke-linecap: round;
-  stroke-width: 6px;
   animation: duo-connection-slide 0.9s linear infinite;
+}
+
+.duo-connection-line-selected {
+  stroke-dasharray: 8 13;
+  stroke-width: 6px;
+}
+
+.duo-connection-line-preview {
+  stroke-dasharray: 1 10;
+  stroke-width: 4px;
 }
 
 .team-face-button[data-unavailable] {
@@ -224,6 +244,51 @@ button {
 .team-face-button:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 10px;
+}
+
+.team-face-visual-layer,
+.team-face-shake-layer,
+.team-face-pulse-layer {
+  position: absolute;
+  display: block;
+  border-radius: 999px;
+}
+
+.team-face-visual-layer {
+  top: calc((var(--face-hit-height) - var(--face-size)) / 2);
+  left: calc((var(--face-hit-width) - var(--face-size)) / 2);
+  width: var(--face-size);
+  height: var(--face-size);
+  transform-origin: center;
+}
+
+.team-face-shake-layer,
+.team-face-pulse-layer {
+  inset: 0;
+}
+
+.team-face-pulse-layer {
+  transform-origin: center;
+}
+
+.team-face-hover-label {
+  position: absolute;
+  left: 50%;
+  top: calc(100% + 10px);
+  width: max-content;
+  max-width: 148px;
+  color: var(--duo-selection-accent);
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.8px;
+  line-height: 1.25;
+  pointer-events: none;
+  text-align: center;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  white-space: normal;
+  z-index: 3;
 }
 
 .team-face-ring {
@@ -243,7 +308,7 @@ button {
 }
 
 .team-face-button[data-duo-selected] .team-face-ring {
-  inset: -8px;
+  inset: -7px;
   border-width: 8px;
 }
 
@@ -306,45 +371,6 @@ button {
   letter-spacing: var(--label-tracking);
   line-height: var(--label-line-height);
   text-transform: uppercase;
-}
-
-.team-dna-tooltip {
-  z-index: 50;
-  width: max-content;
-  max-width: 164px;
-  padding: 9px 11px;
-  border: 1px solid var(--card-subtle-border);
-  border-radius: 5px;
-  background: #fff;
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.16);
-  color: #4d4d4d;
-  font-family: 'Söhne', sans-serif;
-  font-size: 12px;
-  font-weight: 500;
-  line-height: 1.25;
-  pointer-events: none;
-  transform-origin: var(--radix-tooltip-content-transform-origin);
-}
-
-.team-dna-tooltip[data-state='delayed-open'],
-.team-dna-tooltip[data-state='instant-open'] {
-  animation: team-dna-tooltip-in 120ms ease-out;
-}
-
-.team-dna-tooltip-arrow {
-  fill: #fff;
-}
-
-@keyframes team-dna-tooltip-in {
-  from {
-    opacity: 0;
-    transform: scale(0.96) translateY(2px);
-  }
-
-  to {
-    opacity: 1;
-    transform: scale(1) translateY(0);
-  }
 }
 
 .team-dna-dev-tab {
@@ -717,13 +743,12 @@ button {
   }
 
   .team-face-grid {
+    --face-size: clamp(72px, 22vw, 96px);
+    --face-hit-width: calc(var(--face-size) + 24px);
+    --face-hit-height: calc(var(--face-size) + 28px);
+
     grid-template-columns: repeat(3, minmax(76px, 1fr));
     gap: 24px 14px;
-  }
-
-  .team-face-button {
-    width: clamp(72px, 22vw, 96px);
-    height: clamp(72px, 22vw, 96px);
   }
 
   .team-dna-insight-pane {
