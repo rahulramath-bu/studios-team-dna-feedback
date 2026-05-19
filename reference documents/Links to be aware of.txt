@@ -1,0 +1,18 @@
+Links to be aware of:
+
+
+References to help understand feature context:
+preetoshi/team-dna/reference documents
+
+Monolith codebase reference (available locally and on github):
+preetoshi/betterup-monolith
+
+My Design Explorations (Figma):
+https://www.figma.com/design/i03f9LTvdHu9A6IwsvIXFr/Team-DNA-Design-Playground?node-id=22-570
+
+Figma Deep Link (Main Design Concepts on Figma):
+https://www.figma.com/design/i03f9LTvdHu9A6IwsvIXFr/Team-DNA-Design-Playground?node-id=22-570&t=ebGatNPJnBaDMdUM-1
+
+Current BetterUp Design System on FIGMA:
+https://www.figma.com/design/p4ZtQHYZSP4E6nzRF6oF6m/BetterUp-Design-System?m=auto&node-id=248-4210&t=kcT3fPBFkGbp7OD3-1
+

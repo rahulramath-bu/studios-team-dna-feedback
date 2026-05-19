@@ -1,0 +1,760 @@
+@font-face {
+  font-family: 'Söhne';
+  src: url('/frontend/assets/fonts/soehne/soehne-web-buch.woff2') format('woff2');
+  font-display: fallback;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Söhne';
+  src: url('/frontend/assets/fonts/soehne/soehne-web-kraftig.woff2') format('woff2');
+  font-display: fallback;
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Söhne';
+  src: url('/frontend/assets/fonts/soehne/soehne-web-halbfett.woff2') format('woff2');
+  font-display: fallback;
+  font-style: normal;
+  font-weight: 600;
+}
+
+@font-face {
+  font-family: 'Ivar Display';
+  src: url('/frontend/assets/fonts/ivar-display/IvarDisplay-Regular.woff2') format('woff2');
+  font-display: fallback;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Ivar Display';
+  src: url('/frontend/assets/fonts/ivar-display/IvarDisplay-Medium.woff2') format('woff2');
+  font-display: fallback;
+  font-style: normal;
+  font-weight: 500;
+}
+
+@font-face {
+  font-family: 'Söhne Mono';
+  src: url('/frontend/assets/fonts/soehne-mono/SoehneMono-Buch.woff2') format('woff2');
+  font-display: fallback;
+  font-style: normal;
+  font-weight: 400;
+}
+
+@font-face {
+  font-family: 'Söhne Mono';
+  src: url('/frontend/assets/fonts/soehne-mono/SoehneMono-Kraftig.woff2') format('woff2');
+  font-display: fallback;
+  font-style: normal;
+  font-weight: 500;
+}
+
+:root,
+[data-theme='2026'],
+[data-theme='uplift'] {
+  /* Monolith integration tip: these names mirror component-library theme tokens.
+     During porting, remove local fallback values before renaming the CSS API. */
+  --background: #f3e6d7;
+  --page-background: var(--background);
+  --foreground: #1d1925;
+  --foreground-heading: #1d1925;
+  --foreground-body: #16120f;
+  --muted-foreground: rgba(29, 25, 37, 0.58);
+  --card: rgba(255, 255, 255, 0.14);
+  --card-subtle-bg: var(--card);
+  --card-subtle-border: rgba(29, 25, 37, 0.13);
+  --border: rgba(29, 25, 37, 0.13);
+  --primary: #ce0058;
+  --primary-hover: #e80063;
+  --duo-selection-accent: #f55259;
+  --ring: #1d1925;
+  --radius: 0.75rem;
+
+  --label-font: 'Söhne Mono', monospace;
+  --label-size: 11px;
+  --label-line-height: 1.4;
+  --label-tracking: 1.1px;
+  --label-weight: 500;
+  --label-color: var(--foreground-heading);
+
+  --heading-display-font: 'Ivar Display', 'Ivar Headline', serif;
+  --heading-display-tracking: 0.36px;
+  --heading-display-line-height: 1.2;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  background: var(--page-background);
+}
+
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  background: var(--page-background);
+  color: var(--foreground);
+  font-family: 'Söhne', sans-serif;
+}
+
+body[data-app-error]::before {
+  content: "App error: " attr(data-app-error);
+  position: fixed;
+  inset: 24px auto auto 24px;
+  z-index: 9999;
+  max-width: 560px;
+  padding: 16px;
+  border: 1px solid #ce0058;
+  border-radius: 8px;
+  background: white;
+  color: #1d1925;
+  font: 14px/1.4 'Söhne', sans-serif;
+}
+
+button {
+  font: inherit;
+}
+
+.team-dna-page {
+  min-height: 100vh;
+  background: var(--page-background);
+  overflow: hidden;
+}
+
+.team-dna-experience {
+  --people-pane-width: 430px;
+  --detail-pane-width: 470px;
+  --pane-gap: 88px;
+
+  display: grid;
+  grid-template-columns: var(--people-pane-width) var(--detail-pane-width);
+  column-gap: var(--pane-gap);
+  width: min(
+    calc(100% - 48px),
+    calc(var(--people-pane-width) + var(--detail-pane-width) + var(--pane-gap))
+  );
+  min-height: 100vh;
+  margin: 0 auto;
+}
+
+.team-dna-people-pane {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 72px 0;
+}
+
+.team-face-field-wrap {
+  position: relative;
+  width: min(100%, 430px);
+}
+
+.team-face-instruction,
+.insight-eyebrow,
+.info-block p {
+  margin: 0;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  line-height: var(--label-line-height);
+  text-transform: uppercase;
+}
+
+.team-face-instruction {
+  margin-bottom: 42px;
+}
+
+.team-face-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 104px);
+  gap: 34px 20px;
+  align-items: center;
+  justify-content: start;
+}
+
+.team-face-button {
+  position: relative;
+  z-index: 1;
+  width: 98px;
+  height: 98px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  transform-origin: center;
+}
+
+.duo-connection-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.duo-connection-line {
+  --duo-connection-dash-cycle: 21px;
+
+  fill: none;
+  stroke: var(--duo-selection-accent);
+  stroke-dasharray: 8 13;
+  stroke-linecap: round;
+  stroke-width: 6px;
+  animation: duo-connection-slide 0.9s linear infinite;
+}
+
+.team-face-button[data-unavailable] {
+  cursor: not-allowed;
+}
+
+.team-face-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 10px;
+}
+
+.team-face-ring {
+  position: absolute;
+  inset: -6px;
+  border: 3px solid transparent;
+  border-radius: inherit;
+  z-index: 2;
+  transition:
+    border-color 180ms ease,
+    border-width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    inset 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.team-face-button[data-selected] .team-face-ring {
+  border-color: var(--duo-selection-accent);
+}
+
+.team-face-button[data-duo-selected] .team-face-ring {
+  inset: -8px;
+  border-width: 8px;
+}
+
+@keyframes duo-connection-slide {
+  to {
+    stroke-dashoffset: calc(-1 * var(--duo-connection-dash-cycle));
+  }
+}
+
+.team-face-image {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 1px solid rgba(29, 25, 37, 0.13);
+  border-radius: inherit;
+  object-fit: cover;
+  box-shadow: 0 2px 6px rgba(29, 25, 37, 0.09);
+  background: rgba(255, 255, 255, 0.32);
+}
+
+.team-face-initials {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(29, 25, 37, 0.13);
+  border-radius: inherit;
+  background: #e7e1db;
+  box-shadow: 0 2px 6px rgba(29, 25, 37, 0.07);
+  color: rgba(29, 25, 37, 0.48);
+  font-family: 'Söhne', sans-serif;
+  font-size: 26px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.team-face-button[data-unavailable] .team-face-image,
+.team-face-button[data-unavailable] .team-face-initials {
+  filter: grayscale(1);
+}
+
+.team-face-empty-state {
+  grid-column: 1 / -1;
+  display: flex;
+  width: 328px;
+  height: 150px;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed rgba(29, 25, 37, 0.18);
+  border-radius: 7px;
+  color: rgba(29, 25, 37, 0.42);
+}
+
+.team-face-empty-state p {
+  margin: 0;
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  line-height: var(--label-line-height);
+  text-transform: uppercase;
+}
+
+.team-dna-tooltip {
+  z-index: 50;
+  width: max-content;
+  max-width: 164px;
+  padding: 9px 11px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 5px;
+  background: #fff;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.16);
+  color: #4d4d4d;
+  font-family: 'Söhne', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  pointer-events: none;
+  transform-origin: var(--radix-tooltip-content-transform-origin);
+}
+
+.team-dna-tooltip[data-state='delayed-open'],
+.team-dna-tooltip[data-state='instant-open'] {
+  animation: team-dna-tooltip-in 120ms ease-out;
+}
+
+.team-dna-tooltip-arrow {
+  fill: #fff;
+}
+
+@keyframes team-dna-tooltip-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.team-dna-dev-tab {
+  position: fixed;
+  right: 18px;
+  bottom: 18px;
+  z-index: 9998;
+  height: 30px;
+  padding: 0 12px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  border-radius: 999px;
+  background: rgba(18, 18, 18, 0.74);
+  backdrop-filter: blur(10px);
+  color: rgba(255, 255, 255, 0.58);
+  cursor: pointer;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.team-dna-dev-tab span {
+  color: rgba(255, 255, 255, 0.34);
+}
+
+.team-dna-dev-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 9999;
+  width: 330px;
+  overflow: hidden;
+  border-radius: 8px 0 0 8px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.team-dna-dev-panel-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to bottom, rgba(18, 18, 18, 0.96) 58%, rgba(18, 18, 18, 0.1) 100%),
+    rgba(25, 25, 25, 0.9);
+  backdrop-filter: blur(10px);
+}
+
+.team-dna-dev-content {
+  position: relative;
+  height: 100%;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.team-dna-dev-content::-webkit-scrollbar {
+  display: none;
+}
+
+.team-dna-dev-header {
+  padding: 28px 28px 24px;
+}
+
+.team-dna-dev-header h2,
+.team-dna-dev-section h3 {
+  margin: 0;
+  font-family: 'Söhne Mono', monospace;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.team-dna-dev-header h2 {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 12px;
+  letter-spacing: 2.76px;
+}
+
+.team-dna-dev-header p {
+  margin: 6px 0 0;
+  color: rgba(255, 255, 255, 0.25);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+}
+
+.team-dna-dev-header span {
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.team-dna-dev-section {
+  padding: 24px 28px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.team-dna-dev-section h3 {
+  margin-bottom: 14px;
+  color: rgba(255, 255, 255, 0.48);
+  font-size: 10px;
+  letter-spacing: 2.3px;
+}
+
+.team-dna-dev-stepper {
+  display: flex;
+  width: max-content;
+  align-items: center;
+  gap: 8px;
+}
+
+.team-dna-dev-stepper button,
+.team-dna-dev-chip {
+  border: 1px solid #454545;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9px;
+}
+
+.team-dna-dev-stepper button {
+  width: 24px;
+  height: 22px;
+}
+
+.team-dna-dev-stepper span {
+  width: 24px;
+  color: rgba(255, 255, 255, 0.62);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  text-align: center;
+}
+
+.team-dna-dev-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 14px;
+}
+
+.team-dna-dev-chip {
+  height: 24px;
+  min-width: 30px;
+}
+
+.team-dna-dev-chip[data-active] {
+  border-color: transparent;
+  background: rgba(217, 217, 217, 0.2);
+}
+
+.team-dna-dev-member-list {
+  display: grid;
+  gap: 10px;
+}
+
+.team-dna-dev-member-row {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 8px;
+  opacity: 1;
+}
+
+.team-dna-dev-member-row[data-muted] {
+  opacity: 0.34;
+}
+
+.team-dna-dev-member-index,
+.team-dna-dev-member-name,
+.team-dna-dev-toggle {
+  font-family: 'Söhne Mono', monospace;
+}
+
+.team-dna-dev-member-index {
+  color: rgba(255, 255, 255, 0.25);
+  font-size: 8px;
+}
+
+.team-dna-dev-member-name {
+  overflow: hidden;
+  color: rgba(255, 255, 255, 0.54);
+  font-size: 8px;
+  letter-spacing: 0.3px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-dna-dev-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 0;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.38);
+  cursor: pointer;
+  font-size: 7px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.team-dna-dev-toggle i {
+  position: relative;
+  display: block;
+  width: 30px;
+  height: 15px;
+  border-radius: 999px;
+  background: #3a3a3a;
+  transition: background 180ms ease;
+}
+
+.team-dna-dev-toggle i::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: #939393;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.team-dna-dev-toggle[data-active] i {
+  background: #6a6a6a;
+}
+
+.team-dna-dev-toggle[data-active] i::after {
+  background: #fff;
+  transform: translateX(15px);
+}
+
+.team-dna-insight-pane {
+  position: relative;
+  height: 100vh;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.team-dna-insight-scroll {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+}
+
+.team-dna-insight-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.team-dna-scroll-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 2;
+  height: 120px;
+  pointer-events: none;
+}
+
+.team-dna-scroll-fade.top {
+  top: 0;
+  background: linear-gradient(to bottom, var(--page-background), rgba(243, 230, 215, 0));
+}
+
+.team-dna-scroll-fade.bottom {
+  bottom: 0;
+  background: linear-gradient(to top, var(--page-background), rgba(243, 230, 215, 0));
+}
+
+.team-dna-insight-content {
+  width: 100%;
+  padding: 34vh 0 16vh;
+}
+
+.insight-eyebrow {
+  margin-bottom: 12px;
+}
+
+.insight-title-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.insight-title {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 48px;
+  font-weight: 400;
+  letter-spacing: var(--heading-display-tracking);
+  line-height: var(--heading-display-line-height);
+}
+
+.insight-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(29, 25, 37, 0.52);
+  cursor: pointer;
+}
+
+.insight-edit-button:hover {
+  color: var(--foreground);
+}
+
+.insight-edit-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.insight-summary {
+  margin: 28px 0 0;
+  color: var(--foreground-body);
+  font-size: 16px;
+  line-height: 1.75;
+}
+
+.insight-summary strong {
+  color: #1b23ff;
+  font-weight: 700;
+}
+
+.info-block-stack {
+  display: grid;
+  gap: 56px;
+  margin-top: 28px;
+  padding-bottom: 8vh;
+}
+
+.info-block {
+  min-height: 216px;
+  padding: 22px 20px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 5px);
+  background: var(--card-subtle-bg);
+}
+
+@media (max-width: 1040px) {
+  .team-dna-experience {
+    --people-pane-width: 390px;
+    --detail-pane-width: 430px;
+    --pane-gap: 64px;
+  }
+
+  .team-face-field-wrap {
+    width: min(100%, 390px);
+  }
+}
+
+@media (max-width: 920px) {
+  .team-dna-experience {
+    display: block;
+    width: 100%;
+  }
+
+  .team-dna-people-pane {
+    position: relative;
+    height: auto;
+    min-height: 58vh;
+    padding: 72px 24px 36px;
+  }
+
+  .team-face-field-wrap {
+    width: min(100%, 360px);
+  }
+
+  .team-face-grid {
+    grid-template-columns: repeat(3, minmax(76px, 1fr));
+    gap: 24px 14px;
+  }
+
+  .team-face-button {
+    width: clamp(72px, 22vw, 96px);
+    height: clamp(72px, 22vw, 96px);
+  }
+
+  .team-dna-insight-pane {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+  }
+
+  .team-dna-scroll-fade {
+    display: none;
+  }
+
+  .team-dna-insight-scroll {
+    height: auto;
+    overflow: visible;
+  }
+
+  .team-dna-insight-content {
+    width: min(100%, 580px);
+    margin: 0 auto;
+    padding: 28px 24px 96px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
