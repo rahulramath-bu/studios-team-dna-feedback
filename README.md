@@ -1,5 +1,7 @@
 # Team DNA
 
+[Live demo](https://team-dna-two.vercel.app)
+
 Team DNA is a high-fidelity React prototype for helping a team understand how
 its people work, how pairs collaborate, and what the team should pay attention
 to together.
