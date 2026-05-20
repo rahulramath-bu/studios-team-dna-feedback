@@ -26,7 +26,7 @@ export const BIG_FIVE_TRAITS = [
       wide: 'The best ideas come from stretching and testing.',
       offset: 'The ideas get deeper from two nearby angles.',
     },
-    color: '#AB37EB',
+    color: 'var(--purple)',
   },
   {
     key: 'conscientiousness',
@@ -44,7 +44,7 @@ export const BIG_FIVE_TRAITS = [
       wide: 'The plan needs a shared definition of done.',
       offset: 'The plans stay clear without getting stiff.',
     },
-    color: '#0072B7',
+    color: 'var(--blue-aa)',
   },
   {
     key: 'extraversion',
@@ -62,7 +62,7 @@ export const BIG_FIVE_TRAITS = [
       wide: 'The energy works best when both rhythms are named.',
       offset: 'The energy has one voice to start and one to steady it.',
     },
-    color: '#F64B33',
+    color: 'var(--data-series-three)',
   },
   {
     key: 'agreeableness',
@@ -80,7 +80,7 @@ export const BIG_FIVE_TRAITS = [
       wide: 'The feedback needs a shared signal.',
       offset: 'The feedback finds the line between direct and warm.',
     },
-    color: '#00AB69',
+    color: 'var(--green)',
   },
   {
     key: 'neuroticism',
@@ -98,7 +98,7 @@ export const BIG_FIVE_TRAITS = [
       wide: 'The pressure needs a translation layer.',
       offset: 'The pressure has both signal and steadiness.',
     },
-    color: '#4956FF',
+    color: 'var(--data-series-one)',
   },
 ];
 

@@ -16,8 +16,9 @@ import {
  * How: normalizes selection into team/person/duo insights and generates
  * deterministic Big Five copy from scores by default.
  * Port: replace `getTeamDna` with generated API hooks plus one mapper into the
- * Team DNA view model. Keep components API-blind; place unknown future backend
- * fields under `meta` until a specific card needs them.
+ * Team DNA view model documented in `teamDnaViewModel.d.ts`. Keep components
+ * API-blind; place unknown future backend fields under `meta` until a specific
+ * card needs them.
  */
 export function getTeamDna({ teamId }) {
   if (teamId !== teamDnaDataset.team.id) {

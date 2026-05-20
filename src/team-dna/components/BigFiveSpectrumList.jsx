@@ -5,18 +5,18 @@ import {
 } from '../data/bigFiveTraits.js';
 
 const SUBJECT_COLORS = [
-  '#ce0058',
-  '#1b23ff',
-  '#f55259',
-  '#0f766e',
-  '#7c3aed',
-  '#b45309',
-  '#2563eb',
-  '#be123c',
-  '#047857',
-  '#6d28d9',
-  '#4338ca',
-  '#c2410c',
+  'var(--primary)',
+  'var(--data-series-one)',
+  'var(--data-series-three)',
+  'var(--green-aa)',
+  'var(--purple)',
+  'var(--data-series-five)',
+  'var(--blue-aa)',
+  'var(--red)',
+  'var(--green)',
+  'var(--data-series-six)',
+  'var(--data-series-four)',
+  'var(--data-series-two)',
 ];
 
 const SPECTRUM_AUTO_ADVANCE_MS = 12000;

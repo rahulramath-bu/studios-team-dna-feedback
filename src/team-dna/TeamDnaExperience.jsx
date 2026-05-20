@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
-import { AiQuestionDock } from './components/AiQuestionDock.jsx';
+import { TeamDnaChatInputBridge } from './components/TeamDnaChatInputBridge.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
@@ -180,7 +180,7 @@ export function TeamDnaExperience({
         isHidden={isEditingTeam || isIntroInsightHidden}
         onSelectMember={handleSelectMember}
       />
-      <AiQuestionDock
+      <TeamDnaChatInputBridge
         scope={questionScope}
         isHidden={isEditingTeam || isIntroInsightHidden}
       />

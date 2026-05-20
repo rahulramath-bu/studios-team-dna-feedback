@@ -1,4 +1,4 @@
-import { makeTeamDnaAiInsights } from './teamDnaAiSynthesis.js';
+import { makeMockTeamDnaGeneratedInsights } from './teamDnaGeneratedInsights.mock.js';
 
 /**
  * Demo Team DNA dataset.
@@ -6,7 +6,8 @@ import { makeTeamDnaAiInsights } from './teamDnaAiSynthesis.js';
  * What: realistic local sample team, avatar paths, Big Five scores, pronouns,
  * and the minimal card shell for the standalone prototype.
  * How: uses the same view-model shape the data adapter expects, so the UI can
- * generate team/person/duo insights from scores instead of handcrafted prose.
+ * render deterministic fallback copy or mock backend-generated AI insight copy
+ * through the same path.
  * Port: do not ship these people, avatar paths, or guessed scores as product
  * data. Keep only the shape as a reference for the monolith API mapper.
  */
@@ -186,7 +187,7 @@ const members = [
     },
   ];
 
-const aiInsights = makeTeamDnaAiInsights({ team, members });
+const aiInsights = makeMockTeamDnaGeneratedInsights({ team, members });
 
 export const teamDnaDataset = {
   team,

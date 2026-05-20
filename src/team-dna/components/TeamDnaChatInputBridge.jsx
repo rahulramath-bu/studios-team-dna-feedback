@@ -33,18 +33,20 @@ const DOCK_TRANSITION = {
 };
 
 /**
- * Fixed AI question affordance.
+ * Prototype bridge for the monolith ChatInputSection/InputBox pattern.
  *
  * What: mirrors the BetterUp home/Grow ask box as a bottom-center Team DNA
- * signifier while the real AI question layer is not wired yet.
+ * signifier while the real AI question layer is not wired yet. This component
+ * is not a new design-system primitive.
  * How: Team DNA owns fixed placement and rotating prompts; the input itself
  * stays shaped like the monolith's `ChatInputSection` -> Lighthouse `InputBox`.
- * Port: replace this local shell with
+ * Port: delete this bridge and render
  * `MemberHome/components/shared/ChatInputSection` or Lighthouse `InputBox` in
- * the monolith. Both already accept a `placeholder` prop, so rotating prompt
- * state can remain here without changing the shared component.
+ * the same dock position. Both already accept a `placeholder` prop, so rotating
+ * prompt state can remain in the Team DNA route without changing the shared
+ * component.
  */
-export function AiQuestionDock({ scope = 'team', isHidden = false }) {
+export function TeamDnaChatInputBridge({ scope = 'team', isHidden = false }) {
   const prompts = PLACEHOLDERS[scope] ?? PLACEHOLDERS.team;
   const [message, setMessage] = useState('');
   const [promptIndex, setPromptIndex] = useState(0);

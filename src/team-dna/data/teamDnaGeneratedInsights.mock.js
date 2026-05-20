@@ -1,7 +1,21 @@
 import { makePairId } from './teamDnaIds.js';
 
 const GENERATED_AT = '2026-05-20T00:00:00.000Z';
-const INPUT_VERSION = 'team-dna-ai-synthesis-demo-v1';
+const INPUT_VERSION = 'team-dna-mock-generated-insights-v1';
+
+/**
+ * Mock generated-insights payload factory.
+ *
+ * What: fixture data shaped like the ideal output of a future Team DNA AI
+ * synthesis backend. It exists so the prototype can render the final product
+ * experience before that backend exists.
+ * How: combines local sample members with handcrafted team/person/duo copy and
+ * returns normal `source: 'ai'` insight records. The UI should not be able to
+ * tell whether those records came from this mock file or from a real API.
+ * Port: do not port this as frontend AI logic. Replace the factory call in
+ * `teamDnaMock.js` with real generated insight records from the backend, then
+ * keep using the same adapter/rendering path.
+ */
 
 const PERSON_SYNTHESIS = {
   sergio: {
@@ -1006,7 +1020,7 @@ function makePairInsights(members) {
   return pairs;
 }
 
-export function makeTeamDnaAiInsights({ team, members }) {
+export function makeMockTeamDnaGeneratedInsights({ team, members }) {
   return {
     team: {
       id: `team-${team.id}-ai`,

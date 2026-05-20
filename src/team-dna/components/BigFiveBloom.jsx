@@ -10,9 +10,9 @@ const CENTER = SIZE / 2;
 const MIN_RADIUS = 18;
 const MAX_RADIUS = 104;
 const PATH_STEPS = 180;
-const SUBJECT_COLORS = ['#ce0058', '#0072B7'];
+const SUBJECT_COLORS = ['var(--primary)', 'var(--blue-aa)'];
 const TEAM_COLOR = 'var(--team-aggregate)';
-const TEAM_AVERAGE_COLOR = '#1d1925';
+const TEAM_AVERAGE_COLOR = 'var(--team-dna-ink)';
 
 function getFirstName(subject) {
   return subject?.name?.split(' ')[0] ?? 'Teammate';
@@ -233,7 +233,7 @@ export function BigFiveBloom({
           ))}
         </motion.g>
         {bloomPaths.map(({ subject, d }, index) => {
-          const color = isTeam ? TEAM_COLOR : SUBJECT_COLORS[index] ?? '#ce0058';
+          const color = isTeam ? TEAM_COLOR : SUBJECT_COLORS[index] ?? 'var(--primary)';
           const isInteractiveShape = isTeam || isDuo;
           const isDimmedShape =
             isInteractiveShape &&
@@ -337,7 +337,7 @@ export function BigFiveBloom({
                     height="6"
                     rx="1.4"
                     style={{
-                      color: SUBJECT_COLORS[subjectIndex] ?? '#ce0058',
+                      color: SUBJECT_COLORS[subjectIndex] ?? 'var(--primary)',
                       opacity:
                         isDuo && activeSubjectId && activeSubjectId !== subject.id
                           ? 0.18
@@ -387,7 +387,7 @@ export function BigFiveBloom({
               onMouseLeave={() => setActiveSubjectId(null)}
               type="button"
             >
-              <i style={{ background: SUBJECT_COLORS[index] ?? '#ce0058' }} />
+              <i style={{ background: SUBJECT_COLORS[index] ?? 'var(--primary)' }} />
               {subject.name}
             </button>
           ))}
