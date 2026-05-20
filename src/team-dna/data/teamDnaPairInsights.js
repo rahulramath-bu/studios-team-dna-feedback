@@ -195,6 +195,30 @@ function getPersonTitle(primary) {
   return title[primary.direction] ?? title.middle;
 }
 
+function getTeamTitle(primary, widest) {
+  if (primary.trait === 'openness' && primary.direction === 'high') {
+    return 'The Possibility Studio';
+  }
+
+  if (primary.trait === 'conscientiousness' && primary.direction === 'high') {
+    return 'The Delivery Engine';
+  }
+
+  if (primary.trait === 'agreeableness' && primary.direction === 'high') {
+    return 'The Trust Channel';
+  }
+
+  if (primary.trait === 'neuroticism' && primary.direction === 'high') {
+    return 'The Signal Watch';
+  }
+
+  if (widest?.range >= 38) {
+    return 'The Range Team';
+  }
+
+  return 'The Working Shape';
+}
+
 function buildPersonSummary(member, primary, secondary) {
   const firstName = getFirstName(member);
   const pronouns = getPronouns(member);
@@ -268,7 +292,7 @@ export function buildTeamInsight({ team, members, cards, authoredInsight }) {
   const generatedInsight = {
     id: `team-${team?.id ?? 'unknown'}-generated`,
     eyebrow: 'Team',
-    title: teamName,
+    title: getTeamTitle(primary, widest),
     isEditable: true,
     summary: [
       {
@@ -346,7 +370,7 @@ function buildBalancedInsight(first, second) {
   const secondName = getFirstName(second);
 
   return {
-    title: 'The Complement',
+    title: 'The Counterparts',
     summary: [
       { text: firstName, emphasis: true },
       {

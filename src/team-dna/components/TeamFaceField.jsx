@@ -149,6 +149,27 @@ function resolveFaceNudges(members, selectedIds, hitboxRefs) {
     : {};
 }
 
+function getEntityTitleStyle(title) {
+  const length = title?.length ?? 0;
+
+  if (length <= 13) {
+    return { '--team-face-context-title-size': '48px' };
+  }
+
+  if (length <= 18) {
+    return { '--team-face-context-title-size': '42px' };
+  }
+
+  if (length <= 24) {
+    return { '--team-face-context-title-size': '36px' };
+  }
+
+  return {
+    '--team-face-context-title-size': '32px',
+    '--team-face-context-title-wrap': 'normal',
+  };
+}
+
 /**
  * Left-side team face field.
  *
@@ -166,6 +187,8 @@ export function TeamFaceField({
   members,
   selectedIds,
   blockedAttempt,
+  entityEyebrow,
+  entityTitle,
   isEditingTeam,
   teamName,
   onAddMember,
@@ -279,24 +302,30 @@ export function TeamFaceField({
 
   return (
     <motion.div className="team-face-field-wrap" ref={fieldRef} layout>
-      <div
-        className="team-face-toolbar"
-        data-hidden={isEditingTeam || selectedIds.length === 2 || undefined}
-      >
-        <p className="team-face-instruction">
-          {hasSelection ? 'Select another to pair' : 'Select to explore'}
-        </p>
-        {!hasSelection && !isEditingTeam && (
-          <button
-            type="button"
-            className="team-face-edit-button"
-            aria-label={`Edit ${teamName}`}
-            onClick={onEditTeam}
-          >
-            <BetterUpIcon name="Edit" size={19} strokeWidth={1.8} />
-          </button>
-        )}
-      </div>
+      {!isEditingTeam && (
+        <div className="team-face-context-header">
+          <p className="team-face-context-eyebrow">
+            {entityEyebrow}
+          </p>
+          <div className="team-face-context-title-row">
+            <h2 className="team-face-context-title">
+              <span style={getEntityTitleStyle(entityTitle)}>
+                {entityTitle}
+              </span>
+            </h2>
+            {!hasSelection && (
+              <button
+                type="button"
+                className="team-face-edit-button"
+                aria-label={`Edit ${teamName}`}
+                onClick={onEditTeam}
+              >
+                <BetterUpIcon name="Edit" size={19} strokeWidth={1.8} />
+              </button>
+            )}
+          </div>
+        </div>
+      )}
       {isEditingTeam && (
         <div className="team-edit-header">
           <div className="team-edit-name-control">

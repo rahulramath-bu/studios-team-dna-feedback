@@ -96,14 +96,11 @@ function InsightPageContent({ insight, onSelectMember }) {
 
 function InsightHeading({ insight }) {
   return (
-    <>
-      <div className="insight-eyebrow">{insight.eyebrow}</div>
-      <div className="insight-title-row">
-        <h1 className="insight-title" id={`insight-title-${insight.id}`}>
-          {insight.title}
-        </h1>
-      </div>
-    </>
+    <div className="insight-title-row">
+      <h1 className="insight-title" id={`insight-title-${insight.id}`}>
+        {insight.title}
+      </h1>
+    </div>
   );
 }
 

@@ -385,6 +385,7 @@ button {
 }
 
 .team-face-instruction,
+.team-face-context-eyebrow,
 .insight-eyebrow,
 .info-block-label {
   margin: 0;
@@ -420,6 +421,38 @@ button {
 .team-face-toolbar[data-hidden] {
   opacity: 0;
   pointer-events: none;
+}
+
+.team-face-context-header {
+  margin-bottom: 34px;
+}
+
+.team-face-context-eyebrow {
+  margin: 0 0 13px;
+}
+
+.team-face-context-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.team-face-context-title {
+  margin: 0;
+  min-width: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-weight: 400;
+  letter-spacing: var(--heading-display-tracking);
+  line-height: var(--heading-display-line-height);
+}
+
+.team-face-context-title span {
+  display: block;
+  overflow-wrap: var(--team-face-context-title-wrap, normal);
+  white-space: var(--team-face-context-title-wrap, nowrap);
+  font-size: var(--team-face-context-title-size, 48px);
 }
 
 .team-face-instruction {
@@ -501,7 +534,7 @@ button {
   border: 1px solid rgba(224, 0, 93, 0.2);
   border-radius: 999px;
   background: rgba(243, 230, 215, 0.92);
-  color: var(--duo-selection-accent);
+  color: rgba(29, 25, 37, 0.72);
   cursor: pointer;
   transform: translateY(-50%);
   transition:
@@ -1102,14 +1135,14 @@ button {
   margin: 0;
   color: var(--foreground-heading);
   font-family: var(--heading-display-font);
-  font-size: 48px;
+  font-size: 30px;
   font-weight: 400;
   letter-spacing: var(--heading-display-tracking);
-  line-height: var(--heading-display-line-height);
+  line-height: 1.12;
 }
 
 .insight-summary {
-  margin: 28px 0 0;
+  margin: 22px 0 0;
   color: var(--foreground-body);
   font-size: 16px;
   line-height: 1.75;

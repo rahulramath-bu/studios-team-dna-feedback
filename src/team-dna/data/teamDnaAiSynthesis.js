@@ -242,7 +242,7 @@ function pair(title, summary, pairingManual, bestFor, misread, watchOut) {
 
 const PAIR_SYNTHESIS = {
   [makePairId('sergio', 'justin')]: pair(
-    'The Build Spine',
+    'The Build Partners',
     'Sergio and Justin turn uncertainty into something buildable. Sergio keeps the path connected to product reality; Justin gives it the technical backbone to hold.',
     'Start with the tradeoffs, not the theater. Sergio can shape the practical path while Justin tests whether the system underneath can carry it.',
     'Architecture calls, implementation planning, and moments where the team needs ambition translated into durable engineering.',
@@ -258,7 +258,7 @@ const PAIR_SYNTHESIS = {
     'Make the landing criteria visible before the room gets excited. It keeps speed from turning into cleanup.'
   ),
   [makePairId('sergio', 'mae')]: pair(
-    'The Grounded Story',
+    'The Grounded Story Pair',
     'Mae finds the human shape of the work; Sergio helps it become something a team can actually build. The pair is useful when a feeling needs a path.',
     'Give Mae room to name what the experience should feel like, then let Sergio turn that into constraints and next steps.',
     'Experience framing, product shaping, and turning user tension into an engineering path.',
@@ -282,7 +282,7 @@ const PAIR_SYNTHESIS = {
     'Do not reduce the learning idea to content too quickly. Decide what the user should be able to do differently after the experience.'
   ),
   [makePairId('sergio', 'sophie')]: pair(
-    'The Delivery Calm',
+    'The Delivery Pair',
     'Sergio and Sophie make progress feel less noisy. Sergio clarifies the path; Sophie steadily carries it through.',
     'Give them ownership that is clear enough to land but flexible enough to adjust. They do not need much drama to make a thing real.',
     'Implementation, quality passes, technical cleanup, and work that needs reliable forward motion.',
@@ -290,7 +290,7 @@ const PAIR_SYNTHESIS = {
     'Check that the right thing is being finished, not just that something is being finished.'
   ),
   [makePairId('sergio', 'rahul')]: pair(
-    'The Landing Spark',
+    'The Spark-to-Landing Pair',
     'Rahul opens the frame; Sergio helps it touch the ground. The pair is useful when a strange idea needs a practical first version.',
     'Give Rahul room to loosen the inherited answer, then ask Sergio what version of it could survive the first build.',
     'Concept exploration, early prototyping, and turning a wild direction into the first credible artifact.',
@@ -298,7 +298,7 @@ const PAIR_SYNTHESIS = {
     'Name when exploration ends and landing begins. Otherwise the handoff becomes the conflict.'
   ),
   [makePairId('sergio', 'preetoshi')]: pair(
-    'The Taste Anchor',
+    'The Taste-and-Build Pair',
     'Preetoshi pushes toward the version that feels alive; Sergio helps keep that intensity attached to a buildable path.',
     'Let Preetoshi name what feels dead or generic, then let Sergio identify the smallest move that would make the better version real.',
     'Experience quality, prototype direction, and moments where the team needs high taste without losing feasibility.',
@@ -330,7 +330,7 @@ const PAIR_SYNTHESIS = {
     'Do not ask for a technical lock before the decision context is clear.'
   ),
   [makePairId('justin', 'mae')]: pair(
-    'The Quiet Framework',
+    'The Quiet Framework Pair',
     'Mae finds the human meaning; Justin builds the frame that can hold it. This pair turns soft signals into a system the team can trust.',
     'Give Mae space to surface the user tension, then let Justin shape the technical structure around what matters most.',
     'Experience systems, product architecture, and translating design intent into durable implementation.',
@@ -346,7 +346,7 @@ const PAIR_SYNTHESIS = {
     'Do not let the risk loop repeat. Convert the worry into one system question.'
   ),
   [makePairId('justin', 'scott')]: pair(
-    'The Patient Build',
+    'The Patient Builders',
     'Scott protects the learning path; Justin protects the system path. Together they can make a product easier to understand and harder to break.',
     'Start with what the user needs to learn, then ask what technical shape makes that learning reliable.',
     'Learning experiences, platform-supported content, and product flows where clarity needs engineering discipline.',
@@ -362,7 +362,7 @@ const PAIR_SYNTHESIS = {
     'Make sure the decision is actually made before this pair starts finishing it.'
   ),
   [makePairId('justin', 'rahul')]: pair(
-    'The Frame Lock',
+    'The Frame-to-System Pair',
     'Rahul breaks the frame; Justin locks the usable one into place. The pair can turn exploration into a system, if the switch is named.',
     'Let Rahul explore first. Then give Justin the version worth stabilizing, with enough context to know what should survive.',
     'Prototype-to-platform handoffs, concept hardening, and turning a new direction into technical shape.',
@@ -370,7 +370,7 @@ const PAIR_SYNTHESIS = {
     'Name the commit point out loud. Before it, explore; after it, protect the agreed shape.'
   ),
   [makePairId('justin', 'preetoshi')]: pair(
-    'The Sharp Spine',
+    'The Sharp Systems Pair',
     'Preetoshi raises the taste bar; Justin makes the system strong enough to carry it. This pair is useful when the better experience needs real infrastructure.',
     'Let Preetoshi name the quality gap and Justin name the structural cost. The pair works when neither signal gets minimized.',
     'Interaction quality, architectural tradeoffs, and moments where polish depends on deeper engineering choices.',
@@ -378,7 +378,7 @@ const PAIR_SYNTHESIS = {
     'Translate taste into system requirements before deciding whether it is realistic.'
   ),
   [makePairId('justin', 'jon')]: pair(
-    'The Momentum Frame',
+    'The Momentum Frame Pair',
     'Jon brings belief and motion; Justin gives that motion a frame that does not wobble. Together they can make a bold direction feel technically serious.',
     'Let Jon name why the work matters, then let Justin name what has to be true for it to hold.',
     'Studio bets, technical strategy, and moments where momentum needs a stronger foundation.',
@@ -394,7 +394,7 @@ const PAIR_SYNTHESIS = {
     'Do not skip the evidence standard just because the technical path is available.'
   ),
   [makePairId('darshan', 'mae')]: pair(
-    'The Human Launch',
+    'The Human Launch Pair',
     'Darshan creates coordinated motion; Mae keeps the motion connected to the human story. Together they can launch work without losing its soul.',
     'Let Mae name what the experience should mean, then let Darshan move the team around that shared story.',
     'Launch narratives, cross-functional alignment, and experience work that needs both emotional clarity and team momentum.',
@@ -402,7 +402,7 @@ const PAIR_SYNTHESIS = {
     'Do not turn the story into a status plan too early. The launch works better when meaning leads the motion.'
   ),
   [makePairId('darshan', 'sam')]: pair(
-    'The Warm Command',
+    'The Warm Command Pair',
     'Darshan drives coordinated action; Sam keeps the action aware of risk and care. Together they can make decisions that move and still protect people.',
     'Let Darshan create the next step and Sam name what needs to be protected before the step is final.',
     'Stakeholder moments, product readiness, and team calls where speed needs emotional and operational awareness.',
@@ -426,7 +426,7 @@ const PAIR_SYNTHESIS = {
     'Make the priority order visible before the work fans out.'
   ),
   [makePairId('darshan', 'rahul')]: pair(
-    'The Fast Reframe',
+    'The Fast Reframe Pair',
     'Rahul breaks open the idea; Darshan turns the opened frame into motion. Together they can move fast from new possibility to shared direction.',
     'Give Rahul space to disrupt the inherited answer, then let Darshan decide how the team should move around the new option.',
     'Early concept work, creative sprints, and moments where a team needs both novelty and momentum.',
@@ -442,7 +442,7 @@ const PAIR_SYNTHESIS = {
     'Decide what the intensity is for. Then give it an owner, a next step, and a stop point.'
   ),
   [makePairId('darshan', 'jon')]: pair(
-    'The Signal Boost',
+    'The Signal Boosters',
     'Darshan coordinates the room; Jon gives it belief. Together they can make a team feel like the work is possible and worth moving for.',
     'Use Jon to connect the work to human stakes and Darshan to make the next move clear.',
     'Team momentum, launches, studio direction, and moments where people need both belief and coordination.',
@@ -450,7 +450,7 @@ const PAIR_SYNTHESIS = {
     'After the room feels energized, ask what each person thinks they are doing next.'
   ),
   [makePairId('darshan', 'rainy')]: pair(
-    'The Evidence Conductor',
+    'The Evidence Conductors',
     'Darshan moves people through the decision; Rainy makes sure the decision is attached to evidence. Together they can make rigor feel actionable.',
     'Let Rainy define the evidence standard and Darshan sequence the decision around it.',
     'Research readouts, decision forums, and strategic calls where evidence needs to shape action.',
@@ -458,7 +458,7 @@ const PAIR_SYNTHESIS = {
     'Agree on what evidence is enough before the room tries to decide.'
   ),
   [makePairId('mae', 'sam')]: pair(
-    'The Careful Lens',
+    'The Care Lens Pair',
     'Mae reads the human story; Sam reads the risk underneath it. Together they are strong at noticing what a product moment may do to people.',
     'Give them access to the messy human signal. Mae can frame the experience, while Sam names what needs protection.',
     'User-sensitive product decisions, research synthesis, and moments where the team needs emotional precision.',
@@ -474,7 +474,7 @@ const PAIR_SYNTHESIS = {
     'After the meaning is clear, force one concrete move the product should make.'
   ),
   [makePairId('mae', 'sophie')]: pair(
-    'The Soft Landing',
+    'The Soft Landing Pair',
     'Mae gives the work human softness; Sophie helps it land without drama. Together they can make careful experiences real.',
     'Let Mae protect the feeling and Sophie protect the finish. The pair works when detail and care both have ownership.',
     'Polished implementation, experience cleanup, and moments where a subtle product move needs to land well.',
@@ -482,7 +482,7 @@ const PAIR_SYNTHESIS = {
     'Decide what “good enough” means for the human experience, not just for the ticket.'
   ),
   [makePairId('mae', 'rahul')]: pair(
-    'The Open Frame',
+    'The Open Frame Pair',
     'Rahul loosens the question; Mae finds the human truth inside the loosened frame. Together they can get a team unstuck from a stale answer.',
     'Let Rahul challenge the inherited frame and Mae test whether the new frame actually means something to people.',
     'Concept exploration, product story, and moments where the current answer feels too small.',
@@ -490,7 +490,7 @@ const PAIR_SYNTHESIS = {
     'Capture the strongest reframe before chasing the next one.'
   ),
   [makePairId('mae', 'preetoshi')]: pair(
-    'The Taste Mirror',
+    'The Taste Mirror Pair',
     'Preetoshi pushes for aliveness; Mae reflects the human truth back into it. Together they can make taste less arbitrary and more felt.',
     'Let Preetoshi react honestly to what feels dead, then let Mae ground the reaction in the user or emotional story.',
     'Design direction, critique, and experience work where taste needs a human explanation.',
@@ -498,7 +498,7 @@ const PAIR_SYNTHESIS = {
     'Ask what human feeling the taste decision is protecting.'
   ),
   [makePairId('mae', 'jon')]: pair(
-    'The Story Current',
+    'The Story Current Pair',
     'Mae finds the story; Jon gives it current. Together they can make a direction feel emotionally clear and socially possible.',
     'Let Mae shape the meaning and Jon carry the belief into the room.',
     'Creative direction, narrative alignment, and work where the team needs to feel why the direction matters.',
@@ -506,7 +506,7 @@ const PAIR_SYNTHESIS = {
     'After the story lands, ask what the team should do differently tomorrow.'
   ),
   [makePairId('mae', 'rainy')]: pair(
-    'The Human Evidence',
+    'The Human Evidence Pair',
     'Mae reads the human texture; Rainy checks what the evidence can actually support. Together they keep insight both felt and true.',
     'Let Mae sense the meaning and Rainy define what would prove or challenge it.',
     'Research synthesis, user interpretation, and product calls where feeling and evidence both matter.',
@@ -522,7 +522,7 @@ const PAIR_SYNTHESIS = {
     'Ask what the user needs to understand so the risk becomes smaller.'
   ),
   [makePairId('sam', 'sophie')]: pair(
-    'The Safe Ship',
+    'The Safe Ship Pair',
     'Sam catches the readiness signal; Sophie helps the work ship calmly. Together they can make finishing feel safer.',
     'Let Sam name what feels exposed and Sophie name what needs to be done next. The pair works when concern becomes sequence.',
     'Launch readiness, PM-engineering handoffs, quality passes, and careful delivery.',
@@ -530,7 +530,7 @@ const PAIR_SYNTHESIS = {
     'Make a short risk list, choose which risks matter, and ship against that list.'
   ),
   [makePairId('sam', 'rahul')]: pair(
-    'The Risk Spark',
+    'The Risk-and-Idea Pair',
     'Rahul opens possibilities; Sam catches what those possibilities might expose. Together they can make exploration more responsible.',
     'Let Rahul generate without immediate shutdown, then let Sam translate the real risks into design constraints.',
     'Early product bets, concept testing, and work where novelty needs a trust check.',
@@ -538,7 +538,7 @@ const PAIR_SYNTHESIS = {
     'Give the idea one free round before risk review. Then make the risk review concrete.'
   ),
   [makePairId('sam', 'preetoshi')]: pair(
-    'The Live Wire Check',
+    'The Live Wire Check Pair',
     'Preetoshi raises the voltage; Sam checks what that voltage might cost. Together they can make bold work safer and more precise.',
     'Let Preetoshi name the alive version and Sam name the risk hidden inside it. The best output is bolder and clearer.',
     'High-stakes experience decisions, launch quality, and moments where intensity needs a trust check.',
@@ -546,7 +546,7 @@ const PAIR_SYNTHESIS = {
     'Turn the strong reaction and the worry into one design decision before either one hardens.'
   ),
   [makePairId('sam', 'jon')]: pair(
-    'The Belief Check',
+    'The Belief Check Pair',
     'Jon builds belief; Sam tests whether the belief is safe enough to act on. Together they can keep momentum honest.',
     'Let Jon connect the work to energy and people, then let Sam name what must be true before the team moves.',
     'Studio bets, stakeholder alignment, and product calls where excitement needs readiness.',
@@ -562,7 +562,7 @@ const PAIR_SYNTHESIS = {
     'Decide what evidence would change the plan before collecting more of it.'
   ),
   [makePairId('scott', 'sophie')]: pair(
-    'The Patient Finisher',
+    'The Patient Finishers',
     'Scott shapes what people need to learn; Sophie helps the work arrive calmly and completely. Together they can make clarity real.',
     'Let Scott define the learning path and Sophie own the steady implementation path.',
     'Learning flows, adoption surfaces, and careful product implementation.',
@@ -570,7 +570,7 @@ const PAIR_SYNTHESIS = {
     'Share the learning goal and the shipping status in the same update.'
   ),
   [makePairId('scott', 'rahul')]: pair(
-    'The Learning Reframe',
+    'The Learning Reframe Pair',
     'Rahul opens a stranger question; Scott turns it into something people can understand. Together they can make novelty teachable.',
     'Let Rahul loosen the frame and Scott decide how someone would actually learn their way through it.',
     'Concept exploration, learning design, and experience work where novelty needs comprehension.',
@@ -578,7 +578,7 @@ const PAIR_SYNTHESIS = {
     'Ask what the user would need to learn for the new frame to work.'
   ),
   [makePairId('scott', 'preetoshi')]: pair(
-    'The Experience Tuner',
+    'The Experience Tuning Pair',
     'Preetoshi hears when an experience feels dead; Scott hears whether it will teach itself. Together they can tune both feeling and comprehension.',
     'Let Preetoshi raise the quality bar and Scott test whether the user can understand the improved version.',
     'Experience critique, onboarding, learning moments, and interaction quality.',
@@ -586,7 +586,7 @@ const PAIR_SYNTHESIS = {
     'Tie every taste improvement to what the user now understands or feels more clearly.'
   ),
   [makePairId('scott', 'jon')]: pair(
-    'The Meaning Current',
+    'The Meaning Current Pair',
     'Jon carries belief; Scott turns belief into understanding. Together they can make a team feel the work and know how to move with it.',
     'Let Jon create energy around the story and Scott shape the path people need to follow.',
     'Adoption, team storytelling, enablement, and creative direction that needs to become understandable.',
@@ -594,7 +594,7 @@ const PAIR_SYNTHESIS = {
     'After the story lands, ask what people now know how to do.'
   ),
   [makePairId('scott', 'rainy')]: pair(
-    'The Teaching Proof',
+    'The Teaching Proof Pair',
     'Scott asks what people need to understand; Rainy asks how we know that is true. Together they make learning more evidence-based.',
     'Let Scott define the learning hypothesis and Rainy define the evidence check.',
     'Learning research, content strategy, onboarding, and behavior-change product work.',
@@ -610,7 +610,7 @@ const PAIR_SYNTHESIS = {
     'Name the chosen version before Sophie starts carrying it.'
   ),
   [makePairId('sophie', 'preetoshi')]: pair(
-    'The Polish Handoff',
+    'The Polish Handoff Pair',
     'Preetoshi raises the experience bar; Sophie carries the chosen improvement into working software. Together they can make taste shippable.',
     'Let Preetoshi name the quality gap, then protect Sophie from moving targets once the fix is chosen.',
     'UI polish, experience details, implementation quality, and prototype-to-product handoffs.',
@@ -618,7 +618,7 @@ const PAIR_SYNTHESIS = {
     'Set a critique window and a finish window. Do not blend them silently.'
   ),
   [makePairId('sophie', 'jon')]: pair(
-    'The Calm Current',
+    'The Calm Current Pair',
     'Jon creates creative current; Sophie turns it into steady progress. Together they can keep ambitious work moving without making it feel frantic.',
     'Let Jon carry the why and Sophie carry the concrete next step. The pair works when story and ownership stay linked.',
     'Studio execution, implementation follow-through, and creative work that needs calm delivery.',
@@ -626,7 +626,7 @@ const PAIR_SYNTHESIS = {
     'Keep one clear priority in front of the creative current.'
   ),
   [makePairId('sophie', 'rainy')]: pair(
-    'The Evidence Finisher',
+    'The Evidence Finishers',
     'Rainy sharpens what is true; Sophie helps the answer become finished work. Together they can turn research into reliable product movement.',
     'Let Rainy define the evidence and Sophie define the implementation path.',
     'Research-to-build handoffs, quality work, measurement-informed product changes, and careful delivery.',
@@ -642,7 +642,7 @@ const PAIR_SYNTHESIS = {
     'Capture the strongest idea before the room chases the next charge.'
   ),
   [makePairId('rahul', 'jon')]: pair(
-    'The Creative Current',
+    'The Creative Current Pair',
     'Rahul opens the possibility; Jon gives it social current. Together they can make a new direction feel worth believing in.',
     'Let Rahul reframe the work and Jon connect the reframe to people, energy, and story.',
     'Early studio ideas, creative direction, and moments where a team needs permission to imagine bigger.',
@@ -650,7 +650,7 @@ const PAIR_SYNTHESIS = {
     'After the creative lift, ask what would prove this deserves more time.'
   ),
   [makePairId('rahul', 'rainy')]: pair(
-    'The Curious Proof',
+    'The Curious Proof Pair',
     'Rahul asks the stranger question; Rainy asks how to know if it is true. Together they make curiosity more rigorous.',
     'Let Rahul open the question and Rainy define the cleanest way to test it.',
     'Researchable product bets, concept validation, and exploratory work that needs evidence before it scales.',
@@ -666,7 +666,7 @@ const PAIR_SYNTHESIS = {
     'Name the one standard the room is raising right now.'
   ),
   [makePairId('preetoshi', 'rainy')]: pair(
-    'The Taste Test',
+    'The Taste Test Pair',
     'Preetoshi pushes for the version that feels alive; Rainy tests what the evidence can support. Together they can keep taste sharp and honest.',
     'Let Preetoshi name the experience instinct and Rainy decide what evidence would strengthen or challenge it.',
     'Design critique, research-backed experience decisions, and moments where taste needs proof without becoming bland.',
@@ -674,7 +674,7 @@ const PAIR_SYNTHESIS = {
     'Ask what evidence would make the taste call stronger, not smaller.'
   ),
   [makePairId('jon', 'rainy')]: pair(
-    'The Proof Current',
+    'The Proof Current Pair',
     'Jon creates belief; Rainy keeps belief connected to evidence. Together they can make a direction feel inspiring without becoming myth.',
     'Let Jon carry the human story and Rainy define the evidence standard underneath it.',
     'Research readouts, strategy, studio direction, and moments where the team needs both inspiration and truth.',
@@ -1014,7 +1014,7 @@ export function makeTeamDnaAiInsights({ team, members }) {
       generatedAt: GENERATED_AT,
       inputVersion: INPUT_VERSION,
       eyebrow: 'Team',
-      title: team.name,
+      title: 'The Possibility Studio',
       isEditable: true,
       summary: [
         {

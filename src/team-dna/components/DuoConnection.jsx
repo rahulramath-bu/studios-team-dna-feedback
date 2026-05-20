@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useLayoutEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 
 function getCenterWithin(containerRect, node) {
@@ -20,16 +20,19 @@ function makeLine(start, end) {
  * What: draws the selected-duo line, or a lighter hover preview line, behind
  * two face visuals.
  * How: measures actual DOM positions relative to the face-field container on
- * layout, resize, and selection changes. It does not assume a grid.
+ * every animation frame while visible. Face movement is transform-driven, so
+ * event-based layout checks miss the in-between frames and make the line snap.
  * Port: keep this local to Team DNA and retest after changing shell height,
  * CSS layout, or a future horizontal/mobile rail.
  */
 export function DuoConnection({ containerRef, faceRefs, selectedIds, variant = 'selected' }) {
   const [connection, setConnection] = useState(null);
+  const previousPathRef = useRef('');
 
   useLayoutEffect(() => {
     if (selectedIds.length !== 2) {
       setConnection(null);
+      previousPathRef.current = '';
       return undefined;
     }
 
@@ -43,43 +46,32 @@ export function DuoConnection({ containerRef, faceRefs, selectedIds, variant = '
 
       if (!container || !firstNode || !secondNode) {
         setConnection(null);
+        previousPathRef.current = '';
+        animationFrame = window.requestAnimationFrame(updateConnection);
         return;
       }
 
       const containerRect = container.getBoundingClientRect();
       const start = getCenterWithin(containerRect, firstNode);
       const end = getCenterWithin(containerRect, secondNode);
+      const path = makeLine(start, end);
 
-      setConnection({
-        path: makeLine(start, end),
-        start,
-        end,
-      });
-    };
+      if (path !== previousPathRef.current) {
+        previousPathRef.current = path;
+        setConnection({
+          path,
+          start,
+          end,
+        });
+      }
 
-    const scheduleUpdate = () => {
-      window.cancelAnimationFrame(animationFrame);
       animationFrame = window.requestAnimationFrame(updateConnection);
     };
 
-    scheduleUpdate();
-    const settleTimer = window.setTimeout(scheduleUpdate, 260);
-    window.addEventListener('resize', scheduleUpdate);
-
-    const observer = new ResizeObserver(scheduleUpdate);
-    const nodes = [
-      containerRef.current,
-      faceRefs.current.get(firstId),
-      faceRefs.current.get(secondId),
-    ].filter(Boolean);
-
-    nodes.forEach((node) => observer.observe(node));
+    animationFrame = window.requestAnimationFrame(updateConnection);
 
     return () => {
       window.cancelAnimationFrame(animationFrame);
-      window.clearTimeout(settleTimer);
-      window.removeEventListener('resize', scheduleUpdate);
-      observer.disconnect();
     };
   }, [containerRef, faceRefs, selectedIds]);
 

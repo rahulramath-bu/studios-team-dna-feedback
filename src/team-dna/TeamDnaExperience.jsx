@@ -105,6 +105,8 @@ export function TeamDnaExperience({
           members={dataset.members}
           selectedIds={selectedIds}
           blockedAttempt={blockedAttempt}
+          entityEyebrow={insight.entityEyebrow ?? insight.eyebrow}
+          entityTitle={insight.entityTitle ?? insight.title}
           isEditingTeam={isEditingTeam}
           teamName={dataset.team.name}
           onAddMember={onAddMember}

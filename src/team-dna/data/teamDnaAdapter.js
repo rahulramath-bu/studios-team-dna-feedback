@@ -37,6 +37,18 @@ function getSelectedMembers(dataset, selectedIds) {
     .filter(Boolean);
 }
 
+function getFirstName(member) {
+  return member?.name?.split(' ')[0] ?? 'Teammate';
+}
+
+function withEntityHeading(insight, entityEyebrow, entityTitle) {
+  return {
+    ...insight,
+    entityEyebrow,
+    entityTitle,
+  };
+}
+
 function getSpectrumLabel(selectedMembers) {
   if (selectedMembers.length === 0) {
     return 'How this team works';
@@ -124,12 +136,16 @@ export function getInsightForSelection(dataset, selectedIds) {
     return withSelectionCards(
       dataset,
       selectedIds,
-      buildTeamInsight({
-        team: dataset.team,
-        members: getSelectableMembers(dataset),
-        cards: [],
-        authoredInsight: getResolvedInsightCopy(dataset.insights.team),
-      })
+      withEntityHeading(
+        buildTeamInsight({
+          team: dataset.team,
+          members: getSelectableMembers(dataset),
+          cards: [],
+          authoredInsight: getResolvedInsightCopy(dataset.insights.team),
+        }),
+        'Team',
+        dataset.team.name
+      )
     );
   }
 
@@ -141,13 +157,17 @@ export function getInsightForSelection(dataset, selectedIds) {
     return withSelectionCards(
       dataset,
       selectedIds,
-      buildPersonInsight({
-        member: selectedMember,
-        cards: [],
-        authoredInsight: getResolvedInsightCopy(
-          dataset.insights.people?.[selectedIds[0]]
-        ),
-      })
+      withEntityHeading(
+        buildPersonInsight({
+          member: selectedMember,
+          cards: [],
+          authoredInsight: getResolvedInsightCopy(
+            dataset.insights.people?.[selectedIds[0]]
+          ),
+        }),
+        'Person',
+        selectedMember?.name ?? 'Team member'
+      )
     );
   }
 
@@ -162,11 +182,15 @@ export function getInsightForSelection(dataset, selectedIds) {
   return withSelectionCards(
     dataset,
     selectedIds,
-    buildPairInsight({
-      first: firstMember,
-      second: secondMember,
-      cards: [],
-      authoredInsight: getResolvedInsightCopy(dataset.insights.pairs?.[pairId]),
-    })
+    withEntityHeading(
+      buildPairInsight({
+        first: firstMember,
+        second: secondMember,
+        cards: [],
+        authoredInsight: getResolvedInsightCopy(dataset.insights.pairs?.[pairId]),
+      }),
+      'Pair',
+      `${getFirstName(firstMember)} x ${getFirstName(secondMember)}`
+    )
   );
 }
