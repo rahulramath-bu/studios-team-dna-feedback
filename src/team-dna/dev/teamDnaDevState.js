@@ -1,3 +1,13 @@
+/**
+ * Debug scenario state helpers.
+ *
+ * What: lets the standalone dev panel simulate different team sizes, missing
+ * avatars, incomplete assessments, and monolith-shell preview state.
+ * How: overlays debug choices on top of the fixture dataset without changing
+ * the underlying sample data.
+ * Port: do not port this file. Real monolith state should come from API data,
+ * feature flags, permissions, and product routing.
+ */
 export const TEAM_SIZE_PRESETS = [0, 1, 3, 6, 9, 12];
 
 export function createInitialDevState(members) {

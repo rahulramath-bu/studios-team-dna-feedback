@@ -5,9 +5,11 @@ import { TEAM_SIZE_PRESETS } from './teamDnaDevState.js';
 /**
  * Dev-only scenario harness.
  *
- * This intentionally lives under `team-dna/dev` so it does not get copied into
- * the monolith feature by accident. It owns prototype-only knobs for viewport
- * and data stress testing; production should get these states from real data.
+ * What: hidden debug bar for stress-testing Team DNA states while designing.
+ * How: toggles with backslash and mutates a separate dev overlay for team size,
+ * missing avatars, incomplete assessments, and shell preview.
+ * Port: do not port this. The monolith should get these states from real data,
+ * permissions, feature flags, and route context.
  */
 export function TeamDnaDevPanel({ baseMembers, devState, setDevState }) {
   useEffect(() => {

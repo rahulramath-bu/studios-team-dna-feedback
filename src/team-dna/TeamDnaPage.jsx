@@ -10,6 +10,16 @@ import {
 
 const teamDna = getTeamDna({ teamId: 'flighthouse' });
 
+/**
+ * Standalone prototype page.
+ *
+ * What: local route harness for the Team DNA experience.
+ * How: loads fixture data, applies debug scenarios, owns in-memory team edits,
+ * and optionally wraps the feature in a fake monolith shell preview.
+ * Port: replace this with a monolith route/page that owns BrowserTitle,
+ * analytics, loading/error states, generated API hooks, adapter mapping, and
+ * real add/remove/rename mutations. The portable feature is TeamDnaExperience.
+ */
 function cloneEditState(value) {
   return JSON.parse(JSON.stringify(value));
 }
@@ -70,9 +80,8 @@ export function TeamDnaPage() {
     setEditSnapshot(null);
   };
 
-  // Monolith integration tip: these prototype mutations are the future API
-  // seam. Port them to team rename/add/remove mutations rather than keeping
-  // local client-only dataset edits.
+  // Porting seam: replace these local mutations with team rename/add/remove
+  // API mutations, or remove edit mode if roster management lives elsewhere.
   const removeMember = (memberId) => {
     setEditableTeamDna((current) => ({
       ...current,

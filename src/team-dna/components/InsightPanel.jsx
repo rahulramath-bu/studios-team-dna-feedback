@@ -1,9 +1,6 @@
 import React, {
-  useCallback,
   useEffect,
-  useLayoutEffect,
   useRef,
-  useState,
 } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { InfoBlock } from './InfoBlock.jsx';
@@ -19,6 +16,18 @@ const BASELINE_REVEAL_TRANSITION = {
   ease: PAGE_EASE,
 };
 
+/**
+ * Right-side insight read.
+ *
+ * What: renders the current team/person/duo narrative plus supporting card
+ * slots inside a self-contained scrollable panel.
+ * How: keys each selected insight as a local read state, preserves scroll
+ * depth across person/duo comparisons, and lets baseline/team reveals feel
+ * calmer than person/duo transitions.
+ * Port: keep internal scroll, fades, and read transitions inside Team DNA. The
+ * monolith shell should provide available height, not become the scroll
+ * container for these sections.
+ */
 function getPageSectionMotion(delay = 0) {
   return {
     initial: { opacity: 0, y: 16 },
@@ -36,61 +45,13 @@ function getPageSectionMotion(delay = 0) {
 export function InsightPanel({ insight, isHidden, selectionCount }) {
   const scrollRef = useRef(null);
   const previousSelectionCount = useRef(selectionCount);
-  const activeFrameRef = useRef(0);
-  const [activeSnapIndex, setActiveSnapIndex] = useState(0);
   const isReturningToSolo =
     previousSelectionCount.current === 2 && selectionCount === 1;
   const isBaselineReveal = insight.id === 'team' || isReturningToSolo;
 
-  const updateActiveSnapIndex = useCallback(() => {
-    const scrollNode = scrollRef.current;
-    if (!scrollNode) return;
-
-    const snapSections = Array.from(
-      scrollNode.querySelectorAll('.insight-snap-section')
-    );
-    if (snapSections.length === 0) return;
-
-    const scrollRect = scrollNode.getBoundingClientRect();
-    const activationY = scrollRect.top + scrollRect.height * 0.38;
-    const closest = snapSections.reduce(
-      (current, section, index) => {
-        const rect = section.getBoundingClientRect();
-        const sectionFocusY = rect.top + rect.height / 2;
-        const distance = Math.abs(sectionFocusY - activationY);
-
-        return distance < current.distance ? { index, distance } : current;
-      },
-      { index: 0, distance: Infinity }
-    );
-
-    setActiveSnapIndex((current) =>
-      current === closest.index ? current : closest.index
-    );
-  }, []);
-
-  const handleInsightScroll = useCallback(() => {
-    window.cancelAnimationFrame(activeFrameRef.current);
-    activeFrameRef.current = window.requestAnimationFrame(updateActiveSnapIndex);
-  }, [updateActiveSnapIndex]);
-
-  useLayoutEffect(() => {
-    scrollRef.current?.scrollTo({ top: 0 });
-    setActiveSnapIndex(0);
-    window.cancelAnimationFrame(activeFrameRef.current);
-    activeFrameRef.current = window.requestAnimationFrame(updateActiveSnapIndex);
-  }, [insight.id, updateActiveSnapIndex]);
-
   useEffect(() => {
     previousSelectionCount.current = selectionCount;
   }, [selectionCount]);
-
-  useEffect(
-    () => () => {
-      window.cancelAnimationFrame(activeFrameRef.current);
-    },
-    []
-  );
 
   return (
     <AnimatePresence>
@@ -104,25 +65,16 @@ export function InsightPanel({ insight, isHidden, selectionCount }) {
         >
           <div className="team-dna-scroll-fade top" aria-hidden="true" />
           <div className="team-dna-scroll-fade bottom" aria-hidden="true" />
-          {/* Monolith integration tip: this mirrors the Human Session lobby
-              pattern where the scroll container owns vertical snap and each
-              readable card/blurb opts in as a snap point. */}
-          <div
-            className="team-dna-insight-scroll"
-            ref={scrollRef}
-            onScroll={handleInsightScroll}
-          >
+          <div className="team-dna-insight-scroll" ref={scrollRef}>
             <div className="team-dna-insight-content">
               <AnimatePresence mode="wait">
-                {/* Monolith integration tip: the whole right-side read is keyed as
-                    one local "page" so the blurb and supporting block slots move
-                    together. The components are reusable; the selected insight
-                    gets its own mounted instance for clearer narrative motion. */}
+                {/* Monolith integration seam: the selected insight is keyed as a
+                    local read state. The route should swap data; this panel owns
+                    the narrative transition between team/person/duo reads. */}
                 <InsightPage
                   key={insight.id}
                   insight={insight}
                   isBaselineReveal={isBaselineReveal}
-                  activeSnapIndex={activeSnapIndex}
                 />
               </AnimatePresence>
             </div>
@@ -133,7 +85,7 @@ export function InsightPanel({ insight, isHidden, selectionCount }) {
   );
 }
 
-function InsightPage({ insight, isBaselineReveal, activeSnapIndex }) {
+function InsightPage({ insight, isBaselineReveal }) {
   const isTeamInsight = insight.id === 'team';
   const shouldUseWholePageReveal = isTeamInsight || isBaselineReveal;
 
@@ -160,14 +112,10 @@ function InsightPage({ insight, isBaselineReveal, activeSnapIndex }) {
       {shouldUseWholePageReveal ? (
         <InsightPageContent
           insight={insight}
-          activeSnapIndex={activeSnapIndex}
         />
       ) : (
         <>
-          <section
-            className="insight-primary-read insight-snap-section"
-            data-snap-active={activeSnapIndex === 0 || undefined}
-          >
+          <section className="insight-primary-read">
             <motion.div
               {...getPageSectionMotion(0)}
               className="insight-heading-group"
@@ -179,7 +127,7 @@ function InsightPage({ insight, isBaselineReveal, activeSnapIndex }) {
             </motion.div>
           </section>
           <motion.div {...getPageSectionMotion(0.58)}>
-            <InsightBlocks insight={insight} activeSnapIndex={activeSnapIndex} />
+            <InsightBlocks insight={insight} />
           </motion.div>
         </>
       )}
@@ -187,19 +135,16 @@ function InsightPage({ insight, isBaselineReveal, activeSnapIndex }) {
   );
 }
 
-function InsightPageContent({ insight, activeSnapIndex }) {
+function InsightPageContent({ insight }) {
   return (
     <>
-      <section
-        className="insight-primary-read insight-snap-section"
-        data-snap-active={activeSnapIndex === 0 || undefined}
-      >
+      <section className="insight-primary-read">
         <div className="insight-heading-group">
           <InsightHeading insight={insight} />
         </div>
         <InsightSummary insight={insight} />
       </section>
-      <InsightBlocks insight={insight} activeSnapIndex={activeSnapIndex} />
+      <InsightBlocks insight={insight} />
     </>
   );
 }
@@ -229,15 +174,13 @@ function InsightSummary({ insight }) {
   );
 }
 
-function InsightBlocks({ insight, activeSnapIndex }) {
+function InsightBlocks({ insight }) {
   return (
     <div className="info-block-stack" aria-label="Future insight blocks">
-      {insight.cards.map((card, index) => (
+      {insight.cards.map((card) => (
         <InfoBlock
           key={card.id}
-          label={card.label}
-          className="insight-snap-section"
-          isActive={activeSnapIndex === index + 1}
+          card={card}
         />
       ))}
     </div>

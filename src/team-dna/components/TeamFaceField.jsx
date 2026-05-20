@@ -149,6 +149,19 @@ function resolveFaceNudges(members, selectedIds, hitboxRefs) {
     : {};
 }
 
+/**
+ * Left-side team face field.
+ *
+ * What: renders the selectable team cluster, edit affordance, team-name editor,
+ * add/remove controls, hover preview line, selected duo line, and selected-pair
+ * nudge behavior.
+ * How: keeps stable button hitboxes while inner visual layers scale; stores DOM
+ * refs for each face so DuoConnection and nudge math can measure real positions
+ * instead of assuming a specific grid.
+ * Port: keep this as Team DNA-owned interaction code. Wire add/remove/name
+ * actions to monolith mutations at the route layer, and replace BetterUpIcon
+ * with the monolith icon component.
+ */
 export function TeamFaceField({
   members,
   selectedIds,
@@ -239,8 +252,8 @@ export function TeamFaceField({
     return () => window.clearTimeout(timeout);
   }, [isEditingTeam, members.length]);
 
-  // Monolith integration tip: duo nudges measure layout positions, not grid
-  // row/column indexes, so this can survive a future horizontal rail.
+  // Layout note: duo nudges measure positions, not grid row/column indexes, so
+  // this can survive a future horizontal rail.
   useLayoutEffect(() => {
     let animationFrame = 0;
 

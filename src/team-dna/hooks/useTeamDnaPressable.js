@@ -4,12 +4,15 @@ const HOLD_HAPTIC_THRESHOLD_MS = 100;
 const HAPTIC_DURATION_MS = 10;
 
 /**
- * Local version of BetterApart's press grammar.
+ * Team DNA press feedback hook.
  *
- * The visual "press down" is immediate, but selection still commits through the
- * native click event on press-up-inside. When this ports into the monolith, this
- * should either map to a shared Pressable primitive or stay as a tiny Team DNA
- * hook if the broader app is not ready for a global interaction primitive.
+ * What: gives face buttons immediate press-down feedback while preserving
+ * normal click semantics.
+ * How: pointer-down sets local pressed state and optional haptic feedback;
+ * selection still commits through the browser's native click on press-up-inside.
+ * Port: map this to a shared BetterUp Pressable primitive if one exists. If not,
+ * keep it as a tiny Team DNA hook rather than creating a global primitive from
+ * this prototype alone.
  */
 export function useTeamDnaPressable({ disabled = false } = {}) {
   const isPressedRef = useRef(false);

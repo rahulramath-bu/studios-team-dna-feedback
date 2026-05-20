@@ -1,3 +1,14 @@
+/**
+ * Deterministic Team DNA insight helpers.
+ *
+ * What: turns Big Five scores into human-readable person and duo superpower
+ * language when authored or backend-generated copy is unavailable.
+ * How: compares strongest traits, shared signals, and complements, then returns
+ * the same TeamDnaInsight shape used by the panel.
+ * Port: treat this as fallback logic or prototyping support. Prefer
+ * backend-owned insight copy/statuses when the monolith has real Team DNA data,
+ * and do not add live frontend AI calls here.
+ */
 const TRAIT_LANGUAGE = {
   openness: {
     label: 'openness',
@@ -257,9 +268,8 @@ function buildBalancedInsight(first, second) {
   };
 }
 
-// Monolith integration tip: this is intentionally deterministic. Live AI can
-// help draft better language later, but the product should still have a clear
-// non-AI fallback that turns assessment scores into stable pair readouts.
+// Runtime note: this stays deterministic so the feature can render stable
+// pair readouts without needing a live AI call in the browser.
 export function buildPairInsight({ first, second, cards }) {
   const complement = getStrongestComplement(first, second);
   const shared = getStrongestSharedTrait(first, second);

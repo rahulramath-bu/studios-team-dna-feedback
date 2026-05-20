@@ -22,6 +22,19 @@ function getInitials(name) {
     .toUpperCase();
 }
 
+/**
+ * Single teammate pressable.
+ *
+ * What: semantic face button for one team member, including avatar/initials,
+ * selected ring, dimming, hover label, edit remove control, unavailable shake,
+ * selected pulse, and press feedback.
+ * How: separates transforms across nested motion layers so hover, press,
+ * selected scale, duo nudge, pulse, and blocked shake can compose without
+ * fighting over one CSS transform.
+ * Port: keep the layered motion local to Team DNA, but feed it real profile
+ * avatar data. Prefer the monolith avatar primitive if it can support these
+ * visual layers; replace BetterUpIcon with @betterup/icons.
+ */
 export const TeamFace = forwardRef(function TeamFace(
   {
     member,
@@ -53,8 +66,8 @@ export const TeamFace = forwardRef(function TeamFace(
       ? SELECTION_NUDGE_TRANSITION
       : { duration: 0.32, ease: 'easeInOut' };
 
-  // Monolith integration tip: keep this as a semantic button. The custom part
-  // is the Team DNA-specific face-cluster motion, not the accessibility model.
+  // Keep this as a semantic button. The custom part is Team DNA-specific face
+  // motion, not the accessibility model.
   // Hover restores dimmed faces to full opacity so people remain inspectable.
   // The inner layers own selected pulse and unavailable shake so those effects
   // never fight the outer visual layer's hover, press, and nudge transforms.

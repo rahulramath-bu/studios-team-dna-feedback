@@ -15,9 +15,14 @@ function makeLine(start, end) {
 }
 
 /**
- * Monolith integration tip: this layer measures actual face button positions.
- * It does not assume a grid, so the same selected-duo effect can survive a
- * future horizontal/mobile rail without rewriting the connection math.
+ * Measured connection between two selected faces.
+ *
+ * What: draws the selected-duo line, or a lighter hover preview line, behind
+ * two face visuals.
+ * How: measures actual DOM positions relative to the face-field container on
+ * layout, resize, and selection changes. It does not assume a grid.
+ * Port: keep this local to Team DNA and retest after changing shell height,
+ * CSS layout, or a future horizontal/mobile rail.
  */
 export function DuoConnection({ containerRef, faceRefs, selectedIds, variant = 'selected' }) {
   const [connection, setConnection] = useState(null);

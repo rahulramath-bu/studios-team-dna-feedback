@@ -1,5 +1,15 @@
 import { makePairId } from './teamDnaIds.js';
 
+/**
+ * Demo Team DNA dataset.
+ *
+ * What: realistic local sample team, avatar paths, Big Five scores, and a few
+ * authored insight reads for the standalone prototype.
+ * How: uses the same view-model shape the data adapter expects, so the UI can
+ * be built against a stable contract instead of component-local fixtures.
+ * Port: do not ship these people, avatar paths, or guessed scores as product
+ * data. Keep only the shape as a reference for the monolith API mapper.
+ */
 const cards = [
   { id: 'block-1', label: 'Other info block' },
   { id: 'block-2', label: 'Other info block' },
@@ -18,14 +28,15 @@ export const teamDnaDataset = {
       role: 'Manager, Engineering',
       avatarUrl: '/team-dna/avatars/sergio-canales.png',
       assessmentComplete: true,
-      // Placeholder scores are AI-assisted guesses for demo behavior only.
-      // Replace with assessment-backed scores when the real data seam arrives.
+      // Demo scores mirror provided Team DNA prototype outputs where available.
+      // `neuroticism` is stored as emotional reactivity, so it inverses the
+      // source "Emotional Stability" score.
       bigFive: {
-        openness: 55,
-        conscientiousness: 86,
-        extraversion: 58,
-        agreeableness: 62,
-        neuroticism: 26,
+        openness: 62,
+        conscientiousness: 78,
+        extraversion: 64,
+        agreeableness: 74,
+        neuroticism: 28,
       },
     },
     {
@@ -35,11 +46,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/justin-schiff.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 63,
-        conscientiousness: 82,
-        extraversion: 38,
-        agreeableness: 58,
-        neuroticism: 31,
+        openness: 66,
+        conscientiousness: 95,
+        extraversion: 24,
+        agreeableness: 42,
+        neuroticism: 18,
       },
     },
     {
@@ -49,11 +60,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/darshan-bhatt.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 60,
-        conscientiousness: 79,
-        extraversion: 54,
-        agreeableness: 68,
-        neuroticism: 34,
+        openness: 94,
+        conscientiousness: 92,
+        extraversion: 86,
+        agreeableness: 82,
+        neuroticism: 16,
       },
     },
     {
@@ -63,11 +74,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/mae-gowda.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 88,
-        conscientiousness: 62,
-        extraversion: 46,
-        agreeableness: 76,
-        neuroticism: 48,
+        openness: 92,
+        conscientiousness: 52,
+        extraversion: 38,
+        agreeableness: 80,
+        neuroticism: 52,
       },
     },
     {
@@ -77,11 +88,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/sam-ryu.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 72,
+        openness: 55,
         conscientiousness: 74,
-        extraversion: 67,
-        agreeableness: 64,
-        neuroticism: 36,
+        extraversion: 70,
+        agreeableness: 84,
+        neuroticism: 86,
       },
     },
     {
@@ -91,11 +102,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/scott-baker.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 82,
-        conscientiousness: 66,
-        extraversion: 52,
-        agreeableness: 80,
-        neuroticism: 43,
+        openness: 84,
+        conscientiousness: 50,
+        extraversion: 26,
+        agreeableness: 90,
+        neuroticism: 12,
       },
     },
     {
@@ -105,11 +116,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/rahul-ramath.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 64,
-        conscientiousness: 78,
-        extraversion: 42,
-        agreeableness: 72,
-        neuroticism: 38,
+        openness: 74,
+        conscientiousness: 96,
+        extraversion: 50,
+        agreeableness: 94,
+        neuroticism: 32,
       },
     },
     {
@@ -119,11 +130,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/preetoshi.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 91,
-        conscientiousness: 44,
-        extraversion: 72,
-        agreeableness: 51,
-        neuroticism: 46,
+        openness: 90,
+        conscientiousness: 24,
+        extraversion: 42,
+        agreeableness: 58,
+        neuroticism: 24,
       },
     },
     {
@@ -133,11 +144,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/jon-blomgren.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 94,
-        conscientiousness: 39,
-        extraversion: 69,
-        agreeableness: 58,
-        neuroticism: 54,
+        openness: 98,
+        conscientiousness: 22,
+        extraversion: 78,
+        agreeableness: 46,
+        neuroticism: 60,
       },
     },
     {
@@ -147,11 +158,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/rainy-gu.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 84,
-        conscientiousness: 61,
+        openness: 88,
+        conscientiousness: 66,
         extraversion: 76,
-        agreeableness: 63,
-        neuroticism: 33,
+        agreeableness: 38,
+        neuroticism: 24,
       },
     },
     {
@@ -161,11 +172,11 @@ export const teamDnaDataset = {
       avatarUrl: '/team-dna/avatars/rainy-gu-field.png',
       assessmentComplete: true,
       bigFive: {
-        openness: 76,
-        conscientiousness: 87,
-        extraversion: 34,
-        agreeableness: 69,
-        neuroticism: 41,
+        openness: 96,
+        conscientiousness: 86,
+        extraversion: 22,
+        agreeableness: 78,
+        neuroticism: 14,
       },
     },
   ],

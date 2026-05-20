@@ -22,12 +22,13 @@ const primaryLinks = [
 /**
  * Debug-only monolith composition harness.
  *
- * This intentionally stays debug-only. The monolith source currently gives us
- * the MemberNavbar + route outlet shape and the PageTabs primitive, but Team DNA
- * does not have a checked-in destination route yet. Do not add product content
- * above these tabs: the team name/superpower belongs inside the Team DNA tab.
- * During the port, delete this wrapper and mount TeamDnaExperience in the real
- * Team tab route beside the real PageTabs instance.
+ * What: local visual preview of the likely monolith Team shell.
+ * How: duplicates only enough navbar/tab chrome to judge the Team DNA panel in
+ * context; none of these links or tabs are real product routes here.
+ * Port: delete this wrapper. Mount TeamDnaExperience inside the real
+ * MemberNavbar/Team route/PageTabs or route-driven subtab layout. Do not add
+ * product content above the tabs; the team name/superpower belongs inside the
+ * Team DNA tab panel unless Product changes the IA.
  */
 export function MonolithTeamShell({ children, enabled }) {
   if (!enabled) {

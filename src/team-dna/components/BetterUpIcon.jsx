@@ -24,14 +24,24 @@ const paths = {
       <path d="m20 6-11 11-5-5" />
     </>
   ),
+  Info: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M12 10v6" />
+      <path d="M12 7.5v.01" />
+    </>
+  ),
 };
 
 /**
- * Standalone bridge for the monolith icon pattern.
+ * Standalone icon bridge.
  *
- * The monolith should replace this with:
- * `import { Icon } from '@betterup/icons/src/Icon'`
- * and render `<Icon name="Edit" />` directly.
+ * What: tiny local SVG map for the few icons this prototype needs.
+ * How: keeps call sites shaped like BetterUp's icon API without adding a third
+ * party icon package to the standalone app.
+ * Port: delete this file and replace usage with
+ * `import { Icon } from '@betterup/icons/src/Icon'`, then render
+ * `<Icon name="Edit" />` directly.
  */
 export function BetterUpIcon({ name, size = 20, strokeWidth = 1.8, ...props }) {
   return (
