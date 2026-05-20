@@ -13,7 +13,7 @@ export const TEAM_SIZE_PRESETS = [0, 1, 3, 6, 9, 12];
 export function createInitialDevState(members) {
   return {
     isOpen: false,
-    showMonolithShell: false,
+    showMonolithShell: true,
     teamSize: members.length,
     memberStates: Object.fromEntries(
       members.map((member) => [

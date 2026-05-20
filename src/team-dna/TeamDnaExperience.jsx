@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
+import { AiQuestionDock } from './components/AiQuestionDock.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
@@ -144,6 +145,8 @@ export function TeamDnaExperience({
   };
 
   const insight = getInsightForSelection(dataset, selectedIds);
+  const questionScope =
+    selectedIds.length === 2 ? 'duo' : selectedIds.length === 1 ? 'person' : 'team';
 
   return (
     <section
@@ -176,6 +179,10 @@ export function TeamDnaExperience({
         insight={insight}
         isHidden={isEditingTeam || isIntroInsightHidden}
         onSelectMember={handleSelectMember}
+      />
+      <AiQuestionDock
+        scope={questionScope}
+        isHidden={isEditingTeam || isIntroInsightHidden}
       />
     </section>
   );

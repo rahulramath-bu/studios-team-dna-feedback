@@ -71,7 +71,8 @@
 [data-theme='uplift'] {
   /* Porting seam: these names mirror component-library theme tokens.
      During porting, remove local fallback values before renaming the CSS API. */
-  --background: #f3e6d7;
+  /* Bridge between BetterUp's modern shell canvas (#F3F2EE) and Lighthouse's warm AI base (#FFFAF2). */
+  --background: #f9f6f0;
   --page-background: var(--background);
   --foreground: #1d1925;
   --foreground-heading: #1d1925;
@@ -146,12 +147,11 @@ button {
 }
 
 .monolith-shell-preview {
-  --monolith-nav-height: 82px;
-  --monolith-tabs-height: 57px;
-  --monolith-shell-chrome: calc(var(--monolith-nav-height) + var(--monolith-tabs-height));
+  --monolith-nav-height: 70px;
+  --monolith-shell-chrome: var(--monolith-nav-height);
 
   min-height: 100vh;
-  background: #f4f3e9;
+  background: var(--page-background);
   color: #1d1925;
 }
 
@@ -159,15 +159,16 @@ button {
   min-height: var(--monolith-nav-height);
   border-bottom: 1px solid #e5e5e5;
   background: #fff;
-  padding: 0 90px;
+  padding: 0 24px;
 }
 
 .monolith-primary-nav-inner {
-  display: flex;
-  max-width: 1260px;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  column-gap: 22px;
+  max-width: 1006px;
   min-height: var(--monolith-nav-height);
   align-items: stretch;
-  justify-content: space-between;
   margin: 0 auto;
 }
 
@@ -176,14 +177,13 @@ button {
   min-height: var(--monolith-nav-height);
   align-items: center;
   justify-content: center;
-  margin-right: 20px;
   color: #1d1925;
   text-decoration: none;
 }
 
 .monolith-primary-logo img {
   display: block;
-  width: 110px;
+  width: 89px;
   height: auto;
 }
 
@@ -191,24 +191,24 @@ button {
   display: flex;
   flex: 1;
   align-items: stretch;
+  gap: 12px;
 }
 
-.monolith-primary-links a,
-.monolith-primary-actions span {
+.monolith-primary-links a {
   display: inline-flex;
   position: relative;
   align-items: center;
   align-self: stretch;
   justify-content: center;
   flex-direction: column;
-  gap: 4px;
-  min-width: 36px;
-  padding: 12px 10px 8px;
+  gap: 2px;
+  min-width: 52px;
+  padding: 9px 5px 6px;
   border-bottom: 2px solid transparent;
   color: #1a1a1a;
-  font-size: 12px;
+  font-size: 9px;
   font-weight: 400;
-  line-height: 20px;
+  line-height: 1.25;
   text-decoration: none;
   white-space: nowrap;
 }
@@ -226,84 +226,83 @@ button {
   display: flex;
   align-items: stretch;
   justify-content: flex-end;
+  gap: 14px;
 }
 
 .monolith-primary-icon {
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   stroke: currentColor;
   stroke-linecap: round;
   stroke-linejoin: round;
-  stroke-width: 1.8;
+  stroke-width: 1.9;
 }
 
-.monolith-primary-action-link {
-  padding-right: 12px !important;
-  padding-left: 12px !important;
+.monolith-primary-actions a {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  align-self: stretch;
+  justify-content: center;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 42px;
+  padding: 9px 0 8px;
+  color: #1a1a1a;
+  font-size: 9px;
+  line-height: 1.25;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.monolith-primary-action-icon-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.monolith-primary-badge {
+  position: absolute;
+  top: -7px;
+  right: -8px;
+  display: inline-flex;
+  min-width: 16px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--primary);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.monolith-primary-avatar-link {
+  min-width: 38px !important;
+  padding-left: 6px !important;
 }
 
 .monolith-primary-avatar {
   align-self: center;
-  min-width: 0 !important;
-  width: 34px;
-  height: 34px;
+  display: block;
+  width: 29px;
+  height: 29px;
   padding: 0 !important;
-  border: 1px solid #d7d7d7;
   border-radius: 999px;
-  background: #f7f7f7;
+  background:
+    linear-gradient(135deg, rgba(0, 159, 179, 0.95), rgba(0, 159, 179, 0.42) 46%, rgba(29, 25, 37, 0.16));
 }
 
 .monolith-shell-main {
   min-height: calc(100vh - var(--monolith-nav-height));
   overflow: hidden;
-  background: #f4f3e9;
+  background: var(--page-background);
 }
 
 .monolith-shell-content {
   width: 100%;
   margin: 0 auto;
   padding: 0;
-}
-
-.monolith-page-tabs {
-  display: flex;
-  width: 100%;
-  height: auto;
-  justify-content: flex-start;
-  margin: 0;
-  padding: 0;
-  border-bottom: 1px solid #e5e7eb;
-  background: transparent;
-}
-
-.monolith-page-tab {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  border: 0;
-  border-bottom: 2px solid transparent;
-  border-radius: 0;
-  background: transparent;
-  color: #1d1925;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 400;
-  line-height: 1.5;
-  white-space: nowrap;
-}
-
-.monolith-page-tab[data-active] {
-  position: relative;
-  z-index: 1;
-  border-bottom-color: var(--primary);
-  color: var(--primary);
-}
-
-.monolith-tab-panel {
-  height: calc(100vh - var(--monolith-shell-chrome));
-  margin-top: 0;
-  overflow: hidden;
 }
 
 .monolith-shell-preview .team-dna-page {
@@ -372,7 +371,7 @@ button {
   display: flex;
   align-items: center;
   justify-content: flex-start;
-  padding: 72px 0;
+  padding: 8px 0 136px;
   transition: justify-content 520ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -581,7 +580,7 @@ button {
   background: transparent;
   color: var(--foreground-heading);
   font-family: var(--heading-display-font);
-  font-size: 42px;
+  font-size: 39px;
   font-weight: 400;
   letter-spacing: var(--heading-display-tracking);
   line-height: 1.04;
@@ -603,7 +602,7 @@ button {
   padding: 0;
   border: 1px solid rgba(224, 0, 93, 0.2);
   border-radius: 999px;
-  background: rgba(243, 230, 215, 0.92);
+  background: rgba(249, 246, 240, 0.92);
   color: rgba(29, 25, 37, 0.72);
   cursor: pointer;
   transform: translateY(-50%);
@@ -783,7 +782,7 @@ button {
   padding: 0;
   border: 1px solid rgba(224, 0, 93, 0.22);
   border-radius: 999px;
-  background: rgba(243, 230, 215, 0.92);
+  background: rgba(249, 246, 240, 0.92);
   color: var(--duo-selection-accent);
   cursor: pointer;
   box-shadow: 0 5px 14px rgba(29, 25, 37, 0.13);
@@ -1148,6 +1147,107 @@ button {
   transform: translateX(15px);
 }
 
+.team-dna-ai-question-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 42px;
+  z-index: 80;
+  width: min(642px, calc(100vw - 48px));
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.team-dna-ai-question-box {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 38px;
+  align-items: center;
+  gap: 10px;
+  min-height: 58px;
+  padding: 9px 10px 9px 21px;
+  border: 1px solid rgba(29, 25, 37, 0.16);
+  border-radius: 32px;
+  background: rgba(255, 250, 244, 0.9);
+  box-shadow:
+    0 18px 44px rgba(29, 25, 37, 0.09),
+    0 1px 0 rgba(255, 255, 255, 0.36) inset;
+  backdrop-filter: blur(16px);
+  pointer-events: auto;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    background-color 220ms ease;
+}
+
+.team-dna-ai-question-box:focus-within {
+  border-color: rgba(29, 25, 37, 0.28);
+  background: rgba(255, 250, 244, 0.96);
+  box-shadow:
+    0 22px 56px rgba(29, 25, 37, 0.12),
+    0 0 0 2px rgba(29, 25, 37, 0.04);
+}
+
+.team-dna-ai-question-input-wrap {
+  position: relative;
+  min-width: 0;
+}
+
+.team-dna-ai-question-placeholder {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+  color: rgba(29, 25, 37, 0.54);
+  font-size: 15px;
+  line-height: 1.45;
+  pointer-events: none;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-dna-ai-question-input {
+  display: block;
+  width: 100%;
+  height: 28px;
+  min-height: 28px;
+  max-height: 88px;
+  padding: 3px 0 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--foreground-body);
+  font-family: var(--body-font);
+  font-size: 15px;
+  line-height: 1.45;
+  resize: none;
+}
+
+.team-dna-ai-question-submit {
+  display: inline-flex;
+  width: 38px;
+  height: 38px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(29, 25, 37, 0.12);
+  color: rgba(29, 25, 37, 0.58);
+  cursor: pointer;
+  transition:
+    background-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.team-dna-ai-question-submit[data-active] {
+  background: var(--foreground-heading);
+  color: var(--page-background);
+}
+
+.team-dna-ai-question-submit:hover {
+  transform: translateY(-1px);
+}
+
 .team-dna-insight-pane {
   position: relative;
   height: 100vh;
@@ -1177,17 +1277,17 @@ button {
 
 .team-dna-scroll-fade.top {
   top: 0;
-  background: linear-gradient(to bottom, var(--page-background), rgba(243, 230, 215, 0));
+  background: linear-gradient(to bottom, var(--page-background), rgba(249, 246, 240, 0));
 }
 
 .team-dna-scroll-fade.bottom {
   bottom: 0;
-  background: linear-gradient(to top, var(--page-background), rgba(243, 230, 215, 0));
+  background: linear-gradient(to top, var(--page-background), rgba(249, 246, 240, 0));
 }
 
 .team-dna-insight-content {
   width: 100%;
-  padding: 34vh 0 16vh;
+  padding: 26vh 0 24vh;
 }
 
 .team-dna-insight-page {
@@ -1209,7 +1309,8 @@ button {
   margin: 0;
   color: var(--foreground-heading);
   font-family: var(--heading-display-font);
-  font-size: 30px;
+  font-size: 42px;
+  font-style: italic;
   font-weight: 400;
   letter-spacing: var(--heading-display-tracking);
   line-height: 1.12;
