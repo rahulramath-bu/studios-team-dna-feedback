@@ -125,7 +125,7 @@
   --team-aggregate: var(--data-series-six);
   --team-aggregate-rgb: 73, 181, 174;
   --primary-hover: #e80063;
-  --duo-selection-accent: var(--data-series-three);
+  --duo-selection-accent: var(--primary);
   --ring: var(--team-dna-ink);
   --radius: 0.75rem;
 
