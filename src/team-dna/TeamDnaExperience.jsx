@@ -77,6 +77,11 @@ export function TeamDnaExperience({
     toggleMember(memberId);
   };
 
+  const handleSelectTeam = () => {
+    if (isEditingTeam) return;
+    setSelectedIds([]);
+  };
+
   const handleStartTeamEdit = () => {
     onBeginTeamEdit?.();
     setSelectedIds([]);
@@ -115,6 +120,7 @@ export function TeamDnaExperience({
           onDoneEditing={handleDoneEditing}
           onRemoveMember={onRemoveMember}
           onSelectMember={handleSelectMember}
+          onSelectTeam={handleSelectTeam}
           onTeamNameChange={onTeamNameChange}
         />
       </div>

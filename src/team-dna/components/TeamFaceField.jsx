@@ -197,6 +197,7 @@ export function TeamFaceField({
   onDoneEditing,
   onRemoveMember,
   onSelectMember,
+  onSelectTeam,
   onTeamNameChange,
 }) {
   const hasSelection = selectedIds.length > 0;
@@ -304,9 +305,21 @@ export function TeamFaceField({
     <motion.div className="team-face-field-wrap" ref={fieldRef} layout>
       {!isEditingTeam && (
         <div className="team-face-context-header">
-          <p className="team-face-context-eyebrow">
-            {entityEyebrow}
-          </p>
+          {hasSelection ? (
+            <button
+              type="button"
+              className="team-face-context-back"
+              onClick={onSelectTeam}
+              aria-label="Back to team view"
+            >
+              <BetterUpIcon name="ChevronLeft" size={13} strokeWidth={2.2} />
+              Team
+            </button>
+          ) : (
+            <p className="team-face-context-eyebrow">
+              {entityEyebrow}
+            </p>
+          )}
           <div className="team-face-context-title-row">
             <h2 className="team-face-context-title">
               <span style={getEntityTitleStyle(entityTitle)}>

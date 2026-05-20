@@ -424,11 +424,48 @@ button {
 }
 
 .team-face-context-header {
-  margin-bottom: 34px;
+  display: grid;
+  align-content: start;
+  height: 98px;
+  margin-bottom: 22px;
 }
 
 .team-face-context-eyebrow {
   margin: 0 0 13px;
+}
+
+.team-face-context-back {
+  display: inline-flex;
+  width: fit-content;
+  align-items: center;
+  gap: 2px;
+  margin: 0 0 13px;
+  padding: 4px 7px 4px 4px;
+  border: 1px solid rgba(29, 25, 37, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  color: var(--label-color);
+  cursor: pointer;
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.75px;
+  line-height: 1;
+  text-transform: uppercase;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.team-face-context-back:hover,
+.team-face-context-back:focus-visible {
+  border-color: rgba(29, 25, 37, 0.22);
+  background: rgba(255, 255, 255, 0.22);
+  color: rgba(29, 25, 37, 0.82);
+  outline: none;
+  transform: translateX(-1px);
 }
 
 .team-face-context-title-row {

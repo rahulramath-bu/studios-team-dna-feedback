@@ -24,6 +24,11 @@ const paths = {
       <path d="m20 6-11 11-5-5" />
     </>
   ),
+  ChevronLeft: (
+    <>
+      <path d="m15 18-6-6 6-6" />
+    </>
+  ),
   Info: (
     <>
       <circle cx="12" cy="12" r="9" />
