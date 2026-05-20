@@ -49,8 +49,15 @@ function getEdgeConnection(start, end, radiusOffset = 0) {
  * Port: keep this local to Team DNA and retest after changing shell height,
  * CSS layout, or a future horizontal/mobile rail.
  */
-export function DuoConnection({ containerRef, faceRefs, selectedIds, variant = 'selected' }) {
+export function DuoConnection({
+  containerRef,
+  faceRefs,
+  isObstructed = false,
+  selectedIds,
+  variant = 'selected',
+}) {
   const [connection, setConnection] = useState(null);
+  const previewOpacity = isObstructed ? 0.58 : 0.4;
 
   useLayoutEffect(() => {
     if (selectedIds.length !== 2) {
@@ -122,10 +129,10 @@ export function DuoConnection({ containerRef, faceRefs, selectedIds, variant = '
       <motion.path
         className={`duo-connection-line duo-connection-line-${variant}`}
         d={connection.path}
-        initial={{ opacity: variant === 'preview' ? 0.4 : 0 }}
+        initial={{ opacity: variant === 'preview' ? previewOpacity : 0 }}
         animate={
           variant === 'preview'
-            ? { opacity: 0.4, transition: { duration: 0 } }
+            ? { opacity: previewOpacity, transition: { duration: 0 } }
             : {
                 opacity: 1,
                 transition: { delay: 0.22, duration: 1, ease: [0.22, 1, 0.36, 1] },

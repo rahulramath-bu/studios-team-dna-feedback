@@ -54,7 +54,7 @@ export function TeamDnaExperience({
     []
   );
 
-  const handleSelectMember = (memberId) => {
+  const handleSelectMember = (memberId, options = {}) => {
     if (isEditingTeam) return;
 
     const member = dataset.members.find((item) => item.id === memberId);
@@ -71,6 +71,11 @@ export function TeamDnaExperience({
         setBlockedAttempt(null);
         blockedTimeoutRef.current = null;
       }, 1300);
+      return;
+    }
+
+    if (options.mode === 'solo') {
+      setSelectedIds([memberId]);
       return;
     }
 

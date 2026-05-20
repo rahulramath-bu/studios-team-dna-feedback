@@ -17,6 +17,85 @@ function getLayoutCenter(node) {
   };
 }
 
+function getMeasuredFaceCenter(container, node) {
+  const containerRect = container.getBoundingClientRect();
+  const rect = node.getBoundingClientRect();
+
+  return {
+    x: rect.left - containerRect.left + rect.width / 2,
+    y: rect.top - containerRect.top + rect.height / 2,
+    radius: Math.min(rect.width, rect.height) / 2,
+  };
+}
+
+function getDistanceToSegment(point, start, end) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const lengthSquared = dx * dx + dy * dy;
+
+  if (!lengthSquared) {
+    return Math.hypot(point.x - start.x, point.y - start.y);
+  }
+
+  const t = Math.max(
+    0,
+    Math.min(
+      1,
+      ((point.x - start.x) * dx + (point.y - start.y) * dy) / lengthSquared
+    )
+  );
+  const closest = {
+    x: start.x + t * dx,
+    y: start.y + t * dy,
+  };
+
+  return Math.hypot(point.x - closest.x, point.y - closest.y);
+}
+
+function getPreviewObscuredIds(members, previewSelectedIds, fieldRef, faceRefs) {
+  if (!previewSelectedIds) return new Set();
+
+  const container = fieldRef.current;
+  const [firstId, secondId] = previewSelectedIds;
+  const firstNode = faceRefs.current.get(firstId);
+  const secondNode = faceRefs.current.get(secondId);
+
+  if (!container || !firstNode || !secondNode) {
+    return new Set();
+  }
+
+  const selectedSet = new Set(previewSelectedIds);
+  const start = getMeasuredFaceCenter(container, firstNode);
+  const end = getMeasuredFaceCenter(container, secondNode);
+  const obscuredIds = new Set();
+
+  members.forEach((member) => {
+    if (selectedSet.has(member.id)) return;
+
+    const node = faceRefs.current.get(member.id);
+    if (!node) return;
+
+    const center = getMeasuredFaceCenter(container, node);
+    const distance = getDistanceToSegment(center, start, end);
+
+    if (distance <= center.radius + 8) {
+      obscuredIds.add(member.id);
+    }
+  });
+
+  return obscuredIds;
+}
+
+function areSetsEqual(first, second) {
+  if (first.size !== second.size) return false;
+
+  for (const value of first) {
+    if (!second.has(value)) return false;
+  }
+
+  return true;
+}
+
 function getPrimaryDuoNudges(first, second) {
   const dx = second.x - first.x;
   const dy = second.y - first.y;
@@ -209,6 +288,7 @@ export function TeamFaceField({
   const [faceNudges, setFaceNudges] = useState({});
   const [hoveredMemberId, setHoveredMemberId] = useState(null);
   const [isAddButtonHidden, setIsAddButtonHidden] = useState(false);
+  const [previewObscuredIds, setPreviewObscuredIds] = useState(new Set());
   const [useSelectionNudgeMotion, setUseSelectionNudgeMotion] = useState(
     selectedIds.length === 2
   );
@@ -221,6 +301,7 @@ export function TeamFaceField({
     !selectedIds.includes(previewMember.id)
       ? [selectedIds[0], previewMember.id]
       : null;
+  const previewSelectedKey = previewSelectedIds?.join(':') ?? '';
 
   const setFaceNode = (memberId) => (node) => {
     if (node) {
@@ -300,6 +381,38 @@ export function TeamFaceField({
       window.removeEventListener('resize', scheduleUpdate);
     };
   }, [members, selectedIds]);
+
+  useLayoutEffect(() => {
+    let animationFrame = 0;
+
+    const updateObscuredIds = () => {
+      const nextObscuredIds = getPreviewObscuredIds(
+        members,
+        previewSelectedIds,
+        fieldRef,
+        faceRefs
+      );
+
+      setPreviewObscuredIds((currentObscuredIds) =>
+        areSetsEqual(currentObscuredIds, nextObscuredIds)
+          ? currentObscuredIds
+          : nextObscuredIds
+      );
+    };
+
+    const scheduleUpdate = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(updateObscuredIds);
+    };
+
+    scheduleUpdate();
+    window.addEventListener('resize', scheduleUpdate);
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame);
+      window.removeEventListener('resize', scheduleUpdate);
+    };
+  }, [members, previewSelectedKey]);
 
   return (
     <motion.div className="team-face-field-wrap" ref={fieldRef} layout>
@@ -382,6 +495,7 @@ export function TeamFaceField({
               key={`preview-${previewSelectedIds.join(':')}`}
               containerRef={fieldRef}
               faceRefs={faceRefs}
+              isObstructed={previewObscuredIds.size > 0}
               selectedIds={previewSelectedIds}
               variant="preview"
             />
@@ -405,6 +519,7 @@ export function TeamFaceField({
                 nudge={faceNudges[member.id]}
                 nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
                 isDimmed={hasSelection && !selectedIds.includes(member.id)}
+                isPreviewObscured={previewObscuredIds.has(member.id)}
                 onRemove={() => onRemoveMember?.(member.id)}
                 onSelect={() => onSelectMember(member.id)}
                 onHoverChange={(isHovered) =>

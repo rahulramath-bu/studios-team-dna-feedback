@@ -12,7 +12,7 @@ const MAX_RADIUS = 104;
 const PATH_STEPS = 180;
 const SUBJECT_COLORS = ['#ce0058', '#0072B7'];
 const TEAM_COLOR = 'var(--team-aggregate)';
-const TEAM_AVERAGE_COLOR = '#fffaf4';
+const TEAM_AVERAGE_COLOR = '#1d1925';
 
 function getFirstName(subject) {
   return subject?.name?.split(' ')[0] ?? 'Teammate';
@@ -127,7 +127,7 @@ export function BigFiveBloom({
   subjects,
   traits = BIG_FIVE_TRAITS,
 }) {
-  const [activeTeamSubjectId, setActiveTeamSubjectId] = useState(null);
+  const [activeSubjectId, setActiveSubjectId] = useState(null);
   const scoredSubjects = subjects.filter((subject) => subject?.bigFive);
   const isTeam = scoredSubjects.length > 2;
   const visibleSubjects = isTeam ? scoredSubjects : scoredSubjects.slice(0, 2);
@@ -234,19 +234,30 @@ export function BigFiveBloom({
         </motion.g>
         {bloomPaths.map(({ subject, d }, index) => {
           const color = isTeam ? TEAM_COLOR : SUBJECT_COLORS[index] ?? '#ce0058';
-          const isDimmedTeamShape =
-            isTeam &&
-            activeTeamSubjectId &&
-            activeTeamSubjectId !== subject.id;
-          const isActiveTeamShape =
-            isTeam && activeTeamSubjectId === subject.id;
+          const isInteractiveShape = isTeam || isDuo;
+          const isDimmedShape =
+            isInteractiveShape &&
+            activeSubjectId &&
+            activeSubjectId !== subject.id;
+          const isActiveShape =
+            isInteractiveShape && activeSubjectId === subject.id;
           const shapeMotion = getShapeMotion(index);
-          const teamFillOpacity = isDimmedTeamShape
+          const teamFillOpacity = isDimmedShape
             ? 0
-            : isActiveTeamShape
+            : isActiveShape
               ? 0.28
               : 0.09;
-          const teamStrokeOpacity = isActiveTeamShape ? 0.62 : 0;
+          const teamStrokeOpacity = isActiveShape ? 0.62 : 0;
+          const duoFillOpacity = isDimmedShape
+            ? 0.05
+            : isActiveShape
+              ? 0.32
+              : 0.2;
+          const duoStrokeOpacity = isDimmedShape
+            ? 0.14
+            : isActiveShape
+              ? 0.78
+              : 0.58;
 
           return (
             <motion.path
@@ -258,11 +269,11 @@ export function BigFiveBloom({
               {...shapeMotion}
               animate={{
                 ...(shapeMotion.animate ?? {}),
-                fillOpacity: isTeam ? teamFillOpacity : 0.2,
+                fillOpacity: isTeam ? teamFillOpacity : isDuo ? duoFillOpacity : 0.2,
                 strokeOpacity: isTeam
                   ? teamStrokeOpacity
                   : isDuo
-                    ? 0.58
+                    ? duoStrokeOpacity
                     : 0.64,
               }}
               d={d}
@@ -290,7 +301,7 @@ export function BigFiveBloom({
                 {...averageMotion}
                 animate={{
                   ...(averageMotion.animate ?? {}),
-                  opacity: activeTeamSubjectId ? 0 : 0.92,
+                  opacity: activeSubjectId ? 0 : 0.92,
                 }}
                 d={averageBloomPath}
                 fill="none"
@@ -327,6 +338,11 @@ export function BigFiveBloom({
                     rx="1.4"
                     style={{
                       color: SUBJECT_COLORS[subjectIndex] ?? '#ce0058',
+                      opacity:
+                        isDuo && activeSubjectId && activeSubjectId !== subject.id
+                          ? 0.18
+                          : 1,
+                      transition: 'opacity 220ms ease',
                     }}
                   />
                 );
@@ -350,12 +366,30 @@ export function BigFiveBloom({
         </motion.g>
       </svg>
       {!isTeam && visibleSubjects.length > 1 && (
-        <motion.div className="big-five-bloom-legend" {...labelMotion}>
+        <motion.div
+          className="big-five-bloom-legend big-five-bloom-legend--duo"
+          {...labelMotion}
+        >
           {visibleSubjects.map((subject, index) => (
-            <span key={subject.id}>
+            <button
+              className={[
+                'big-five-bloom-legend-name',
+                'big-five-bloom-legend-name--duo',
+                activeSubjectId === subject.id
+                  ? 'big-five-bloom-legend-name--active'
+                  : '',
+              ].filter(Boolean).join(' ')}
+              key={subject.id}
+              onBlur={() => setActiveSubjectId(null)}
+              onClick={() => onSelectMember?.(subject.id, { mode: 'solo' })}
+              onFocus={() => setActiveSubjectId(subject.id)}
+              onMouseEnter={() => setActiveSubjectId(subject.id)}
+              onMouseLeave={() => setActiveSubjectId(null)}
+              type="button"
+            >
               <i style={{ background: SUBJECT_COLORS[index] ?? '#ce0058' }} />
               {subject.name}
-            </span>
+            </button>
           ))}
         </motion.div>
       )}
@@ -368,16 +402,16 @@ export function BigFiveBloom({
             <button
               className={[
                 'big-five-bloom-legend-name',
-                activeTeamSubjectId === subject.id
+                activeSubjectId === subject.id
                   ? 'big-five-bloom-legend-name--active'
                   : '',
               ].filter(Boolean).join(' ')}
               key={subject.id}
-              onBlur={() => setActiveTeamSubjectId(null)}
-              onClick={() => onSelectMember?.(subject.id)}
-              onFocus={() => setActiveTeamSubjectId(subject.id)}
-              onMouseEnter={() => setActiveTeamSubjectId(subject.id)}
-              onMouseLeave={() => setActiveTeamSubjectId(null)}
+              onBlur={() => setActiveSubjectId(null)}
+              onClick={() => onSelectMember?.(subject.id, { mode: 'solo' })}
+              onFocus={() => setActiveSubjectId(subject.id)}
+              onMouseEnter={() => setActiveSubjectId(subject.id)}
+              onMouseLeave={() => setActiveSubjectId(null)}
               type="button"
             >
               {getFirstName(subject)}

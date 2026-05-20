@@ -1,4 +1,5 @@
 import React, { forwardRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { useTeamDnaPressable } from '../hooks/useTeamDnaPressable';
@@ -49,22 +50,47 @@ export const TeamFace = forwardRef(function TeamFace(
     onRemove,
     onSelect,
     onHoverChange,
+    isPreviewObscured,
     visualRef,
   },
   ref
 ) {
   const { pressed, handlers } = useTeamDnaPressable();
   const [hovered, setHovered] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
   const restingScale = isSelected ? 1.22 : isDimmed ? 0.68 : 1;
   const interactionScale =
     restingScale * (hovered ? HOVER_SCALE : 1) * (pressed ? PRESS_SCALE : 1);
   const isUnavailable = member.assessmentComplete === false;
   const hoverLabel = isBlocked ? 'Needs Team DNA first' : member.name;
   const showHoverLabel = !isEditingTeam && ((hovered && !isSelected) || isBlocked);
+  const dimmedOpacity = isPreviewObscured ? 0.1 : 0.26;
   const nudgeTransition =
     nudgeMotion === 'selection'
       ? SELECTION_NUDGE_TRANSITION
       : { duration: 0.32, ease: 'easeInOut' };
+  const updateTooltipPosition = (event) => {
+    setTooltipPosition({ x: event.clientX, y: event.clientY });
+  };
+  const hoverTooltip =
+    typeof document === 'undefined'
+      ? null
+      : createPortal(
+          <motion.span
+            className="team-face-hover-label"
+            initial={false}
+            animate={{ opacity: showHoverLabel ? 1 : 0 }}
+            transition={{ duration: 0 }}
+            style={{
+              '--team-face-tooltip-x': `${tooltipPosition.x}px`,
+              '--team-face-tooltip-y': `${tooltipPosition.y}px`,
+            }}
+            aria-hidden="true"
+          >
+            {hoverLabel}
+          </motion.span>,
+          document.body
+        );
 
   // Keep this as a semantic button. The custom part is Team DNA-specific face
   // motion, not the accessibility model.
@@ -77,7 +103,7 @@ export const TeamFace = forwardRef(function TeamFace(
       layout
       className="team-face-visual-layer"
       animate={{
-        opacity: isDimmed && !hovered ? 0.26 : 1,
+        opacity: isDimmed && !hovered ? dimmedOpacity : 1,
         scale: interactionScale,
         x: nudge.x,
         y: nudge.y,
@@ -115,15 +141,6 @@ export const TeamFace = forwardRef(function TeamFace(
           )}
         </motion.span>
       </motion.span>
-      <motion.span
-        className="team-face-hover-label"
-        initial={false}
-        animate={{ opacity: showHoverLabel ? 1 : 0 }}
-        transition={{ duration: 0.18, ease: 'easeOut' }}
-        aria-hidden="true"
-      >
-        {hoverLabel}
-      </motion.span>
     </motion.span>
   );
 
@@ -139,10 +156,15 @@ export const TeamFace = forwardRef(function TeamFace(
         className="team-face-button"
         data-editing={isEditingTeam || undefined}
         data-unavailable={isUnavailable || undefined}
-        onHoverStart={() => setHovered(true)}
+        onPointerMove={updateTooltipPosition}
+        onHoverStart={(event) => {
+          updateTooltipPosition(event);
+          setHovered(true);
+        }}
         onHoverEnd={() => setHovered(false)}
       >
         {faceVisual}
+        {hoverTooltip}
         <button
           type="button"
           className="team-face-remove-button"
@@ -175,7 +197,14 @@ export const TeamFace = forwardRef(function TeamFace(
         isUnavailable ? `${member.name} needs Team DNA first` : `Explore ${member.name}`
       }
       {...handlers}
-      onHoverStart={() => {
+      onPointerMove={updateTooltipPosition}
+      onPointerLeave={(event) => {
+        handlers.onPointerLeave?.(event);
+        setHovered(false);
+        onHoverChange?.(false);
+      }}
+      onHoverStart={(event) => {
+        updateTooltipPosition(event);
         setHovered(true);
         onHoverChange?.(true);
       }}
@@ -185,6 +214,7 @@ export const TeamFace = forwardRef(function TeamFace(
       }}
     >
       {faceVisual}
+      {hoverTooltip}
     </motion.button>
   );
 });
