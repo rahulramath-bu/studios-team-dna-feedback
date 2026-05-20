@@ -149,6 +149,86 @@ const PERSON_SYNTHESIS = {
   },
 };
 
+const PERSON_WORK_WITH_NOTES = {
+  sergio: [
+    'Bring me the problem, the goal, and the tradeoffs you already see.',
+    "Give me enough shape to land the work, but don't decide the answer before I join.",
+    'Ask me what the first buildable version could be.',
+    'If I seem quiet, I am probably testing whether the idea has legs.',
+    'Before a handoff, agree on what done means.',
+  ],
+  justin: [
+    'Bring me the real constraints early.',
+    'Skip the performance; give me the facts that change the system.',
+    'Ask me what might break later.',
+    'If I am brief, I am probably sorting what matters.',
+    'Give me context before asking me to lock anything in.',
+  ],
+  darshan: [
+    'Show me the moving pieces and the next decision.',
+    'Let me help sequence the room.',
+    'Tell me what needs momentum and what cannot be skipped.',
+    'If I move fast, pause me for the quiet signal.',
+    'End with owners, dates, and the next move.',
+  ],
+  mae: [
+    'Bring me the messy version, not just the polished brief.',
+    'Tell me what feels off before we over-solve it.',
+    'Give me room to find the human story.',
+    'If I am quiet, I may be finding the real shape.',
+    'Ask what this should feel like before we plan it.',
+  ],
+  sam: [
+    'Bring me the decision, the risk, and who it affects.',
+    'Treat my worry as product signal, not noise.',
+    'Ask me what could go wrong and what would make it safer.',
+    'Help me turn concern into a decision.',
+    'Do not wait until launch to ask what feels exposed.',
+  ],
+  scott: [
+    'Bring me in when people need to understand the experience over time.',
+    'Ask what the user should learn, not just what they should see.',
+    'Give me time to find the deeper pattern.',
+    'If I am quiet, I am probably processing the learning path.',
+    'Use me to make the experience teach itself.',
+  ],
+  sophie: [
+    'Give me clear ownership and why the work matters.',
+    'Tell me which details matter most.',
+    'Do not make me guess the priority.',
+    'Check in before reliable work turns into invisible work.',
+    'Hand me the next concrete step, not a vague pile.',
+  ],
+  rahul: [
+    'Give me room to explore before asking me to choose.',
+    'Bring me the question, not just the answer we inherited.',
+    'Tell me when we are switching from ideas to commitment.',
+    'Do not read looseness as not caring.',
+    'Ask me what frame feels too small.',
+  ],
+  preetoshi: [
+    'Bring me the real problem, not the safe version.',
+    'Show me what feels dead, generic, or too small.',
+    'Let me react before we smooth the idea down.',
+    'Do not read intensity as rejection.',
+    'Help me turn the strong reaction into a clear next move.',
+  ],
+  jon: [
+    'Bring me the human stakes, not just the task list.',
+    'Tell me why the work should matter to people.',
+    'Use me when the team needs belief and momentum.',
+    'Keep enough reality in the room so the vision can land.',
+    'Do not read energy as only vision.',
+  ],
+  rainy: [
+    'Bring me the question behind the question.',
+    'Ask what evidence would change our mind.',
+    'Bring me in before the team falls in love with the answer.',
+    'Do not read precision as slowing things down.',
+    'Let rigor make the idea stronger, not smaller.',
+  ],
+};
+
 function pair(title, summary, pairingManual, bestFor, misread, watchOut) {
   return {
     title,
@@ -662,6 +742,79 @@ function getWhereShinesLabel(member) {
   return `Where ${getPronouns(member).subject} shines`;
 }
 
+function lowercaseFirst(value) {
+  return value.charAt(0).toLowerCase() + value.slice(1);
+}
+
+function getFirstSentence(value) {
+  return value.split(/(?<=\.)\s+/)[0];
+}
+
+function getBestForShort(value) {
+  const firstClause = value.split(', and moments')[0];
+  const parts = firstClause
+    .replace(/\.$/, '')
+    .split(',')
+    .map((part) => part.trim())
+    .filter(Boolean);
+
+  if (parts.length >= 2) {
+    return `${parts[0]} and ${parts[1]}`;
+  }
+
+  return parts[0] ?? firstClause;
+}
+
+function makePairTrySections(first, second, pairSynthesis) {
+  return [
+    {
+      body: getFirstSentence(pairSynthesis.pairingManual),
+    },
+    {
+      body: pairSynthesis.watchOut,
+    },
+    {
+      body: 'Before starting, agree on what each person owns.',
+    },
+    {
+      body: 'If it feels tense, ask what each person is trying to protect.',
+    },
+    {
+      body: 'End with one owner, one next step, and one check-in.',
+    },
+  ];
+}
+
+function makeTeamTrySections() {
+  return [
+    {
+      body: 'Open the frame first, then name the exact thing the team is committing to now.',
+    },
+    {
+      body: 'Give invention, proof, delivery, taste, and care each a visible role.',
+    },
+    {
+      body: 'Before a handoff, say what “done” means in one concrete sentence.',
+    },
+    {
+      body: 'Invite one quiet read before the room treats momentum as agreement.',
+    },
+    {
+      body: 'Do not treat range as messiness; turn different instincts into named jobs.',
+    },
+  ];
+}
+
+function makePersonWorkWithSections(member, synthesis) {
+  const notes = PERSON_WORK_WITH_NOTES[member.id] ?? [
+    getFirstSentence(synthesis.workWith),
+    `Bring this person into ${lowercaseFirst(getBestForShort(synthesis.bestFor))}.`,
+    getFirstSentence(synthesis.misread),
+  ];
+
+  return notes.map((body) => ({ body }));
+}
+
 function getScoreBand(member, trait) {
   const score = getScore(member, trait);
 
@@ -742,19 +895,11 @@ function makePersonInsight(member) {
       },
     ]),
     cards: [
-      makeGuidanceCard(`${member.id}-work-with`, getWorkWithLabel(member), [
-        {
-          body: synthesis.workWith,
-        },
-        {
-          label: 'What helps',
-          body: synthesis.pairNeed,
-        },
-        {
-          label: 'Do not misread',
-          body: synthesis.misread,
-        },
-      ]),
+      makeGuidanceCard(
+        `${member.id}-work-with`,
+        getWorkWithLabel(member),
+        makePersonWorkWithSections(member, synthesis)
+      ),
       makeGuidanceCard(`${member.id}-where-shines`, getWhereShinesLabel(member), {
         body: synthesis.bestFor,
       }),
@@ -831,21 +976,8 @@ function makePairInsight(first, second) {
     cards: [
       makeGuidanceCard(
         `${makePairId(first.id, second.id)}-pairing-manual`,
-        'Working together',
-        [
-          {
-            label: 'Start here',
-            body: pairSynthesis.pairingManual,
-          },
-          {
-            label: 'Keep visible',
-            body: pairSynthesis.watchOut,
-          },
-          {
-            label: 'Do not misread',
-            body: pairSynthesis.misread,
-          },
-        ]
+        'Try this together',
+        makePairTrySections(first, second, pairSynthesis)
       ),
       makeGuidanceCard(
         `${makePairId(first.id, second.id)}-where-shines`,
@@ -907,19 +1039,11 @@ export function makeTeamDnaAiInsights({ team, members }) {
         },
       ]),
       cards: [
-        makeGuidanceCard('team-work-with', 'How to work with this team', [
-          {
-            body: 'Give this team room to open the frame, then ask for the landing gear. The most useful ritual is a clear switch from “what could this become?” to “what are we actually committing to now?”',
-          },
-          {
-            label: 'Keep visible',
-            body: 'Name roles before treating differences as personality conflicts. This team works best when invention, proof, delivery, taste, and care all have a visible job.',
-          },
-          {
-            label: 'Do not misread',
-            body: 'People may read the team’s range as messiness. The better read is that the team has many useful instincts, but those instincts need named roles and cleaner handoffs.',
-          },
-        ]),
+        makeGuidanceCard(
+          'team-work-with',
+          'Try this as a team',
+          makeTeamTrySections()
+        ),
         makeGuidanceCard('team-where-shines', 'Where this team shines', {
           body: 'This team shines in fuzzy product bets, new experience directions, research-to-product synthesis, and work that needs both imagination and a real path into the product.',
         }),

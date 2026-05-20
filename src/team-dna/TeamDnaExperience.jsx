@@ -119,6 +119,7 @@ export function TeamDnaExperience({
       <InsightPanel
         insight={insight}
         isHidden={isEditingTeam}
+        onSelectMember={handleSelectMember}
       />
     </section>
   );

@@ -57,7 +57,7 @@ function getInfoBlockIconName(card) {
  * `@betterup/icons/src/Icon` and keep icons aria-hidden/absolute so they do not
  * affect card layout.
  */
-export function InfoBlock({ card, className = '' }) {
+export function InfoBlock({ card, className = '', onSelectMember }) {
   // Monolith integration seam: supporting cards should enter through
   // `insight.cards`, not through fixture or backend imports inside the panel.
   // Decorative card icons, if added, should enter through the same card data and
@@ -84,7 +84,7 @@ export function InfoBlock({ card, className = '' }) {
     >
       <InfoBlockIcon name={iconName} />
       {shouldShowLabel && <p className="info-block-label">{label}</p>}
-      <InfoBlockBody card={card} />
+      <InfoBlockBody card={card} onSelectMember={onSelectMember} />
     </section>
   );
 }
@@ -113,10 +113,11 @@ function InfoBlockIcon({ name }) {
   );
 }
 
-function InfoBlockBody({ card }) {
+function InfoBlockBody({ card, onSelectMember }) {
   if (card.kind === 'bigFiveBloom') {
     return (
       <BigFiveBloom
+        onSelectMember={onSelectMember}
         subjects={card.data?.subjects ?? []}
         traits={card.data?.traits}
       />

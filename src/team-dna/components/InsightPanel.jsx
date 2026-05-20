@@ -20,7 +20,7 @@ const BASELINE_REVEAL_TRANSITION = {
  * monolith shell should provide available height, not become the scroll
  * container for these sections.
  */
-export function InsightPanel({ insight, isHidden }) {
+export function InsightPanel({ insight, isHidden, onSelectMember }) {
   return (
     <AnimatePresence>
       {!isHidden && (
@@ -42,6 +42,7 @@ export function InsightPanel({ insight, isHidden }) {
                 <InsightPage
                   key={insight.id}
                   insight={insight}
+                  onSelectMember={onSelectMember}
                 />
               </AnimatePresence>
             </div>
@@ -52,7 +53,7 @@ export function InsightPanel({ insight, isHidden }) {
   );
 }
 
-function InsightPage({ insight }) {
+function InsightPage({ insight, onSelectMember }) {
   return (
     <motion.article
       className="team-dna-insight-page"
@@ -73,12 +74,13 @@ function InsightPage({ insight }) {
     >
       <InsightPageContent
         insight={insight}
+        onSelectMember={onSelectMember}
       />
     </motion.article>
   );
 }
 
-function InsightPageContent({ insight }) {
+function InsightPageContent({ insight, onSelectMember }) {
   return (
     <>
       <section className="insight-primary-read">
@@ -87,7 +89,7 @@ function InsightPageContent({ insight }) {
         </div>
         <InsightSummary insight={insight} />
       </section>
-      <InsightBlocks insight={insight} />
+      <InsightBlocks insight={insight} onSelectMember={onSelectMember} />
     </>
   );
 }
@@ -117,13 +119,14 @@ function InsightSummary({ insight }) {
   );
 }
 
-function InsightBlocks({ insight }) {
+function InsightBlocks({ insight, onSelectMember }) {
   return (
     <div className="info-block-stack" aria-label="Future insight blocks">
       {insight.cards.map((card) => (
         <InfoBlock
           key={card.id}
           card={card}
+          onSelectMember={onSelectMember}
         />
       ))}
     </div>

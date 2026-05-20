@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { motion, useReducedMotion } from 'motion/react';
 import {
   BIG_FIVE_TRAITS,
@@ -11,9 +11,19 @@ const MIN_RADIUS = 18;
 const MAX_RADIUS = 104;
 const PATH_STEPS = 180;
 const SUBJECT_COLORS = ['#ce0058', '#0072B7'];
+const TEAM_COLOR = 'var(--team-aggregate)';
+const TEAM_AVERAGE_COLOR = '#fffaf4';
+
+function getFirstName(subject) {
+  return subject?.name?.split(' ')[0] ?? 'Teammate';
+}
 
 function smoothstep(value) {
   return value * value * (3 - 2 * value);
+}
+
+function clampScore(score) {
+  return Math.max(0, Math.min(score, 100));
 }
 
 function getPoint(index, score, traitCount) {
@@ -21,7 +31,7 @@ function getPoint(index, score, traitCount) {
   const boundaryBias = 1 - Math.abs(0 - 0.5) * 0.18;
   const radius =
     MIN_RADIUS +
-    (Math.max(0, Math.min(score, 100)) / 100) *
+    (clampScore(score) / 100) *
       (MAX_RADIUS - MIN_RADIUS) *
       boundaryBias;
 
@@ -40,10 +50,10 @@ function getAxisPoint(index, traitCount, radius = MAX_RADIUS + 2) {
   };
 }
 
-function getBloomPath(subject, traits) {
+function getBloomPoints(traits, getScore) {
   const baseAngle = -Math.PI / 2;
   const step = (2 * Math.PI) / traits.length;
-  let path = '';
+  const points = [];
 
   for (let index = 0; index <= PATH_STEPS; index += 1) {
     const theta = baseAngle + (index * 2 * Math.PI) / PATH_STEPS;
@@ -53,8 +63,8 @@ function getBloomPath(subject, traits) {
     const local = (rel - traitIndex * step) / step;
     const currentTrait = traits[traitIndex];
     const nextTrait = traits[(traitIndex + 1) % traits.length];
-    const currentScore = getBigFiveScore(subject, currentTrait.key);
-    const nextScore = getBigFiveScore(subject, nextTrait.key);
+    const currentScore = getScore(currentTrait.key);
+    const nextScore = getScore(nextTrait.key);
     const blendedScore =
       currentScore * (1 - smoothstep(local)) + nextScore * smoothstep(local);
     const petalBias = 1 - Math.abs(local - 0.5) * 0.18;
@@ -63,25 +73,65 @@ function getBloomPath(subject, traits) {
     const x = CENTER + Math.cos(theta) * radius;
     const y = CENTER + Math.sin(theta) * radius;
 
-    path += `${index === 0 ? 'M' : 'L'}${x.toFixed(2)},${y.toFixed(2)} `;
+    points.push({ x, y });
   }
 
-  return `${path}Z`;
+  return points;
+}
+
+function getPathFromPoints(points) {
+  return `${points
+    .map((point, index) => `${index === 0 ? 'M' : 'L'}${point.x.toFixed(2)},${point.y.toFixed(2)}`)
+    .join(' ')} Z`;
+}
+
+function getBloomPathFromScores(traits, getScore) {
+  return getPathFromPoints(getBloomPoints(traits, getScore));
+}
+
+function getBloomPath(subject, traits) {
+  return getBloomPathFromScores(
+    traits,
+    (traitKey) => getBigFiveScore(subject, traitKey)
+  );
+}
+
+function getAverageBloomPath(subjects, traits) {
+  return getBloomPathFromScores(
+    traits,
+    (traitKey) => {
+      const total = subjects.reduce(
+        (sum, subject) => sum + getBigFiveScore(subject, traitKey),
+        0
+      );
+
+      return subjects.length ? total / subjects.length : 0;
+    }
+  );
 }
 
 /**
  * Big Five bloom visualization.
  *
- * What: compact radial read of one person's Big Five shape, or two transparent
- * overlaid shapes in duo state.
- * How: maps each trait score to a point on a five-axis SVG and draws one
- * polygon per subject; subjects stay API-blind and only need `name` + `bigFive`.
+ * What: compact radial read of one person's Big Five shape, two transparent
+ * overlaid shapes in duo state, or every teammate overlaid in team state.
+ * How: maps trait scores to a five-axis SVG. Solo/duo draw one polygon per
+ * subject; team mode uses the same transparent turquoise shape for every member
+ * so concentration emerges from overlap, with a first-name hover legend for
+ * isolating one member at a time.
  * Port: feed normalized member view-models into this component. Do not make it
  * call APIs or know backend field names.
  */
-export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
-  const visibleSubjects = subjects.filter((subject) => subject?.bigFive).slice(0, 2);
-  const isDuo = visibleSubjects.length > 1;
+export function BigFiveBloom({
+  onSelectMember,
+  subjects,
+  traits = BIG_FIVE_TRAITS,
+}) {
+  const [activeTeamSubjectId, setActiveTeamSubjectId] = useState(null);
+  const scoredSubjects = subjects.filter((subject) => subject?.bigFive);
+  const isTeam = scoredSubjects.length > 2;
+  const visibleSubjects = isTeam ? scoredSubjects : scoredSubjects.slice(0, 2);
+  const isDuo = !isTeam && visibleSubjects.length > 1;
   const shouldReduceMotion = useReducedMotion();
   const axes = useMemo(
     () =>
@@ -100,6 +150,10 @@ export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
       })),
     [traits, visibleSubjects]
   );
+  const averageBloomPath = useMemo(
+    () => (isTeam ? getAverageBloomPath(visibleSubjects, traits) : null),
+    [isTeam, traits, visibleSubjects]
+  );
 
   if (visibleSubjects.length === 0) {
     return (
@@ -117,7 +171,7 @@ export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
         transition: { duration: 0.55, ease: 'easeOut' },
       };
   const detailDelay = isDuo ? 1.42 : 0.92;
-  const labelDelay = isDuo ? 1.62 : 1.12;
+  const labelDelay = isTeam ? 1.02 : isDuo ? 1.62 : 1.12;
   const detailMotion = shouldReduceMotion
     ? { initial: false, animate: { opacity: 1, scale: 1 } }
     : {
@@ -179,54 +233,107 @@ export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
           ))}
         </motion.g>
         {bloomPaths.map(({ subject, d }, index) => {
-          const color = SUBJECT_COLORS[index] ?? '#ce0058';
+          const color = isTeam ? TEAM_COLOR : SUBJECT_COLORS[index] ?? '#ce0058';
+          const isDimmedTeamShape =
+            isTeam &&
+            activeTeamSubjectId &&
+            activeTeamSubjectId !== subject.id;
+          const isActiveTeamShape =
+            isTeam && activeTeamSubjectId === subject.id;
+          const shapeMotion = getShapeMotion(index);
+          const teamFillOpacity = isDimmedTeamShape
+            ? 0
+            : isActiveTeamShape
+              ? 0.28
+              : 0.09;
+          const teamStrokeOpacity = isActiveTeamShape ? 0.62 : 0;
 
           return (
             <motion.path
               key={subject.id}
-              className="big-five-bloom-shape"
+              className={[
+                'big-five-bloom-shape',
+                isTeam ? 'big-five-bloom-team-shape' : '',
+              ].filter(Boolean).join(' ')}
+              {...shapeMotion}
+              animate={{
+                ...(shapeMotion.animate ?? {}),
+                fillOpacity: isTeam ? teamFillOpacity : 0.2,
+                strokeOpacity: isTeam
+                  ? teamStrokeOpacity
+                  : isDuo
+                    ? 0.58
+                    : 0.64,
+              }}
               d={d}
               fill={color}
-              fillOpacity={0.2}
               stroke={color}
-              strokeOpacity={isDuo ? 0.58 : 0.64}
-              {...getShapeMotion(index)}
+              transition={{
+                ...(shapeMotion.transition ?? {}),
+                fillOpacity: { duration: 0.26, ease: 'easeOut' },
+                strokeOpacity: { duration: 0.26, ease: 'easeOut' },
+              }}
               style={{
-                mixBlendMode: isDuo ? 'multiply' : 'normal',
+                mixBlendMode: isTeam || isDuo ? 'multiply' : 'normal',
                 transformOrigin: `${CENTER}px ${CENTER}px`,
               }}
             />
           );
         })}
-        <motion.g
-          {...detailMotion}
-          style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}
-        >
-          {visibleSubjects.map((subject, subjectIndex) =>
-            traits.map((trait, traitIndex) => {
-              const point = getPoint(
-                traitIndex,
-                getBigFiveScore(subject, trait.key),
-                traits.length
-              );
+        {averageBloomPath &&
+          (() => {
+            const averageMotion = getShapeMotion(0);
 
-              return (
-                <rect
-                  key={`${subject.id}-${trait.key}`}
-                  className="big-five-bloom-point"
-                  x={point.x - 3}
-                  y={point.y - 3}
-                  width="6"
-                  height="6"
-                  rx="1.4"
-                  style={{
-                    color: SUBJECT_COLORS[subjectIndex] ?? '#ce0058',
-                  }}
-                />
-              );
-            })
-          )}
-        </motion.g>
+            return (
+              <motion.path
+                className="big-five-bloom-team-average"
+                {...averageMotion}
+                animate={{
+                  ...(averageMotion.animate ?? {}),
+                  opacity: activeTeamSubjectId ? 0 : 0.92,
+                }}
+                d={averageBloomPath}
+                fill="none"
+                stroke={TEAM_AVERAGE_COLOR}
+                transition={{
+                  ...(averageMotion.transition ?? {}),
+                  opacity: { duration: 0.26, ease: 'easeOut' },
+                }}
+                style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}
+              />
+            );
+          })()}
+        {!isTeam && (
+          <motion.g
+            {...detailMotion}
+            style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}
+          >
+            {visibleSubjects.map((subject, subjectIndex) =>
+              traits.map((trait, traitIndex) => {
+                const point = getPoint(
+                  traitIndex,
+                  getBigFiveScore(subject, trait.key),
+                  traits.length
+                );
+
+                return (
+                  <rect
+                    key={`${subject.id}-${trait.key}`}
+                    className="big-five-bloom-point"
+                    x={point.x - 3}
+                    y={point.y - 3}
+                    width="6"
+                    height="6"
+                    rx="1.4"
+                    style={{
+                      color: SUBJECT_COLORS[subjectIndex] ?? '#ce0058',
+                    }}
+                  />
+                );
+              })
+            )}
+          </motion.g>
+        )}
         <motion.g {...labelMotion}>
           {axes.map(({ trait, labelPoint }) => (
             <text
@@ -242,13 +349,39 @@ export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
           ))}
         </motion.g>
       </svg>
-      {visibleSubjects.length > 1 && (
+      {!isTeam && visibleSubjects.length > 1 && (
         <motion.div className="big-five-bloom-legend" {...labelMotion}>
           {visibleSubjects.map((subject, index) => (
             <span key={subject.id}>
               <i style={{ background: SUBJECT_COLORS[index] ?? '#ce0058' }} />
               {subject.name}
             </span>
+          ))}
+        </motion.div>
+      )}
+      {isTeam && (
+        <motion.div
+          className="big-five-bloom-legend big-five-bloom-legend--team"
+          {...labelMotion}
+        >
+          {visibleSubjects.map((subject) => (
+            <button
+              className={[
+                'big-five-bloom-legend-name',
+                activeTeamSubjectId === subject.id
+                  ? 'big-five-bloom-legend-name--active'
+                  : '',
+              ].filter(Boolean).join(' ')}
+              key={subject.id}
+              onBlur={() => setActiveTeamSubjectId(null)}
+              onClick={() => onSelectMember?.(subject.id)}
+              onFocus={() => setActiveTeamSubjectId(subject.id)}
+              onMouseEnter={() => setActiveTeamSubjectId(subject.id)}
+              onMouseLeave={() => setActiveTeamSubjectId(null)}
+              type="button"
+            >
+              {getFirstName(subject)}
+            </button>
           ))}
         </motion.div>
       )}

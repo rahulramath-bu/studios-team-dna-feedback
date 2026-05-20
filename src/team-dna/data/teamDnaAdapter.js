@@ -74,10 +74,11 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
           data: { subjects, traits: BIG_FIVE_TRAITS },
         }
       : {
-          id: 'team-spectrum',
-          kind: 'bigFiveSpectrumList',
-          label: spectrumLabel,
-          data: { subjects, traits: BIG_FIVE_TRAITS, reads: spectrumReads },
+          id: 'team-bloom',
+          kind: 'bigFiveBloom',
+          label: 'Team Big Five shape',
+          showLabel: false,
+          data: { subjects, traits: BIG_FIVE_TRAITS },
         },
     hasSelectedSubjects
       ? {
@@ -87,20 +88,18 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
           data: { subjects, traits: BIG_FIVE_TRAITS, reads: spectrumReads },
         }
       : {
-          id: 'team-watch-out',
-          kind: 'watchOut',
-          label: 'Look out for...',
-          data: { watchOut },
+          id: 'team-spectrum',
+          kind: 'bigFiveSpectrumList',
+          label: spectrumLabel,
+          data: { subjects, traits: BIG_FIVE_TRAITS, reads: spectrumReads },
         },
     {
       id: hasSelectedSubjects
         ? `${scopeId}-watch-out`
-        : 'team-info-placeholder-2',
-      kind: hasSelectedSubjects ? 'watchOut' : undefined,
-      label: hasSelectedSubjects ? 'Look out for...' : 'Other info block',
-      data: hasSelectedSubjects
-        ? { watchOut }
-        : undefined,
+        : 'team-watch-out',
+      kind: 'watchOut',
+      label: 'Look out for...',
+      data: { watchOut },
     },
   ];
 

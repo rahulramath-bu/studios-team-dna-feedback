@@ -21,7 +21,7 @@ export function WatchOutCard({ watchOut }) {
     <div className="watch-out-card">
       {items.map((item) => (
         <section className="watch-out-item" key={`${item.traitKey}-${item.type}`}>
-          <p className="guidance-section-label">{item.title}</p>
+          <p className="watch-out-item-title">{item.title}</p>
           <p className="guidance-section-body">
             {item.body}
             {item.tip ? ` So ${item.tip}` : ''}
