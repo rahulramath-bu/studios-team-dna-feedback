@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { motion } from 'motion/react';
+import { useMemo } from 'react';
+import { motion, useReducedMotion } from 'motion/react';
 import {
   BIG_FIVE_TRAITS,
   getBigFiveScore,
@@ -81,6 +81,8 @@ function getBloomPath(subject, traits) {
  */
 export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
   const visibleSubjects = subjects.filter((subject) => subject?.bigFive).slice(0, 2);
+  const isDuo = visibleSubjects.length > 1;
+  const shouldReduceMotion = useReducedMotion();
   const axes = useMemo(
     () =>
       traits.map((trait, index) => ({
@@ -89,6 +91,14 @@ export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
         labelPoint: getAxisPoint(index, traits.length, MAX_RADIUS + 27),
       })),
     [traits]
+  );
+  const bloomPaths = useMemo(
+    () =>
+      visibleSubjects.map((subject) => ({
+        subject,
+        d: getBloomPath(subject, traits),
+      })),
+    [traits, visibleSubjects]
   );
 
   if (visibleSubjects.length === 0) {
@@ -99,6 +109,46 @@ export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
     );
   }
 
+  const gridMotion = shouldReduceMotion
+    ? { initial: false, animate: { opacity: 1 } }
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        transition: { duration: 0.55, ease: 'easeOut' },
+      };
+  const detailDelay = isDuo ? 1.42 : 0.92;
+  const labelDelay = isDuo ? 1.62 : 1.12;
+  const detailMotion = shouldReduceMotion
+    ? { initial: false, animate: { opacity: 1, scale: 1 } }
+    : {
+        initial: { opacity: 0, scale: 0.92 },
+        animate: { opacity: 1, scale: 1 },
+        transition: { duration: 0.42, delay: detailDelay, ease: 'easeOut' },
+      };
+  const labelMotion = shouldReduceMotion
+    ? { initial: false, animate: { opacity: 1 } }
+    : {
+        initial: { opacity: 0 },
+        animate: { opacity: 1 },
+        transition: { duration: 0.56, delay: labelDelay, ease: 'easeOut' },
+      };
+  const getShapeMotion = (index) => {
+    if (shouldReduceMotion) {
+      return { initial: false, animate: { opacity: 1, scale: 1 } };
+    }
+
+    const delay = isDuo ? 0.34 + index * 0.5 : 0.34;
+
+    return {
+      initial: { opacity: 0, scale: 0.84 },
+      animate: { opacity: 1, scale: 1 },
+      transition: {
+        opacity: { duration: 0.42, delay, ease: 'easeOut' },
+        scale: { duration: 0.78, delay, ease: [0.22, 1, 0.36, 1] },
+      },
+    };
+  };
+
   return (
     <div className="big-five-bloom-card">
       <svg
@@ -107,93 +157,100 @@ export function BigFiveBloom({ subjects, traits = BIG_FIVE_TRAITS }) {
         role="img"
         aria-label="Big Five shape"
       >
-        {[0.25, 0.5, 0.75, 1].map((factor) => (
-          <circle
-            key={factor}
-            className="big-five-bloom-grid"
-            cx={CENTER}
-            cy={CENTER}
-            r={MAX_RADIUS * factor}
-          />
-        ))}
-        {axes.map(({ trait, point }) => (
-          <line
-            key={trait.key}
-            className="big-five-bloom-axis"
-            x1={CENTER}
-            y1={CENTER}
-            x2={point.x}
-            y2={point.y}
-          />
-        ))}
-        {visibleSubjects.map((subject, index) => {
+        <motion.g {...gridMotion}>
+          {[0.25, 0.5, 0.75, 1].map((factor) => (
+            <circle
+              key={factor}
+              className="big-five-bloom-grid"
+              cx={CENTER}
+              cy={CENTER}
+              r={MAX_RADIUS * factor}
+            />
+          ))}
+          {axes.map(({ trait, point }) => (
+            <line
+              key={trait.key}
+              className="big-five-bloom-axis"
+              x1={CENTER}
+              y1={CENTER}
+              x2={point.x}
+              y2={point.y}
+            />
+          ))}
+        </motion.g>
+        {bloomPaths.map(({ subject, d }, index) => {
           const color = SUBJECT_COLORS[index] ?? '#ce0058';
 
           return (
             <motion.path
               key={subject.id}
               className="big-five-bloom-shape"
-              d={getBloomPath(subject, traits)}
+              d={d}
               fill={color}
               fillOpacity={0.2}
               stroke={color}
-              strokeOpacity={visibleSubjects.length > 1 ? 0.58 : 0.64}
-              initial={{ opacity: 0, scale: 0.94 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+              strokeOpacity={isDuo ? 0.58 : 0.64}
+              {...getShapeMotion(index)}
               style={{
-                mixBlendMode: visibleSubjects.length > 1 ? 'multiply' : 'normal',
+                mixBlendMode: isDuo ? 'multiply' : 'normal',
                 transformOrigin: `${CENTER}px ${CENTER}px`,
               }}
             />
           );
         })}
-        {visibleSubjects.map((subject, subjectIndex) =>
-          traits.map((trait, traitIndex) => {
-            const point = getPoint(
-              traitIndex,
-              getBigFiveScore(subject, trait.key),
-              traits.length
-            );
+        <motion.g
+          {...detailMotion}
+          style={{ transformOrigin: `${CENTER}px ${CENTER}px` }}
+        >
+          {visibleSubjects.map((subject, subjectIndex) =>
+            traits.map((trait, traitIndex) => {
+              const point = getPoint(
+                traitIndex,
+                getBigFiveScore(subject, trait.key),
+                traits.length
+              );
 
-            return (
-              <rect
-                key={`${subject.id}-${trait.key}`}
-                className="big-five-bloom-point"
-                x={point.x - 3}
-                y={point.y - 3}
-                width="6"
-                height="6"
-                rx="1.4"
-                style={{
-                  color: SUBJECT_COLORS[subjectIndex] ?? '#ce0058',
-                }}
-              />
-            );
-          })
-        )}
-        {axes.map(({ trait, labelPoint }) => (
-          <text
-            key={`${trait.key}-label`}
-            className="big-five-bloom-label"
-            x={labelPoint.x}
-            y={labelPoint.y}
-            textAnchor="middle"
-            dominantBaseline="middle"
-          >
-            {trait.shortLabel}
-          </text>
-        ))}
+              return (
+                <rect
+                  key={`${subject.id}-${trait.key}`}
+                  className="big-five-bloom-point"
+                  x={point.x - 3}
+                  y={point.y - 3}
+                  width="6"
+                  height="6"
+                  rx="1.4"
+                  style={{
+                    color: SUBJECT_COLORS[subjectIndex] ?? '#ce0058',
+                  }}
+                />
+              );
+            })
+          )}
+        </motion.g>
+        <motion.g {...labelMotion}>
+          {axes.map(({ trait, labelPoint }) => (
+            <text
+              key={`${trait.key}-label`}
+              className="big-five-bloom-label"
+              x={labelPoint.x}
+              y={labelPoint.y}
+              textAnchor="middle"
+              dominantBaseline="middle"
+            >
+              {trait.shortLabel}
+            </text>
+          ))}
+        </motion.g>
       </svg>
       {visibleSubjects.length > 1 && (
-        <div className="big-five-bloom-legend">
+        <motion.div className="big-five-bloom-legend" {...labelMotion}>
           {visibleSubjects.map((subject, index) => (
             <span key={subject.id}>
               <i style={{ background: SUBJECT_COLORS[index] ?? '#ce0058' }} />
               {subject.name}
             </span>
           ))}
-        </div>
+        </motion.div>
       )}
     </div>
   );

@@ -22,6 +22,10 @@ These paths were checked against `/Users/preetoshi/Documents/BetterUp Monolith` 
   - Uses generated API hooks, `BrowserTitle`, `Heading`, `Text`, `Button`, `Icon`, and route navigation.
 - `ux/packages/component-library/src/components/ui/page-tabs.tsx`
   - Closest canonical subtab primitive if Team DNA lives beside Overview, Team Pulse, Team Coaching, etc.
+- `ux/packages/icons/src/Icon.tsx`
+  - Canonical React icon wrapper. It resolves Feather icon names first, then BetterUp custom SVG icons.
+- `ux/packages/icons/src/constants.ts`
+  - Shared `IconName` union and icon-name registry used by component-library buttons and Team/Partner surfaces.
 - `ux/apps/react-platform/src/styles/index.css`
   - Imports component-library `tokens.css` and `theme.css`, and defines the global BetterUp font faces.
 - `ux/apps/react-platform/tailwind.config.js`
@@ -32,6 +36,34 @@ These paths were checked against `/Users/preetoshi/Documents/BetterUp Monolith` 
   - Already depends on `motion`, so Team DNA should import from `motion/react`.
 
 The monolith has several UI eras. For this feature, prefer React Platform plus `@betterup/component-library`, `@betterup/icons`, generated `@betterup/api` hooks, and token-backed styling. Do not copy Ember, Bootstrap, or legacy `.wb-btn-*` patterns just because they exist nearby.
+
+## Icon seam
+
+The monolith icon path for modern React surfaces is:
+
+```tsx
+import { Icon } from '@betterup/icons/src/Icon';
+
+<Icon name="Info" className="w-4 h-4" />
+```
+
+`Icon` accepts names from `react-feather` plus BetterUp custom icons through `@betterup/icons/src/constants`. If the prototype adds icons to insight/info blocks, keep that as a tiny local mapping layer in the standalone repo and swap the renderer to the monolith `Icon` component during porting. Do not introduce a new icon dependency just for Team DNA.
+
+Info-block icons should be decorative background chrome, not layout content:
+
+- Render them with `aria-hidden="true"`.
+- Position them absolutely inside the card or section.
+- Keep `pointer-events: none`.
+- Do not add them to the text/content flow.
+- Do not use them as the only label for a block.
+
+That lets each card gain a subtle visual identity while the existing heading, copy, and visualization layout stay stable. The standalone prototype currently uses local inline SVG paths with Feather-compatible names (`Activity`, `Sliders`, `MessageCircle`, `AlertTriangle`) so it does not add a new dependency. In the monolith, replace that local renderer with:
+
+```tsx
+<Icon name={iconName} aria-hidden="true" className="..." />
+```
+
+If Product later wants semantic icons from backend/content data, promote them into the card data model as `iconName?: IconName`, but still render them through the same shared `InfoBlockIcon` seam.
 
 ## What to port
 

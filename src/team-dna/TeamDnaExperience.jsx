@@ -119,7 +119,6 @@ export function TeamDnaExperience({
       <InsightPanel
         insight={insight}
         isHidden={isEditingTeam}
-        selectionCount={selectedIds.length}
       />
     </section>
   );

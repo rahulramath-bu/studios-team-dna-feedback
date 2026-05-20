@@ -408,6 +408,7 @@ export function BigFiveSpectrumList({
       <button
         className="big-five-spectrum-view-toggle"
         disabled={isViewFading}
+        key={viewMode}
         onClick={handleViewToggle}
         type="button"
       >
@@ -433,43 +434,43 @@ export function BigFiveSpectrumList({
             ))}
           </div>
         ) : (
-          <>
-            <div className="big-five-spectrum-progress" aria-label="Big Five traits">
-              {traits.map((trait, index) => {
-                const isActive = index === activeTraitIndex;
-
-                return (
-                  <button
-                    aria-label={`Show ${trait.shortLabel ?? trait.label}`}
-                    aria-pressed={isActive}
-                    className="big-five-spectrum-step"
-                    data-active={isActive ? 'true' : undefined}
-                    key={trait.key}
-                    onClick={() => handleStepClick(index)}
-                    onMouseDown={(event) => event.preventDefault()}
-                    type="button"
-                  />
-                );
-              })}
-            </div>
-
-            <div
-              className="big-five-spectrum-stage"
-              data-phase={transitionPhase}
-              style={{ '--spectrum-direction': transitionDirection }}
-            >
-              {displayedTrait ? (
-                <SpectrumRow
-                  key={displayedTrait.key}
-                  reads={reads}
-                  subjects={visibleSubjects}
-                  trait={displayedTrait}
-                />
-              ) : null}
-            </div>
-          </>
+          <div
+            className="big-five-spectrum-stage"
+            data-phase={transitionPhase}
+            style={{ '--spectrum-direction': transitionDirection }}
+          >
+            {displayedTrait ? (
+              <SpectrumRow
+                key={displayedTrait.key}
+                reads={reads}
+                subjects={visibleSubjects}
+                trait={displayedTrait}
+              />
+            ) : null}
+          </div>
         )}
       </div>
+
+      {!isShowingAll ? (
+        <div className="big-five-spectrum-progress" aria-label="Big Five traits">
+          {traits.map((trait, index) => {
+            const isActive = index === activeTraitIndex;
+
+            return (
+              <button
+                aria-label={`Show ${trait.shortLabel ?? trait.label}`}
+                aria-pressed={isActive}
+                className="big-five-spectrum-step"
+                data-active={isActive ? 'true' : undefined}
+                key={trait.key}
+                onClick={() => handleStepClick(index)}
+                onMouseDown={(event) => event.preventDefault()}
+                type="button"
+              />
+            );
+          })}
+        </div>
+      ) : null}
     </div>
   );
 }
