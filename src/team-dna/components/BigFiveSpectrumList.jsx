@@ -19,6 +19,11 @@ const SUBJECT_COLORS = [
   '#c2410c',
 ];
 
+const SPECTRUM_AUTO_ADVANCE_MS = 12000;
+const SPECTRUM_TRANSITION_MS = 400;
+const SPECTRUM_VIEW_FADE_MS = 320;
+const SPECTRUM_VIEW_HEIGHT_MS = 520;
+
 function getInitials(name) {
   return name
     .split(' ')
@@ -29,6 +34,44 @@ function getInitials(name) {
     .toUpperCase();
 }
 
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = React.useState(false);
+
+  React.useEffect(() => {
+    if (typeof window === 'undefined' || !window.matchMedia) {
+      return undefined;
+    }
+
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const updatePreference = () => setPrefersReducedMotion(mediaQuery.matches);
+
+    updatePreference();
+    mediaQuery.addEventListener?.('change', updatePreference);
+
+    return () => {
+      mediaQuery.removeEventListener?.('change', updatePreference);
+    };
+  }, []);
+
+  return prefersReducedMotion;
+}
+
+function getCarouselDirection(currentIndex, nextIndex, itemCount) {
+  if (itemCount <= 1 || currentIndex === nextIndex) {
+    return 1;
+  }
+
+  if (currentIndex === itemCount - 1 && nextIndex === 0) {
+    return 1;
+  }
+
+  if (currentIndex === 0 && nextIndex === itemCount - 1) {
+    return -1;
+  }
+
+  return nextIndex > currentIndex ? 1 : -1;
+}
+
 function getPromptText(trait, subjectCount) {
   if (subjectCount === 1) {
     return trait.promptSingular ?? trait.shortLabel;
@@ -37,7 +80,11 @@ function getPromptText(trait, subjectCount) {
   return trait.promptPlural ?? trait.shortLabel;
 }
 
-function getDuoReadText(trait, subjects) {
+function getSpectrumReadText(trait, subjects, reads) {
+  if (reads?.[trait.key]) {
+    return reads[trait.key];
+  }
+
   if (subjects.length !== 2) {
     return null;
   }
@@ -65,6 +112,36 @@ function getDuoReadText(trait, subjects) {
   }
 
   return copy.middleAligned ?? 'Together, we meet near the middle.';
+}
+
+function renderDuoReadText(text, keyword) {
+  const matchIndex = text.toLowerCase().indexOf(keyword.toLowerCase());
+
+  if (matchIndex === -1) {
+    return text;
+  }
+
+  const before = text.slice(0, matchIndex);
+  const match = text.slice(matchIndex, matchIndex + keyword.length);
+  const after = text.slice(matchIndex + keyword.length);
+
+  return (
+    <>
+      {before}
+      <span className="big-five-spectrum-keyword">{match}</span>
+      {after}
+    </>
+  );
+}
+
+function renderSpectrumHead(trait, subjects, reads) {
+  const duoRead = getSpectrumReadText(trait, subjects, reads);
+
+  if (duoRead) {
+    return renderDuoReadText(duoRead, trait.duoKeyword ?? trait.shortLabel);
+  }
+
+  return getPromptText(trait, subjects.length);
 }
 
 function getQuantile(sortedScores, quantile) {
@@ -124,8 +201,116 @@ function getTeamDistribution(subjects, trait) {
  * Port: keep this visualization API stable. Backend data should be normalized
  * into subjects before it reaches this component.
  */
-export function BigFiveSpectrumList({ subjects, traits = BIG_FIVE_TRAITS }) {
+export function BigFiveSpectrumList({
+  subjects,
+  traits = BIG_FIVE_TRAITS,
+  reads,
+}) {
   const visibleSubjects = subjects.filter((subject) => subject?.bigFive);
+  const [activeTraitIndex, setActiveTraitIndex] = React.useState(0);
+  const [displayedTraitIndex, setDisplayedTraitIndex] = React.useState(0);
+  const [transitionPhase, setTransitionPhase] = React.useState('idle');
+  const [transitionDirection, setTransitionDirection] = React.useState(1);
+  const [isPaused, setIsPaused] = React.useState(false);
+  const [viewMode, setViewMode] = React.useState('carousel');
+  const [isViewFading, setIsViewFading] = React.useState(false);
+  const [bodyHeight, setBodyHeight] = React.useState(null);
+  const prefersReducedMotion = usePrefersReducedMotion();
+  const transitionTimeoutRef = React.useRef(null);
+  const transitionFrameRef = React.useRef(null);
+  const viewTimeoutsRef = React.useRef([]);
+  const bodyRef = React.useRef(null);
+  const displayedTrait = traits[displayedTraitIndex] ?? traits[0];
+  const isShowingAll = viewMode === 'all';
+
+  const clearViewTimeouts = React.useCallback(() => {
+    viewTimeoutsRef.current.forEach((timeout) => {
+      window.clearTimeout(timeout);
+    });
+    viewTimeoutsRef.current = [];
+  }, []);
+
+  React.useEffect(() => {
+    setActiveTraitIndex((index) =>
+      traits.length === 0 ? 0 : Math.min(index, traits.length - 1)
+    );
+    setDisplayedTraitIndex((index) =>
+      traits.length === 0 ? 0 : Math.min(index, traits.length - 1)
+    );
+  }, [traits.length]);
+
+  React.useEffect(() => {
+    return () => {
+      if (transitionTimeoutRef.current) {
+        window.clearTimeout(transitionTimeoutRef.current);
+      }
+      if (transitionFrameRef.current) {
+        window.cancelAnimationFrame(transitionFrameRef.current);
+      }
+      clearViewTimeouts();
+    };
+  }, [clearViewTimeouts]);
+
+  const showTrait = React.useCallback(
+    (index) => {
+      if (traits.length === 0) {
+        return;
+      }
+
+      const nextIndex = ((index % traits.length) + traits.length) % traits.length;
+      const direction = getCarouselDirection(
+        displayedTraitIndex,
+        nextIndex,
+        traits.length
+      );
+      setTransitionDirection(direction);
+      setActiveTraitIndex(nextIndex);
+
+      if (nextIndex === displayedTraitIndex) {
+        return;
+      }
+
+      if (transitionTimeoutRef.current) {
+        window.clearTimeout(transitionTimeoutRef.current);
+      }
+
+      if (prefersReducedMotion) {
+        setDisplayedTraitIndex(nextIndex);
+        setTransitionPhase('idle');
+        return;
+      }
+
+      if (transitionFrameRef.current) {
+        window.cancelAnimationFrame(transitionFrameRef.current);
+      }
+
+      setTransitionPhase('exiting');
+      transitionTimeoutRef.current = window.setTimeout(() => {
+        setDisplayedTraitIndex(nextIndex);
+        setTransitionPhase('entering');
+        transitionFrameRef.current = window.requestAnimationFrame(() => {
+          transitionFrameRef.current = window.requestAnimationFrame(() => {
+            setTransitionPhase('idle');
+          });
+        });
+      }, SPECTRUM_TRANSITION_MS);
+    },
+    [displayedTraitIndex, prefersReducedMotion, traits.length]
+  );
+
+  React.useEffect(() => {
+    if (viewMode !== 'carousel' || prefersReducedMotion || isPaused || traits.length <= 1) {
+      return undefined;
+    }
+
+    const timeout = window.setTimeout(() => {
+      showTrait(activeTraitIndex + 1);
+    }, SPECTRUM_AUTO_ADVANCE_MS);
+
+    return () => {
+      window.clearTimeout(timeout);
+    };
+  }, [activeTraitIndex, isPaused, prefersReducedMotion, showTrait, traits.length, viewMode]);
 
   if (visibleSubjects.length === 0) {
     return (
@@ -135,65 +320,210 @@ export function BigFiveSpectrumList({ subjects, traits = BIG_FIVE_TRAITS }) {
     );
   }
 
+  const pauseCarousel = () => setIsPaused(true);
+  const resumeCarousel = () => {
+    setIsPaused(false);
+  };
+
+  const handleBlur = (event) => {
+    if (!event.currentTarget.contains(event.relatedTarget)) {
+      resumeCarousel();
+    }
+  };
+
+  const handleStepClick = (index) => {
+    showTrait(index);
+  };
+
+  const getCarouselBodyHeight = () => {
+    const row = bodyRef.current?.querySelector('.big-five-spectrum-row');
+    const head = row?.querySelector('.big-five-spectrum-head');
+    const track = row?.querySelector('.big-five-spectrum-track');
+
+    if (!row || !head || !track || typeof window === 'undefined') {
+      return bodyRef.current?.offsetHeight ?? null;
+    }
+
+    const rowStyle = window.getComputedStyle(row);
+    const gap = parseFloat(rowStyle.rowGap || rowStyle.gap) || 0;
+
+    return head.offsetHeight + track.offsetHeight + gap;
+  };
+
+  const handleViewToggle = () => {
+    const nextMode = isShowingAll ? 'carousel' : 'all';
+    clearViewTimeouts();
+
+    if (prefersReducedMotion) {
+      setViewMode(nextMode);
+      setIsPaused(nextMode === 'all');
+      return;
+    }
+
+    setIsPaused(true);
+    setBodyHeight(bodyRef.current?.offsetHeight ?? null);
+    setIsViewFading(true);
+
+    const switchTimeout = window.setTimeout(() => {
+      if (nextMode === 'carousel') {
+        setBodyHeight(getCarouselBodyHeight());
+        setViewMode(nextMode);
+      } else {
+        setViewMode(nextMode);
+      }
+
+      window.requestAnimationFrame(() => {
+        if (nextMode !== 'carousel') {
+          setBodyHeight(bodyRef.current?.scrollHeight ?? null);
+        }
+        window.requestAnimationFrame(() => {
+          setIsViewFading(false);
+        });
+
+        const unlockTimeout = window.setTimeout(() => {
+          setBodyHeight(null);
+          if (nextMode === 'carousel') {
+            setIsPaused(false);
+          }
+        }, SPECTRUM_VIEW_HEIGHT_MS);
+
+        viewTimeoutsRef.current.push(unlockTimeout);
+      });
+    }, SPECTRUM_VIEW_FADE_MS);
+
+    viewTimeoutsRef.current = [switchTimeout];
+  };
+
   return (
-    <div className="big-five-spectrum-list">
-      {traits.map((trait) => (
-        <div className="big-five-spectrum-row" key={trait.key}>
-          <div className="big-five-spectrum-head">
-            <span>
-              {getDuoReadText(trait, visibleSubjects) ??
-                getPromptText(trait, visibleSubjects.length)}
-            </span>
-          </div>
-          <div
-            className="big-five-spectrum-track"
-            aria-label={`${trait.label} spectrum`}
-          >
-            <span className="big-five-spectrum-end low">{trait.lowLabel}</span>
-            <span className="big-five-spectrum-end high">{trait.highLabel}</span>
-            <span className="big-five-spectrum-line" />
-            {visibleSubjects.length > 2 ? (
-              <TeamDistribution
+    <div
+      className="big-five-spectrum-list"
+      data-paused={isPaused ? 'true' : undefined}
+      data-reduced-motion={prefersReducedMotion ? 'true' : undefined}
+      data-view={viewMode}
+      onBlurCapture={handleBlur}
+      onFocusCapture={pauseCarousel}
+      onMouseEnter={pauseCarousel}
+      onMouseLeave={resumeCarousel}
+    >
+      <button
+        className="big-five-spectrum-view-toggle"
+        disabled={isViewFading}
+        onClick={handleViewToggle}
+        type="button"
+      >
+        {isShowingAll ? 'Show less' : 'Show all'}
+      </button>
+
+      <div
+        className="big-five-spectrum-view-body"
+        data-fading={isViewFading ? 'true' : undefined}
+        data-height-locked={bodyHeight !== null ? 'true' : undefined}
+        ref={bodyRef}
+        style={bodyHeight !== null ? { height: `${bodyHeight}px` } : undefined}
+      >
+        {isShowingAll ? (
+          <div className="big-five-spectrum-all">
+            {traits.map((trait) => (
+              <SpectrumRow
+                key={trait.key}
+                reads={reads}
                 subjects={visibleSubjects}
                 trait={trait}
               />
-            ) : (
-              visibleSubjects.map((subject, index) => {
-                const score = getBigFiveScore(subject, trait.key);
-                const color = SUBJECT_COLORS[index % SUBJECT_COLORS.length];
+            ))}
+          </div>
+        ) : (
+          <>
+            <div className="big-five-spectrum-progress" aria-label="Big Five traits">
+              {traits.map((trait, index) => {
+                const isActive = index === activeTraitIndex;
 
                 return (
-                  <span
-                    key={`${subject.id}-${trait.key}`}
-                    className="big-five-spectrum-marker"
-                    style={{
-                      left: `${score}%`,
-                      '--subject-color': color,
-                      zIndex: 10 + index,
-                    }}
-                    aria-label={`${subject.name}. ${trait.label}: ${score} out of 100.`}
-                    tabIndex={0}
-                  >
-                    <span className="big-five-spectrum-avatar" aria-hidden="true">
-                      {subject.avatarUrl ? (
-                        <img src={subject.avatarUrl} alt="" />
-                      ) : (
-                        <span>{getInitials(subject.name)}</span>
-                      )}
-                    </span>
-                    <span className="big-five-spectrum-tooltip" role="tooltip">
-                      <strong>{subject.name}</strong>
-                      <span>
-                        {trait.label}: {score}/100
-                      </span>
-                    </span>
-                  </span>
+                  <button
+                    aria-label={`Show ${trait.shortLabel ?? trait.label}`}
+                    aria-pressed={isActive}
+                    className="big-five-spectrum-step"
+                    data-active={isActive ? 'true' : undefined}
+                    key={trait.key}
+                    onClick={() => handleStepClick(index)}
+                    onMouseDown={(event) => event.preventDefault()}
+                    type="button"
+                  />
                 );
-              })
-            )}
-          </div>
-        </div>
-      ))}
+              })}
+            </div>
+
+            <div
+              className="big-five-spectrum-stage"
+              data-phase={transitionPhase}
+              style={{ '--spectrum-direction': transitionDirection }}
+            >
+              {displayedTrait ? (
+                <SpectrumRow
+                  key={displayedTrait.key}
+                  reads={reads}
+                  subjects={visibleSubjects}
+                  trait={displayedTrait}
+                />
+              ) : null}
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SpectrumRow({ trait, subjects, reads }) {
+  return (
+    <div className="big-five-spectrum-row">
+      <div className="big-five-spectrum-head">
+        <span>{renderSpectrumHead(trait, subjects, reads)}</span>
+      </div>
+      <div
+        className="big-five-spectrum-track"
+        aria-label={`${trait.label} spectrum`}
+      >
+        <span className="big-five-spectrum-end low">{trait.lowLabel}</span>
+        <span className="big-five-spectrum-end high">{trait.highLabel}</span>
+        <span className="big-five-spectrum-line" />
+        {subjects.length > 2 ? (
+          <TeamDistribution subjects={subjects} trait={trait} />
+        ) : (
+          subjects.map((subject, index) => {
+            const score = getBigFiveScore(subject, trait.key);
+            const color = SUBJECT_COLORS[index % SUBJECT_COLORS.length];
+
+            return (
+              <span
+                key={`${subject.id}-${trait.key}`}
+                className="big-five-spectrum-marker"
+                style={{
+                  left: `${score}%`,
+                  '--subject-color': color,
+                  zIndex: 10 + index,
+                }}
+                aria-label={`${subject.name}. ${trait.label}: ${score} out of 100.`}
+                tabIndex={0}
+              >
+                <span className="big-five-spectrum-avatar" aria-hidden="true">
+                  {subject.avatarUrl ? (
+                    <img src={subject.avatarUrl} alt="" />
+                  ) : (
+                    <span>{getInitials(subject.name)}</span>
+                  )}
+                </span>
+                <span className="big-five-spectrum-tooltip" role="tooltip">
+                  <strong>{subject.name}</strong>
+                  <span>
+                    {trait.label}: {score}/100
+                  </span>
+                </span>
+              </span>
+            );
+          })
+        )}
+      </div>
     </div>
   );
 }

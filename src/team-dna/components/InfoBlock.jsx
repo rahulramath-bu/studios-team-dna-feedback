@@ -2,6 +2,7 @@ import React from 'react';
 import { BigFiveBloom } from './BigFiveBloom.jsx';
 import { BigFiveSpectrumList } from './BigFiveSpectrumList.jsx';
 import { WatchOutCard } from './WatchOutCard.jsx';
+import { GuidanceCard } from './GuidanceCard.jsx';
 
 /**
  * Supporting insight card slot.
@@ -18,7 +19,16 @@ import { WatchOutCard } from './WatchOutCard.jsx';
 export function InfoBlock({ card, className = '' }) {
   // Monolith integration seam: supporting cards should enter through
   // `insight.cards`, not through fixture or backend imports inside the panel.
-  const blockClassName = ['info-block', className].filter(Boolean).join(' ');
+  const blockClassName = [
+    'info-block',
+    ['bigFiveSpectrumList', 'guidance', 'watchOut'].includes(card.kind)
+      ? 'info-block--editorial'
+      : '',
+    card.kind === 'bigFiveSpectrumList' ? 'info-block--spectrum' : '',
+    className,
+  ]
+    .filter(Boolean)
+    .join(' ');
   const label = card.label;
   const shouldShowLabel = card.showLabel !== false;
 
@@ -48,12 +58,17 @@ function InfoBlockBody({ card }) {
       <BigFiveSpectrumList
         subjects={card.data?.subjects ?? []}
         traits={card.data?.traits}
+        reads={card.data?.reads}
       />
     );
   }
 
   if (card.kind === 'watchOut') {
     return <WatchOutCard watchOut={card.data?.watchOut} />;
+  }
+
+  if (card.kind === 'guidance') {
+    return <GuidanceCard guidance={card.data?.guidance} />;
   }
 
   return null;

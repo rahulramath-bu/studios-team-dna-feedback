@@ -6,6 +6,8 @@ Audience: BetterUp product engineers, or an AI assistant helping those engineers
 
 This is a porting guide, not a design diary. It should explain the seams that matter when integrating with the monolith: routing, layout, data, design-system tokens, assets, dependencies, and prototype-only code that should not ship.
 
+For the deeper content philosophy behind deterministic fallback versus future AI synthesis, read [ai-synthesis-layer-philosophy.md](./ai-synthesis-layer-philosophy.md).
+
 ## One-sentence target
 
 Port `TeamDnaExperience` as the Team DNA tab panel inside the real BetterUp Team area. Let the monolith own the product shell, route, feature gates, API hooks, analytics, and global design-system styles.
@@ -131,6 +133,11 @@ type TeamDnaDataset = {
 type TeamDnaMember = {
   id: string;
   name: string;
+  pronouns?: {
+    subject: string; // "she", "he", "they"
+    object: string; // "her", "him", "them"
+    possessive: string; // "her", "his", "their"
+  };
   role?: string;
   avatarUrl?: string | null;
   assessmentComplete: boolean;
@@ -146,27 +153,40 @@ type TeamDnaMember = {
 
 type TeamDnaInsight = {
   id: string;
+  source?: 'deterministic' | 'ai' | 'override';
+  generatedAt?: string;
+  inputVersion?: string;
   eyebrow: string;
   title: string;
   summary: Array<{ text: string; emphasis?: boolean }>;
-  cards: Array<{ id: string; label: string; kind?: string; data?: unknown }>;
+  cards: Array<{
+    id: string;
+    label: string;
+    kind?: string;
+    showLabel?: boolean;
+    data?: unknown;
+  }>;
 };
 ```
 
 Do not leak backend field names into JSX components. Keep that mapping in one adapter near the API hook.
 
+Pronouns are display-language data, not gender data. Pass them when the monolith has them; otherwise omit the field and deterministic copy falls back to neutral `they/them`.
+
 Current local seam:
 
 - `getTeamDna()` returns fixture data.
 - `getInsightForSelection(dataset, selectedIds)` resolves team/person/duo insight for the current selection.
+- `buildTeamInsight()`, `buildPersonInsight()`, and `buildPairInsight()` generate readable copy from normalized scores by default.
+- `source: 'ai'` fixture records mimic future backend synthesis and use the same `TeamDnaInsight` shape as deterministic fallback.
 - `makePairId()` makes pair IDs deterministic and order-insensitive.
 
 Monolith target:
 
 - Replace `getTeamDna()` with generated API hooks from `@betterup/api/src/member/@tanstack/react-query.gen`.
 - Keep a small `mapTeamDnaResponseToViewModel()` next to the query.
-- If the backend returns insight copy, render it directly.
-- If the backend only returns member trait data at first, use deterministic fallback helpers until backend-provided insight copy exists.
+- If the backend only returns member trait data at first, deterministic insight helpers are enough to render complete team, person, and duo pages.
+- If the backend or a content service returns approved insight copy, map it as an explicit override into the same `TeamDnaInsight` shape. Do not make handcrafted fixture copy a required input.
 - Keep unknown or future fields under `meta` until a real component needs them.
 
 This keeps future additions easy: role data, profile links, assessment status, Big Five, Big Why dimensions, Bloom data, and supporting-card payloads can all enter through the adapter without making the face cluster or insight panel know API details.
@@ -182,7 +202,7 @@ The current visualization contract is intentionally small:
 
 Do not make these visualization components API-aware. If the backend later sends Big Why, role data, richer assessment facets, or a different score scale, normalize that once in the route/adapter and keep these props stable.
 
-The spectrum endpoint copy is intentionally strengths-based. Avoid low/high labels where one side sounds like the "good" side and the other sounds deficient. For example, `Candid` to `Collaborative` is safer than implying low agreeableness means "not cooperative."
+The spectrum endpoint copy is intentionally strengths-based, but it should not flatter its way out of accuracy. Avoid low/high labels where one side sounds like the "good" side and the other sounds deficient or misleading. For example, `Direct` to `Warm` is safer than implying low agreeableness means "not cooperative," and `Spontaneous` to `Methodical` is safer than calling low conscientiousness "adaptive."
 
 Current card mapping:
 
@@ -305,6 +325,7 @@ Integration rule:
 - Keep cards data-driven.
 - Let each card declare a `kind` and `data` payload when content becomes real.
 - Use `showLabel: false` when a card's visualization is self-evident and the visible mono heading adds noise; keep `label` anyway for accessibility and debugging.
+- Use `kind: 'guidance'` for prose guidance regardless of whether the words came from deterministic fallback, authored copy, or AI synthesis. AI is a data source, not a separate UI card type.
 - Add card renderers behind `InfoBlock` or a small `InsightCardRenderer`.
 - Do not make cards import fixture data directly.
 

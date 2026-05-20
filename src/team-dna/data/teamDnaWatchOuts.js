@@ -6,31 +6,31 @@ import {
 const WATCH_OUTS = {
   openness: {
     low: {
-      title: 'Closing the door too soon.',
-      body: 'Make room for one strange idea before choosing the safest one.',
-      tip: 'try asking, "what is one version we have not tried yet?"',
+      title: 'When the answer needs to be new.',
+      body: "The familiar path is often the right one, until it isn't.",
+      tip: 'try asking, "what is one option I have not considered yet?"',
     },
     high: {
-      title: 'Chasing every idea.',
-      body: 'Pick one path before the room fills up with possibilities.',
-      tip: 'choose one idea to test before adding another.',
+      title: 'When the ideas keep coming.',
+      body: 'The pull toward the next idea can be stronger than the pull to land the current one.',
+      tip: 'ask if the thing in front of you is actually done, or if you just want a new puzzle.',
     },
     wide: {
-      title: 'Forgetting to name what is real and what is new.',
-      body: 'One side may want proof while the other wants space to imagine.',
-      tip: 'start by naming the bold idea, then the simplest proof.',
+      title: 'When one wants new and one wants known.',
+      body: "One side reaches for an option no one has tried; the other reaches for what's been proven.",
+      tip: 'let the inventive side propose first, then let the grounded side ask what would have to be true.',
     },
   },
   conscientiousness: {
     low: {
-      title: 'Leaving the next step fuzzy.',
-      body: 'Say who owns what before everyone walks away.',
-      tip: 'end with one owner, one next step, and one date.',
+      title: 'When the handoff matters most.',
+      body: 'Working spontaneously is useful until someone else needs to pick up the thread.',
+      tip: 'say what done looks like and when it is needed before passing work along.',
     },
     high: {
-      title: 'Planning the life out of it.',
-      body: 'Leave enough room for the work to change once it meets real life.',
-      tip: 'decide what must be fixed and what can stay flexible.',
+      title: 'When the plan stops being the plan.',
+      body: 'Standards and follow-through are strengths, but the original plan is not always the right plan.',
+      tip: 'add one midpoint check to ask if the plan still matches what you now know.',
     },
     wide: {
       title: 'Getting agreement on the handoff.',
@@ -57,36 +57,36 @@ const WATCH_OUTS = {
   },
   agreeableness: {
     low: {
-      title: 'Letting truth become too sharp.',
-      body: 'Say the hard thing, then make sure it can still be heard.',
-      tip: 'pair the clear point with why it matters.',
+      title: 'When the message lands harder than meant.',
+      body: "Direct feedback is useful when it is wanted and a hit when it isn't.",
+      tip: 'try saying, "I am going to be direct because I think this matters" before the hard part.',
     },
     high: {
-      title: 'Smoothing over the hard thing.',
-      body: 'Kindness helps most when the real issue still gets named.',
-      tip: 'say the kind thing and the true thing.',
+      title: 'When the hard thing needs saying.',
+      body: 'Keeping the room warm is real value, but some disagreements need to come above the surface.',
+      tip: 'pick one disagreement and name it kindly but plainly.',
     },
     wide: {
-      title: 'Making honesty hard to hear.',
-      body: 'One side may push for truth while the other protects trust.',
-      tip: 'start with care, then name the real issue plainly.',
+      title: 'When direct meets warm.',
+      body: 'One side may name what is wrong fast while the other protects how it lands.',
+      tip: 'use a small signal like "I am being direct, not annoyed" or "I am being careful, not avoiding."',
     },
   },
   neuroticism: {
     low: {
-      title: 'Missing the early signal.',
-      body: 'Calm is useful, but check if someone else is noticing risk first.',
-      tip: 'ask, "is there anything here we are not seeing yet?"',
+      title: "When someone else's pressure is real.",
+      body: 'Calm is a gift, except when it gets read as not caring.',
+      tip: 'ask, "what are you carrying that I am not seeing?"',
     },
     high: {
-      title: 'Letting every signal become a fire.',
-      body: 'Notice the risk, then choose what truly needs action.',
-      tip: 'name the worry, then pick the next useful move.',
+      title: 'When worry becomes the work.',
+      body: 'Catching what could go wrong is useful until the same worry repeats without changing the plan.',
+      tip: 'name the worry, decide to act or release it, and then move on.',
     },
     wide: {
-      title: 'Letting stress stay blurry.',
-      body: 'One side may bring calm while the other notices what needs care.',
-      tip: 'separate what is urgent from what is only noisy.',
+      title: 'Translating between steady and vigilant.',
+      body: 'One side may read pressure as a signal to act while the other reads it as something to move through.',
+      tip: 'ask what each person is seeing before deciding whether the signal needs action.',
     },
   },
 };
@@ -192,9 +192,10 @@ function getTeamWatchOuts(subjects) {
  * How: uses the most stretched traits for solo, the widest gaps plus strongest
  * shared patterns for duo/team, and simple copy that never exposes
  * "high/low openness" language.
- * Port: keep this as fallback/client-side insight logic. If the backend later
- * sends approved watch-out copy, map it into the same `{ eyebrow, title, body }`
- * card data and leave the UI component unchanged.
+ * Port: this can be the default deterministic watch-out layer when the backend
+ * only returns scores. If the backend later sends approved watch-out copy, map
+ * it into the same `{ eyebrow, title, body }` card data and leave the UI
+ * component unchanged.
  */
 export function getWatchOutForSubjects(subjects) {
   const scoredSubjects = subjects.filter((subject) => subject?.bigFive);

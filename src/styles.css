@@ -319,9 +319,9 @@ button {
 }
 
 .team-dna-experience {
-  --people-pane-width: 430px;
-  --detail-pane-width: 470px;
-  --pane-gap: 88px;
+  --people-pane-width: 410px;
+  --detail-pane-width: 620px;
+  --pane-gap: 72px;
 
   display: grid;
   grid-template-columns: var(--people-pane-width) var(--detail-pane-width);
@@ -381,6 +381,18 @@ button {
   letter-spacing: var(--label-tracking);
   line-height: var(--label-line-height);
   text-transform: uppercase;
+}
+
+.info-block--editorial .info-block-label {
+  max-width: 560px;
+  margin-bottom: 26px;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.12;
+  text-transform: none;
 }
 
 .team-face-toolbar {
@@ -1102,11 +1114,29 @@ button {
 }
 
 .info-block {
-  min-height: 216px;
-  padding: 57px 34px;
+  position: relative;
+  padding: 64px 60px;
   border: 1px solid var(--card-subtle-border);
   border-radius: calc(var(--radius) - 5px);
   background: var(--card-subtle-bg);
+  transition:
+    padding 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 320ms ease,
+    background-color 320ms ease;
+}
+
+.info-block--spectrum {
+  padding-bottom: 82px;
+}
+
+.info-block--spectrum:has(.big-five-spectrum-list[data-view="all"]) {
+  padding: 0;
+  border-color: transparent;
+  background: transparent;
+}
+
+.info-block--spectrum:has(.big-five-spectrum-list[data-view="all"]) .info-block-label {
+  margin-bottom: 28px;
 }
 
 .big-five-empty {
@@ -1201,21 +1231,157 @@ button {
 
 .big-five-spectrum-list {
   display: grid;
-  gap: 68px;
+  gap: 34px;
+}
+
+.info-block--spectrum .big-five-spectrum-list {
+  gap: 0;
+}
+
+.big-five-spectrum-view-toggle {
+  position: absolute;
+  top: 26px;
+  right: 28px;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: rgba(29, 25, 37, 0.46);
+  cursor: pointer;
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.9px;
+  line-height: 1;
+  text-transform: uppercase;
+  transition: color 160ms ease;
+}
+
+.big-five-spectrum-list[data-view="all"] .big-five-spectrum-view-toggle {
+  top: -48px;
+  right: 0;
+}
+
+.big-five-spectrum-view-toggle:hover,
+.big-five-spectrum-view-toggle:focus-visible {
+  color: #171a2c;
+}
+
+.big-five-spectrum-view-toggle:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.big-five-spectrum-view-toggle:focus-visible {
+  outline: 2px solid rgba(27, 35, 255, 0.35);
+  outline-offset: 4px;
+}
+
+.big-five-spectrum-view-body {
+  transition:
+    height 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 320ms ease,
+    transform 320ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: height, opacity, transform;
+}
+
+.big-five-spectrum-view-body[data-fading="true"] {
+  opacity: 0;
+  transform: translateY(4px);
+}
+
+.big-five-spectrum-view-body[data-height-locked="true"] {
+  overflow: hidden;
+}
+
+.big-five-spectrum-all {
+  display: grid;
+  gap: 22px;
+}
+
+.big-five-spectrum-list[data-view="all"] .big-five-spectrum-row {
+  padding: 46px 52px 50px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 5px);
+  background: var(--card-subtle-bg);
+}
+
+.big-five-spectrum-progress {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.info-block--spectrum .big-five-spectrum-progress {
+  position: absolute;
+  right: 0;
+  bottom: 24px;
+  left: 0;
+  z-index: 2;
+}
+
+.big-five-spectrum-step {
+  position: relative;
+  display: block;
+  width: 7px;
+  height: 7px;
+  overflow: hidden;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(29, 25, 37, 0.25);
+  cursor: pointer;
+  transition: background-color 220ms ease, opacity 220ms ease, transform 220ms ease;
+}
+
+.big-five-spectrum-step:focus-visible {
+  outline: 2px solid rgba(27, 35, 255, 0.35);
+  outline-offset: 4px;
+}
+
+.big-five-spectrum-step[data-active="true"] {
+  background: #171a2c;
+  opacity: 1;
+  transform: scale(1.18);
+}
+
+.big-five-spectrum-stage {
+  transition: opacity 400ms ease, transform 400ms cubic-bezier(0.22, 1, 0.36, 1);
+  will-change: opacity, transform;
+}
+
+.big-five-spectrum-stage[data-phase="exiting"] {
+  opacity: 0;
+  transform: translateX(calc(var(--spectrum-direction, 1) * -14px));
+}
+
+.big-five-spectrum-stage[data-phase="entering"] {
+  opacity: 0;
+  transform: translateX(calc(var(--spectrum-direction, 1) * 14px));
+  transition: none;
 }
 
 .big-five-spectrum-row {
   display: grid;
-  gap: 10px;
+  gap: 22px;
 }
 
 .big-five-spectrum-head {
   position: relative;
   display: flex;
   align-items: center;
-  color: var(--foreground-heading);
-  font-size: 14px;
-  font-weight: 500;
+  max-width: 560px;
+  color: rgba(22, 18, 15, 0.8);
+  font-size: 15px;
+  font-weight: 400;
+  line-height: 1.65;
+  text-wrap: balance;
+}
+
+.big-five-spectrum-keyword {
+  color: #171a2c;
+  font-weight: 720;
 }
 
 .big-five-spectrum-track {
@@ -1398,32 +1564,42 @@ button {
   transform: translate(-50%, 0);
 }
 
-.watch-out-card {
-  display: grid;
-  align-content: center;
-  min-height: 142px;
-  gap: 34px;
-  padding-top: 34px;
+@media (prefers-reduced-motion: reduce) {
+  .big-five-spectrum-stage,
+  .big-five-spectrum-step {
+    transition: none;
+  }
 }
 
+.watch-out-card {
+  display: grid;
+  gap: 28px;
+}
+
+.guidance-card {
+  display: grid;
+  gap: 28px;
+}
+
+.guidance-section,
 .watch-out-item {
   display: grid;
   gap: 8px;
 }
 
-.watch-out-item h2 {
-  max-width: 420px;
+.guidance-section-label {
   margin: 0;
-  color: var(--foreground-heading);
-  font-family: var(--body-font);
-  font-size: 20px;
-  font-weight: 400;
-  letter-spacing: 0;
-  line-height: 1.18;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  line-height: var(--label-line-height);
+  text-transform: uppercase;
 }
 
-.watch-out-item p {
-  max-width: 470px;
+.guidance-section-body {
+  max-width: 560px;
   margin: 0;
   color: rgba(22, 18, 15, 0.8);
   font-size: 15px;
@@ -1432,9 +1608,9 @@ button {
 
 @media (max-width: 1040px) {
   .team-dna-experience {
-    --people-pane-width: 390px;
-    --detail-pane-width: 430px;
-    --pane-gap: 64px;
+    --people-pane-width: 360px;
+    --detail-pane-width: 540px;
+    --pane-gap: 48px;
   }
 
   .team-face-field-wrap {
@@ -1497,7 +1673,7 @@ button {
   }
 
   .team-dna-insight-content {
-    width: min(100%, 580px);
+    width: min(100%, 680px);
     margin: 0 auto;
     padding: 28px 24px 96px;
   }

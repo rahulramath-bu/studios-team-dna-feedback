@@ -1,17 +1,18 @@
 /**
  * Deterministic Team DNA insight helpers.
  *
- * What: turns Big Five scores into human-readable person and duo superpower
- * language when authored or backend-generated copy is unavailable.
+ * What: turns Big Five scores into human-readable team, person, and duo
+ * superpower language.
  * How: compares strongest traits, shared signals, and complements, then returns
  * the same TeamDnaInsight shape used by the panel.
- * Port: treat this as fallback logic or prototyping support. Prefer
- * backend-owned insight copy/statuses when the monolith has real Team DNA data,
- * and do not add live frontend AI calls here.
+ * Port: this is the default deterministic insight layer. Backend-authored or
+ * AI-assisted copy can override it explicitly, but engineers should be able to
+ * plug in real scores and get a complete readable page without hand-writing
+ * every person or pair.
  */
 const TRAIT_LANGUAGE = {
   openness: {
-    label: 'openness',
+    label: 'ideas',
     personTitle: {
       high: 'The Possibility Opener',
       middle: 'The Perspective Shifter',
@@ -27,23 +28,23 @@ const TRAIT_LANGUAGE = {
     contrastTitle: 'The Range Finders',
   },
   conscientiousness: {
-    label: 'conscientiousness',
+    label: 'approach',
     personTitle: {
       high: 'The Momentum Builder',
       middle: 'The Calibrator',
-      low: 'The Adaptive Improviser',
+      low: 'The Spontaneous Improviser',
     },
     highGift: 'follow-through',
     middleGift: 'calibration',
-    lowGift: 'adaptability',
+    lowGift: 'spontaneity',
     highLine: 'turns intent into sequence, standards, and next steps',
-    middleLine: 'can shift between planning and adapting',
-    lowLine: 'keeps the work flexible when the path needs to change',
+    middleLine: 'can shift between planning and adjusting',
+    lowLine: 'keeps the work loose enough to change when the path changes',
     sharedTitle: 'The Builders',
     contrastTitle: 'The Launch Crew',
   },
   extraversion: {
-    label: 'extraversion',
+    label: 'energy',
     personTitle: {
       high: 'The Activator',
       middle: 'The Presence Setter',
@@ -59,15 +60,15 @@ const TRAIT_LANGUAGE = {
     contrastTitle: 'The Rhythm Makers',
   },
   agreeableness: {
-    label: 'agreeableness',
+    label: 'stance with people',
     personTitle: {
-      high: 'The Trust Carrier',
+      high: 'The Warm Connector',
       middle: 'The Honest Ally',
       low: 'The Useful Challenger',
     },
-    highGift: 'trust',
+    highGift: 'warmth',
     middleGift: 'discernment',
-    lowGift: 'candor',
+    lowGift: 'directness',
     highLine: 'keeps people connected when decisions get tense',
     middleLine: 'balances care for people with willingness to name what needs naming',
     lowLine: 'brings useful challenge before the team over-agrees',
@@ -75,13 +76,13 @@ const TRAIT_LANGUAGE = {
     contrastTitle: 'The Honest Allies',
   },
   neuroticism: {
-    label: 'emotional sensitivity',
+    label: 'pressure',
     personTitle: {
-      high: 'The Signal Reader',
+      high: 'The Sentinel',
       middle: 'The Pressure Sensor',
-      low: 'The Steady Center',
+      low: 'The Anchor',
     },
-    highGift: 'early signal',
+    highGift: 'vigilance',
     middleGift: 'attunement',
     lowGift: 'steadiness',
     highLine: 'notices risk and emotional static before it becomes loud',
@@ -99,6 +100,20 @@ const COMPLEMENT_THRESHOLD = 26;
 
 function getFirstName(member) {
   return member?.name?.split(' ')?.[0] ?? 'This person';
+}
+
+function getPronouns(member) {
+  const pronouns = member?.pronouns;
+
+  if (pronouns?.subject && pronouns?.object && pronouns?.possessive) {
+    return pronouns;
+  }
+
+  return {
+    subject: 'they',
+    object: 'them',
+    possessive: 'their',
+  };
 }
 
 function getTraitDirection(score) {
@@ -182,26 +197,103 @@ function getPersonTitle(primary) {
 
 function buildPersonSummary(member, primary, secondary) {
   const firstName = getFirstName(member);
+  const pronouns = getPronouns(member);
 
   return [
     {
-      text: `${firstName} changes the team by bringing ${getTraitGift(primary.trait, primary.direction)} into the work first. They ${getTraitLine(primary.trait, primary.direction)}, then support that pattern with ${getTraitGift(secondary.trait, secondary.direction)}. The result is a presence that helps the team feel both more capable and more aware of what the moment is asking for.`,
+      text: `${firstName} changes the team by bringing ${getTraitGift(primary.trait, primary.direction)} into the work first. ${firstName} ${getTraitLine(primary.trait, primary.direction)}, then supports that pattern with ${getTraitGift(secondary.trait, secondary.direction)}. The result is that ${pronouns.possessive} presence helps the team feel both more capable and more aware of what the moment is asking for.`,
     },
   ];
+}
+
+function mergeResolvedInsight(generatedInsight, authoredInsight) {
+  if (
+    authoredInsight?.source !== 'ai' &&
+    authoredInsight?.source !== 'override'
+  ) {
+    return {
+      ...generatedInsight,
+      source: 'deterministic',
+    };
+  }
+
+  return {
+    ...generatedInsight,
+    ...authoredInsight,
+    summary: authoredInsight.summary ?? generatedInsight.summary,
+    title: authoredInsight.title ?? generatedInsight.title,
+  };
+}
+
+export function buildTeamInsight({ team, members, cards, authoredInsight }) {
+  const scoredMembers = members.filter((member) => member?.bigFive);
+
+  if (scoredMembers.length === 0) {
+    return mergeResolvedInsight(
+      {
+        id: `team-${team?.id ?? 'unknown'}-generated`,
+        eyebrow: 'Team',
+        title: team?.name ?? 'This team',
+        isEditable: true,
+        summary: [
+          {
+            text: 'Team DNA appears when assessment data is available.',
+          },
+        ],
+        cards,
+      },
+      authoredInsight
+    );
+  }
+
+  const traitAverages = TRAIT_KEYS.map((trait) => {
+    const scores = scoredMembers.map((member) => member.bigFive[trait] ?? 50);
+    const average =
+      scores.reduce((total, score) => total + score, 0) / scores.length;
+    const min = Math.min(...scores);
+    const max = Math.max(...scores);
+
+    return {
+      trait,
+      average,
+      range: max - min,
+      direction: getTraitDirection(average),
+      distance: Math.abs(average - 50),
+    };
+  }).sort((a, b) => b.distance - a.distance);
+  const primary = traitAverages[0];
+  const widest = [...traitAverages].sort((a, b) => b.range - a.range)[0];
+  const teamName = team?.name ?? 'This team';
+  const widestLanguage = TRAIT_LANGUAGE[widest.trait];
+  const generatedInsight = {
+    id: `team-${team?.id ?? 'unknown'}-generated`,
+    eyebrow: 'Team',
+    title: teamName,
+    isEditable: true,
+    summary: [
+      {
+        text: `${teamName} is shaped most by ${getTraitGift(primary.trait, primary.direction)}. As a group, the team ${getTraitLine(primary.trait, primary.direction)}, which gives the work a clear center of gravity. The biggest range is around ${widestLanguage.label}, so this is the place where naming expectations out loud will save the most translation cost.`,
+      },
+    ],
+    cards,
+  };
+
+  return mergeResolvedInsight(generatedInsight, authoredInsight);
 }
 
 export function buildPersonInsight({ member, cards, authoredInsight }) {
   const rankedTraits = getRankedTraits(member);
   const primary = rankedTraits[0];
   const secondary = rankedTraits[1];
-
-  return {
+  const generatedInsight = {
     id: `person-${member?.id ?? 'unknown'}-generated`,
     eyebrow: member?.name ?? 'Team member',
-    title: authoredInsight?.title ?? getPersonTitle(primary),
-    summary: authoredInsight?.summary ?? buildPersonSummary(member, primary, secondary),
+    title: getPersonTitle(primary),
+    summary: buildPersonSummary(member, primary, secondary),
     cards,
   };
+
+  return mergeResolvedInsight(generatedInsight, authoredInsight);
 }
 
 function buildComplementInsight(first, second, complement) {
@@ -270,7 +362,7 @@ function buildBalancedInsight(first, second) {
 
 // Runtime note: this stays deterministic so the feature can render stable
 // pair readouts without needing a live AI call in the browser.
-export function buildPairInsight({ first, second, cards }) {
+export function buildPairInsight({ first, second, cards, authoredInsight }) {
   const complement = getStrongestComplement(first, second);
   const shared = getStrongestSharedTrait(first, second);
   const content =
@@ -280,11 +372,13 @@ export function buildPairInsight({ first, second, cards }) {
         ? buildSharedInsight(first, second, shared)
         : buildBalancedInsight(first, second);
 
-  return {
+  const generatedInsight = {
     id: `pair-${first?.id ?? 'unknown'}-${second?.id ?? 'unknown'}-generated`,
     eyebrow: `${getFirstName(first)} x ${getFirstName(second)}`,
     title: content.title,
     summary: content.summary,
     cards,
   };
+
+  return mergeResolvedInsight(generatedInsight, authoredInsight);
 }
