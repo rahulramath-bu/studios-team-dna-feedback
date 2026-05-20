@@ -268,6 +268,8 @@ export function TeamFaceField({
   blockedAttempt,
   entityEyebrow,
   entityTitle,
+  introActive,
+  introChromeHidden,
   isEditingTeam,
   teamName,
   onAddMember,
@@ -445,6 +447,7 @@ export function TeamFaceField({
               <button
                 type="button"
                 className="team-face-edit-button"
+                data-intro-hidden={introChromeHidden || undefined}
                 aria-label={`Edit ${teamName}`}
                 onClick={onEditTeam}
               >
@@ -503,9 +506,9 @@ export function TeamFaceField({
             />
           ) : null}
         </AnimatePresence>
-        <AnimatePresence initial={false}>
+        <AnimatePresence initial={introActive}>
           {members.length > 0 ? (
-            members.map((member) => (
+            members.map((member, index) => (
               <TeamFace
                 key={member.id}
                 ref={setHitboxNode(member.id)}
@@ -517,6 +520,7 @@ export function TeamFaceField({
                 isDuoSelected={
                   selectedIds.length === 2 && selectedIds.includes(member.id)
                 }
+                introDelay={introActive ? 0.24 + index * 0.055 : 0}
                 isEditingTeam={isEditingTeam}
                 nudge={faceNudges[member.id]}
                 nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}

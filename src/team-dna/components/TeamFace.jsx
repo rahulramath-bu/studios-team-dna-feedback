@@ -43,6 +43,7 @@ export const TeamFace = forwardRef(function TeamFace(
     isDuoSelected,
     isDimmed,
     isBlocked,
+    introDelay = 0,
     isEditingTeam,
     blockedAttempt = 0,
     nudge = { x: 0, y: 0 },
@@ -73,6 +74,17 @@ export const TeamFace = forwardRef(function TeamFace(
     nudgeMotion === 'selection'
       ? SELECTION_NUDGE_TRANSITION
       : { duration: 0.32, ease: 'easeInOut' };
+  const presenceTransition = introDelay
+    ? {
+        ...FACE_PRESENCE_TRANSITION,
+        opacity: { duration: 0.95, delay: introDelay, ease: 'easeInOut' },
+        scale: {
+          duration: 1.05,
+          ease: [0.4, 0, 0.2, 1],
+          delay: introDelay,
+        },
+      }
+    : FACE_PRESENCE_TRANSITION;
   const updateTooltipPosition = (event) => {
     setTooltipPosition({ x: event.clientX, y: event.clientY });
   };
@@ -156,7 +168,7 @@ export const TeamFace = forwardRef(function TeamFace(
         initial={{ opacity: 0, scale: 0 }}
         animate={{ opacity: 1, scale: 1 }}
         exit={{ opacity: 0, scale: 0 }}
-        transition={FACE_PRESENCE_TRANSITION}
+        transition={presenceTransition}
         className="team-face-button"
         data-editing={isEditingTeam || undefined}
         data-unavailable={isUnavailable || undefined}
@@ -188,7 +200,7 @@ export const TeamFace = forwardRef(function TeamFace(
       initial={{ opacity: 0, scale: 0 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0, scale: 0 }}
-      transition={FACE_PRESENCE_TRANSITION}
+      transition={presenceTransition}
       type="button"
       className="team-face-button"
       data-selected={isSelected || undefined}

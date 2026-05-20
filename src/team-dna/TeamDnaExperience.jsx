@@ -1,8 +1,13 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
+
+const INTRO_LAYOUT_RELEASE_MS = 2350;
+const INTRO_INSIGHT_REVEAL_MS = 2850;
+const INTRO_CHROME_REVEAL_MS = 4300;
 
 /**
  * Team DNA feature panel.
@@ -25,6 +30,16 @@ export function TeamDnaExperience({
   onTeamNameChange,
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
+  const shouldReduceMotion = useReducedMotion();
+  const [isIntroLayoutActive, setIsIntroLayoutActive] = useState(
+    !shouldReduceMotion
+  );
+  const [isIntroInsightHidden, setIsIntroInsightHidden] = useState(
+    !shouldReduceMotion
+  );
+  const [isIntroChromeHidden, setIsIntroChromeHidden] = useState(
+    !shouldReduceMotion
+  );
   const [blockedAttempt, setBlockedAttempt] = useState(null);
   const [isEditingTeam, setIsEditingTeam] = useState(false);
   const blockedTimeoutRef = useRef(null);
@@ -44,6 +59,31 @@ export function TeamDnaExperience({
       return next.length === current.length ? current : next;
     });
   }, [selectableMemberIds, setSelectedIds]);
+
+  useEffect(() => {
+    if (shouldReduceMotion) {
+      setIsIntroLayoutActive(false);
+      setIsIntroInsightHidden(false);
+      setIsIntroChromeHidden(false);
+      return undefined;
+    }
+
+    const layoutTimeout = window.setTimeout(() => {
+      setIsIntroLayoutActive(false);
+    }, INTRO_LAYOUT_RELEASE_MS);
+    const insightTimeout = window.setTimeout(() => {
+      setIsIntroInsightHidden(false);
+    }, INTRO_INSIGHT_REVEAL_MS);
+    const chromeTimeout = window.setTimeout(() => {
+      setIsIntroChromeHidden(false);
+    }, INTRO_CHROME_REVEAL_MS);
+
+    return () => {
+      window.clearTimeout(layoutTimeout);
+      window.clearTimeout(insightTimeout);
+      window.clearTimeout(chromeTimeout);
+    };
+  }, [shouldReduceMotion]);
 
   useEffect(
     () => () => {
@@ -109,6 +149,7 @@ export function TeamDnaExperience({
     <section
       className="team-dna-experience"
       data-editing={isEditingTeam || undefined}
+      data-intro={isIntroLayoutActive || undefined}
     >
       <div className="team-dna-people-pane">
         <TeamFaceField
@@ -117,6 +158,8 @@ export function TeamDnaExperience({
           blockedAttempt={blockedAttempt}
           entityEyebrow={insight.entityEyebrow ?? insight.eyebrow}
           entityTitle={insight.entityTitle ?? insight.title}
+          introActive={isIntroLayoutActive}
+          introChromeHidden={isIntroChromeHidden}
           isEditingTeam={isEditingTeam}
           teamName={dataset.team.name}
           onAddMember={onAddMember}
@@ -131,7 +174,7 @@ export function TeamDnaExperience({
       </div>
       <InsightPanel
         insight={insight}
-        isHidden={isEditingTeam}
+        isHidden={isEditingTeam || isIntroInsightHidden}
         onSelectMember={handleSelectMember}
       />
     </section>
