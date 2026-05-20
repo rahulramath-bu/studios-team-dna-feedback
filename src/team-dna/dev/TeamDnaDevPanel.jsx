@@ -107,6 +107,19 @@ export function TeamDnaDevPanel({ baseMembers, devState, setDevState }) {
                 </div>
               </DevSection>
 
+              <DevSection title="Shell">
+                <DevToggle
+                  label="Monolith shell"
+                  value={devState.showMonolithShell}
+                  onChange={() =>
+                    setDevState((current) => ({
+                      ...current,
+                      showMonolithShell: !current.showMonolithShell,
+                    }))
+                  }
+                />
+              </DevSection>
+
               <DevSection title="Member states">
                 <div className="team-dna-dev-member-list">
                   {baseMembers.map((member, index) => {

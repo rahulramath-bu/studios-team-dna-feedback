@@ -129,6 +129,181 @@ button {
   overflow: hidden;
 }
 
+.monolith-shell-preview {
+  --monolith-nav-height: 82px;
+  --monolith-tabs-height: 57px;
+  --monolith-shell-chrome: calc(var(--monolith-nav-height) + var(--monolith-tabs-height));
+
+  min-height: 100vh;
+  background: #f4f3e9;
+  color: #1d1925;
+}
+
+.monolith-primary-nav {
+  min-height: var(--monolith-nav-height);
+  border-bottom: 1px solid #e5e5e5;
+  background: #fff;
+  padding: 0 90px;
+}
+
+.monolith-primary-nav-inner {
+  display: flex;
+  max-width: 1260px;
+  min-height: var(--monolith-nav-height);
+  align-items: stretch;
+  justify-content: space-between;
+  margin: 0 auto;
+}
+
+.monolith-primary-logo {
+  display: inline-flex;
+  min-height: var(--monolith-nav-height);
+  align-items: center;
+  justify-content: center;
+  margin-right: 20px;
+  color: #1d1925;
+  text-decoration: none;
+}
+
+.monolith-primary-logo img {
+  display: block;
+  width: 110px;
+  height: auto;
+}
+
+.monolith-primary-links {
+  display: flex;
+  flex: 1;
+  align-items: stretch;
+}
+
+.monolith-primary-links a,
+.monolith-primary-actions span {
+  display: inline-flex;
+  position: relative;
+  align-items: center;
+  align-self: stretch;
+  justify-content: center;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 36px;
+  padding: 12px 10px 8px;
+  border-bottom: 2px solid transparent;
+  color: #1a1a1a;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 20px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.monolith-primary-links a:hover {
+  color: #1d1925;
+}
+
+.monolith-primary-links .monolith-primary-link-active {
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+}
+
+.monolith-primary-actions {
+  display: flex;
+  align-items: stretch;
+  justify-content: flex-end;
+}
+
+.monolith-primary-icon {
+  width: 24px;
+  height: 24px;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.8;
+}
+
+.monolith-primary-action-link {
+  padding-right: 12px !important;
+  padding-left: 12px !important;
+}
+
+.monolith-primary-avatar {
+  align-self: center;
+  min-width: 0 !important;
+  width: 34px;
+  height: 34px;
+  padding: 0 !important;
+  border: 1px solid #d7d7d7;
+  border-radius: 999px;
+  background: #f7f7f7;
+}
+
+.monolith-shell-main {
+  min-height: calc(100vh - var(--monolith-nav-height));
+  overflow: hidden;
+  background: #f4f3e9;
+}
+
+.monolith-shell-content {
+  width: 100%;
+  margin: 0 auto;
+  padding: 0;
+}
+
+.monolith-page-tabs {
+  display: flex;
+  width: 100%;
+  height: auto;
+  justify-content: flex-start;
+  margin: 0;
+  padding: 0;
+  border-bottom: 1px solid #e5e7eb;
+  background: transparent;
+}
+
+.monolith-page-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 0;
+  background: transparent;
+  color: #1d1925;
+  cursor: default;
+  font-size: 16px;
+  font-weight: 400;
+  line-height: 1.5;
+  white-space: nowrap;
+}
+
+.monolith-page-tab[data-active] {
+  position: relative;
+  z-index: 1;
+  border-bottom-color: var(--primary);
+  color: var(--primary);
+}
+
+.monolith-tab-panel {
+  height: calc(100vh - var(--monolith-shell-chrome));
+  margin-top: 0;
+  overflow: hidden;
+}
+
+.monolith-shell-preview .team-dna-page {
+  min-height: 100%;
+  background: var(--page-background);
+}
+
+.monolith-shell-preview .team-dna-experience {
+  min-height: calc(100vh - var(--monolith-shell-chrome));
+}
+
+.monolith-shell-preview .team-dna-people-pane,
+.monolith-shell-preview .team-dna-insight-pane {
+  height: calc(100vh - var(--monolith-shell-chrome));
+}
+
 .team-dna-experience {
   --people-pane-width: 430px;
   --detail-pane-width: 470px;
@@ -143,6 +318,14 @@ button {
   );
   min-height: 100vh;
   margin: 0 auto;
+  transition:
+    grid-template-columns 520ms cubic-bezier(0.22, 1, 0.36, 1),
+    width 520ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.team-dna-experience[data-editing] {
+  grid-template-columns: var(--people-pane-width);
+  width: min(calc(100% - 48px), var(--people-pane-width));
 }
 
 .team-dna-people-pane {
@@ -153,11 +336,24 @@ button {
   align-items: center;
   justify-content: flex-start;
   padding: 72px 0;
+  transition: justify-content 520ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .team-face-field-wrap {
+  --face-size: 98px;
+  --face-hit-width: 124px;
+  --face-hit-height: 132px;
+  --face-grid-column-gap: 26px;
+  --face-grid-row-gap: 34px;
+
   position: relative;
-  width: min(100%, 430px);
+  width: min(
+    100%,
+    calc(
+      var(--face-size) + var(--face-size) + var(--face-size) +
+        var(--face-grid-column-gap) + var(--face-grid-column-gap)
+    )
+  );
 }
 
 .team-face-instruction,
@@ -173,23 +369,127 @@ button {
   text-transform: uppercase;
 }
 
-.team-face-instruction {
+.team-face-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 42px;
   transition: opacity 520ms ease;
 }
 
-.team-face-instruction[data-hidden] {
+.team-face-toolbar[data-hidden] {
   opacity: 0;
+  pointer-events: none;
+}
+
+.team-face-instruction {
+  margin: 0;
+}
+
+.team-face-edit-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: rgba(29, 25, 37, 0.52);
+  cursor: pointer;
+  transition: color 160ms ease, transform 160ms ease;
+}
+
+.team-face-edit-button:hover {
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+.team-face-edit-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+}
+
+.team-dna-experience[data-editing] .team-face-toolbar {
+  margin-bottom: 0;
+}
+
+.team-edit-header {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  margin-bottom: 38px;
+}
+
+.team-edit-name-control {
+  position: relative;
+  width: 100%;
+}
+
+.team-edit-name-input {
+  min-width: 0;
+  width: 100%;
+  height: 54px;
+  padding: 0;
+  padding-right: 82px;
+  border: 0;
+  border-bottom: 1px solid rgba(29, 25, 37, 0.18);
+  background: transparent;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 42px;
+  font-weight: 400;
+  letter-spacing: var(--heading-display-tracking);
+  line-height: 1.04;
+}
+
+.team-edit-name-input:focus {
+  outline: 0;
+  border-bottom-color: rgba(29, 25, 37, 0.48);
+}
+
+.team-edit-name-action {
+  position: absolute;
+  top: 50%;
+  display: flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(224, 0, 93, 0.2);
+  border-radius: 999px;
+  background: rgba(243, 230, 215, 0.92);
+  color: var(--duo-selection-accent);
+  cursor: pointer;
+  transform: translateY(-50%);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.team-edit-cancel-button {
+  right: 40px;
+}
+
+.team-edit-done-button {
+  right: 0;
+}
+
+.team-edit-name-action:hover {
+  border-color: transparent;
+  background: var(--duo-selection-accent);
+  color: #fff;
+  transform: translateY(-50%) scale(1.04);
 }
 
 .team-face-grid {
-  --face-size: 98px;
-  --face-hit-width: 124px;
-  --face-hit-height: 132px;
-
   display: grid;
-  grid-template-columns: repeat(3, 104px);
-  gap: 34px 20px;
+  grid-template-columns: repeat(3, var(--face-size));
+  gap: var(--face-grid-row-gap) var(--face-grid-column-gap);
   align-items: center;
   justify-content: start;
 }
@@ -208,6 +508,29 @@ button {
   background: transparent;
   cursor: pointer;
   transform-origin: center;
+}
+
+.team-face-button[data-editing] {
+  cursor: default;
+}
+
+.team-face-button[data-editing] .team-face-visual-layer {
+  animation: team-face-edit-jiggle 190ms ease-in-out infinite alternate;
+}
+
+.team-face-button[data-editing]:nth-child(2n) .team-face-visual-layer {
+  animation-direction: alternate-reverse;
+  animation-duration: 215ms;
+}
+
+@keyframes team-face-edit-jiggle {
+  from {
+    rotate: -1.2deg;
+  }
+
+  to {
+    rotate: 1.2deg;
+  }
 }
 
 .duo-connection-layer {
@@ -242,6 +565,10 @@ button {
 }
 
 .team-face-button:focus-visible {
+  outline: 0;
+}
+
+.team-face-button:not([data-selected]):focus-visible .team-face-visual-layer {
   outline: 2px solid var(--ring);
   outline-offset: 10px;
 }
@@ -268,7 +595,12 @@ button {
 }
 
 .team-face-pulse-layer {
+  background: transparent;
   transform-origin: center;
+}
+
+.team-face-button[data-duo-selected] .team-face-pulse-layer {
+  background: var(--duo-selection-accent);
 }
 
 .team-face-hover-label {
@@ -291,15 +623,76 @@ button {
   z-index: 3;
 }
 
+.team-face-remove-button {
+  position: absolute;
+  top: 4px;
+  right: 11px;
+  z-index: 4;
+  display: flex;
+  width: 25px;
+  height: 25px;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  border: 1px solid rgba(224, 0, 93, 0.22);
+  border-radius: 999px;
+  background: rgba(243, 230, 215, 0.92);
+  color: var(--duo-selection-accent);
+  cursor: pointer;
+  box-shadow: 0 5px 14px rgba(29, 25, 37, 0.13);
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.team-face-remove-button:hover {
+  border-color: transparent;
+  background: var(--duo-selection-accent);
+  color: #fff;
+  transform: scale(1.06);
+}
+
+.team-edit-add-member-button {
+  display: flex;
+  width: 54px;
+  height: 54px;
+  align-items: center;
+  justify-content: center;
+  justify-self: center;
+  align-self: center;
+  padding: 0;
+  border: 1px solid rgba(29, 25, 37, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.24);
+  color: rgba(29, 25, 37, 0.54);
+  cursor: pointer;
+  transition:
+    background 180ms ease,
+    border-color 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.team-edit-add-member-button:hover {
+  border-color: rgba(29, 25, 37, 0.24);
+  background: rgba(255, 255, 255, 0.38);
+  color: rgba(29, 25, 37, 0.72);
+  transform: scale(1.04);
+}
+
 .team-face-ring {
   position: absolute;
   inset: -6px;
   border: 3px solid transparent;
   border-radius: inherit;
+  box-shadow: none;
   z-index: 2;
   transition:
     border-color 180ms ease,
     border-width 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    box-shadow 220ms cubic-bezier(0.22, 1, 0.36, 1),
     inset 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -308,8 +701,15 @@ button {
 }
 
 .team-face-button[data-duo-selected] .team-face-ring {
-  inset: -7px;
-  border-width: 8px;
+  inset: 0;
+  border-width: 0;
+  box-shadow: 0 0 0 6px var(--duo-selection-accent);
+}
+
+.team-face-button[data-duo-selected] .team-face-image,
+.team-face-button[data-duo-selected] .team-face-initials {
+  border: 0;
+  box-shadow: none;
 }
 
 @keyframes duo-connection-slide {
@@ -612,6 +1012,8 @@ button {
   height: 100%;
   overflow-y: auto;
   overscroll-behavior: contain;
+  scroll-padding: 34vh 0 16vh;
+  scroll-snap-type: y mandatory;
   scrollbar-width: none;
 }
 
@@ -644,7 +1046,19 @@ button {
 }
 
 .team-dna-insight-page {
+  position: relative;
   display: block;
+}
+
+.insight-primary-read {
+  opacity: 0.26;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  transition: opacity 95ms ease;
+}
+
+.insight-snap-section[data-snap-active] {
+  opacity: 1;
 }
 
 .insight-eyebrow {
@@ -667,29 +1081,6 @@ button {
   line-height: var(--heading-display-line-height);
 }
 
-.insight-edit-button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  padding: 0;
-  border: 0;
-  border-radius: 999px;
-  background: transparent;
-  color: rgba(29, 25, 37, 0.52);
-  cursor: pointer;
-}
-
-.insight-edit-button:hover {
-  color: var(--foreground);
-}
-
-.insight-edit-button:focus-visible {
-  outline: 2px solid var(--ring);
-  outline-offset: 2px;
-}
-
 .insight-summary {
   margin: 28px 0 0;
   color: var(--foreground-body);
@@ -710,11 +1101,15 @@ button {
 }
 
 .info-block {
+  opacity: 0.26;
   min-height: 216px;
   padding: 22px 20px;
   border: 1px solid var(--card-subtle-border);
   border-radius: calc(var(--radius) - 5px);
   background: var(--card-subtle-bg);
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  transition: opacity 95ms ease;
 }
 
 @media (max-width: 1040px) {
@@ -725,7 +1120,13 @@ button {
   }
 
   .team-face-field-wrap {
-    width: min(100%, 390px);
+    width: min(
+      100%,
+      calc(
+        var(--face-size) + var(--face-size) + var(--face-size) +
+          var(--face-grid-column-gap) + var(--face-grid-column-gap)
+      )
+    );
   }
 }
 
@@ -743,16 +1144,23 @@ button {
   }
 
   .team-face-field-wrap {
-    width: min(100%, 360px);
-  }
-
-  .team-face-grid {
     --face-size: clamp(72px, 22vw, 96px);
     --face-hit-width: calc(var(--face-size) + 24px);
     --face-hit-height: calc(var(--face-size) + 28px);
+    --face-grid-column-gap: clamp(18px, 5vw, 26px);
+    --face-grid-row-gap: 30px;
 
-    grid-template-columns: repeat(3, minmax(76px, 1fr));
-    gap: 24px 14px;
+    width: min(
+      100%,
+      calc(
+        var(--face-size) + var(--face-size) + var(--face-size) +
+          var(--face-grid-column-gap) + var(--face-grid-column-gap)
+      )
+    );
+  }
+
+  .team-face-grid {
+    grid-template-columns: repeat(3, var(--face-size));
   }
 
   .team-dna-insight-pane {
@@ -768,6 +1176,7 @@ button {
   .team-dna-insight-scroll {
     height: auto;
     overflow: visible;
+    scroll-snap-type: none;
   }
 
   .team-dna-insight-content {

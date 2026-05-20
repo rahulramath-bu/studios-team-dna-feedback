@@ -1,6 +1,11 @@
-import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { InfoBlock } from './InfoBlock.jsx';
 
 const PAGE_EASE = [0.22, 1, 0.36, 1];
@@ -28,44 +33,107 @@ function getPageSectionMotion(delay = 0) {
   };
 }
 
-export function InsightPanel({ insight, selectionCount }) {
+export function InsightPanel({ insight, isHidden, selectionCount }) {
   const scrollRef = useRef(null);
   const previousSelectionCount = useRef(selectionCount);
-  const isReturningToSolo = previousSelectionCount.current === 2 && selectionCount === 1;
+  const activeFrameRef = useRef(0);
+  const [activeSnapIndex, setActiveSnapIndex] = useState(0);
+  const isReturningToSolo =
+    previousSelectionCount.current === 2 && selectionCount === 1;
   const isBaselineReveal = insight.id === 'team' || isReturningToSolo;
+
+  const updateActiveSnapIndex = useCallback(() => {
+    const scrollNode = scrollRef.current;
+    if (!scrollNode) return;
+
+    const snapSections = Array.from(
+      scrollNode.querySelectorAll('.insight-snap-section')
+    );
+    if (snapSections.length === 0) return;
+
+    const scrollRect = scrollNode.getBoundingClientRect();
+    const activationY = scrollRect.top + scrollRect.height * 0.38;
+    const closest = snapSections.reduce(
+      (current, section, index) => {
+        const rect = section.getBoundingClientRect();
+        const sectionFocusY = rect.top + rect.height / 2;
+        const distance = Math.abs(sectionFocusY - activationY);
+
+        return distance < current.distance ? { index, distance } : current;
+      },
+      { index: 0, distance: Infinity }
+    );
+
+    setActiveSnapIndex((current) =>
+      current === closest.index ? current : closest.index
+    );
+  }, []);
+
+  const handleInsightScroll = useCallback(() => {
+    window.cancelAnimationFrame(activeFrameRef.current);
+    activeFrameRef.current = window.requestAnimationFrame(updateActiveSnapIndex);
+  }, [updateActiveSnapIndex]);
 
   useLayoutEffect(() => {
     scrollRef.current?.scrollTo({ top: 0 });
-  }, [insight.id]);
+    setActiveSnapIndex(0);
+    window.cancelAnimationFrame(activeFrameRef.current);
+    activeFrameRef.current = window.requestAnimationFrame(updateActiveSnapIndex);
+  }, [insight.id, updateActiveSnapIndex]);
 
   useEffect(() => {
     previousSelectionCount.current = selectionCount;
   }, [selectionCount]);
 
+  useEffect(
+    () => () => {
+      window.cancelAnimationFrame(activeFrameRef.current);
+    },
+    []
+  );
+
   return (
-    <div className="team-dna-insight-pane">
-      <div className="team-dna-scroll-fade top" aria-hidden="true" />
-      <div className="team-dna-scroll-fade bottom" aria-hidden="true" />
-      <div className="team-dna-insight-scroll" ref={scrollRef}>
-        <div className="team-dna-insight-content">
-          <AnimatePresence mode="wait">
-            {/* Monolith integration tip: the whole right-side read is keyed as
-                one local "page" so the blurb and supporting block slots move
-                together. The components are reusable; the selected insight
-                gets its own mounted instance for clearer narrative motion. */}
-            <InsightPage
-              key={insight.id}
-              insight={insight}
-              isBaselineReveal={isBaselineReveal}
-            />
-          </AnimatePresence>
-        </div>
-      </div>
-    </div>
+    <AnimatePresence>
+      {!isHidden && (
+        <motion.div
+          className="team-dna-insight-pane"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          exit={{ opacity: 0 }}
+          transition={{ duration: 0.48, ease: PAGE_EASE }}
+        >
+          <div className="team-dna-scroll-fade top" aria-hidden="true" />
+          <div className="team-dna-scroll-fade bottom" aria-hidden="true" />
+          {/* Monolith integration tip: this mirrors the Human Session lobby
+              pattern where the scroll container owns vertical snap and each
+              readable card/blurb opts in as a snap point. */}
+          <div
+            className="team-dna-insight-scroll"
+            ref={scrollRef}
+            onScroll={handleInsightScroll}
+          >
+            <div className="team-dna-insight-content">
+              <AnimatePresence mode="wait">
+                {/* Monolith integration tip: the whole right-side read is keyed as
+                    one local "page" so the blurb and supporting block slots move
+                    together. The components are reusable; the selected insight
+                    gets its own mounted instance for clearer narrative motion. */}
+                <InsightPage
+                  key={insight.id}
+                  insight={insight}
+                  isBaselineReveal={isBaselineReveal}
+                  activeSnapIndex={activeSnapIndex}
+                />
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.div>
+      )}
+    </AnimatePresence>
   );
 }
 
-function InsightPage({ insight, isBaselineReveal }) {
+function InsightPage({ insight, isBaselineReveal, activeSnapIndex }) {
   const isTeamInsight = insight.id === 'team';
   const shouldUseWholePageReveal = isTeamInsight || isBaselineReveal;
 
@@ -90,20 +158,28 @@ function InsightPage({ insight, isBaselineReveal }) {
       aria-labelledby={`insight-title-${insight.id}`}
     >
       {shouldUseWholePageReveal ? (
-        <InsightPageContent insight={insight} />
+        <InsightPageContent
+          insight={insight}
+          activeSnapIndex={activeSnapIndex}
+        />
       ) : (
         <>
-          <motion.div
-            {...getPageSectionMotion(0)}
-            className="insight-heading-group"
+          <section
+            className="insight-primary-read insight-snap-section"
+            data-snap-active={activeSnapIndex === 0 || undefined}
           >
-            <InsightHeading insight={insight} />
-          </motion.div>
-          <motion.div {...getPageSectionMotion(0.3)}>
-            <InsightSummary insight={insight} />
-          </motion.div>
+            <motion.div
+              {...getPageSectionMotion(0)}
+              className="insight-heading-group"
+            >
+              <InsightHeading insight={insight} />
+            </motion.div>
+            <motion.div {...getPageSectionMotion(0.3)}>
+              <InsightSummary insight={insight} />
+            </motion.div>
+          </section>
           <motion.div {...getPageSectionMotion(0.58)}>
-            <InsightBlocks insight={insight} />
+            <InsightBlocks insight={insight} activeSnapIndex={activeSnapIndex} />
           </motion.div>
         </>
       )}
@@ -111,14 +187,19 @@ function InsightPage({ insight, isBaselineReveal }) {
   );
 }
 
-function InsightPageContent({ insight }) {
+function InsightPageContent({ insight, activeSnapIndex }) {
   return (
     <>
-      <div className="insight-heading-group">
-        <InsightHeading insight={insight} />
-      </div>
-      <InsightSummary insight={insight} />
-      <InsightBlocks insight={insight} />
+      <section
+        className="insight-primary-read insight-snap-section"
+        data-snap-active={activeSnapIndex === 0 || undefined}
+      >
+        <div className="insight-heading-group">
+          <InsightHeading insight={insight} />
+        </div>
+        <InsightSummary insight={insight} />
+      </section>
+      <InsightBlocks insight={insight} activeSnapIndex={activeSnapIndex} />
     </>
   );
 }
@@ -131,15 +212,6 @@ function InsightHeading({ insight }) {
         <h1 className="insight-title" id={`insight-title-${insight.id}`}>
           {insight.title}
         </h1>
-        {insight.isEditable && (
-          <button
-            type="button"
-            className="insight-edit-button"
-            aria-label={`Edit ${insight.title}`}
-          >
-            <BetterUpIcon name="Edit" size={22} strokeWidth={1.8} />
-          </button>
-        )}
       </div>
     </>
   );
@@ -157,11 +229,16 @@ function InsightSummary({ insight }) {
   );
 }
 
-function InsightBlocks({ insight }) {
+function InsightBlocks({ insight, activeSnapIndex }) {
   return (
     <div className="info-block-stack" aria-label="Future insight blocks">
-      {insight.cards.map((card) => (
-        <InfoBlock key={card.id} label={card.label} />
+      {insight.cards.map((card, index) => (
+        <InfoBlock
+          key={card.id}
+          label={card.label}
+          className="insight-snap-section"
+          isActive={activeSnapIndex === index + 1}
+        />
       ))}
     </div>
   );

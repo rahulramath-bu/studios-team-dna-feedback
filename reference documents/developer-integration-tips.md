@@ -35,6 +35,10 @@ Port expectation:
 - The shell owns nav, authentication gates, page title, tabs/subtabs, analytics wiring, and loading/error route states.
 - `TeamDnaExperience` owns the Team DNA content surface: people field, selection state, insight panel, and info block stack.
 
+The monolith shell preview should not invent a team header above the subtabs. The team name and superpower blurb belong inside the Team DNA tab panel only. The current source-backed shell pattern is `MemberNavbar` plus route outlet, with `PageTabs` as the closest canonical subtab primitive: transparent full-width tab list, 16px tab padding, normal 16px text, gray bottom border, and rubine active text/underline.
+
+Monolith target: use the real `MemberNavbar` and real `PageTabs`. Do not port the standalone `MonolithTeamShell` debug fixture.
+
 ### Keep the data adapter replaceable
 
 The launchpad uses curated fixture data, but the UI should behave as if data came from a real backend hook. The important boundary is:
@@ -90,8 +94,6 @@ In duo state, selected rings tighten from a separated halo into a direct outside
 
 If two selected faces are close enough that the scaled avatars/rings overlap, apply a small measured nudge away from each other. Then let that nudge ripple into nearby dimmed faces with smaller capped secondary nudges, so a selected pair does not crowd an adjacent teammate. This should be based on the actual face positions, not hardcoded grid coordinates, so the behavior can transfer to a future horizontal rail or mobile layout.
 
-Hover labels also use the nudge system. When a non-selected face is hovered, nearby faces should gently make room so the label does not crowd adjacent avatars. Keep this as measured local motion rather than changing grid spacing.
-
 Dimmed faces should restore to full opacity on hover/focus-style inspection. The dimming communicates current selection focus; it should not prevent someone from visually checking another teammate before selecting them. Keep each button's invisible hitbox stable while the inner visual layer scales down, so hover exploration still works in solo and duo states.
 
 Unavailable Team DNA members should still be pressable enough to explain why they cannot be selected. Keep the unavailable shake on its own inner animation layer so it does not compete with the visual layer's hover, press, opacity, or nudge transforms.
@@ -123,12 +125,33 @@ For hover/focus name reveal on team faces, use an inline label beneath the hover
 Implemented direction:
 
 - The label should use ruby `Söhne Mono` styling so it feels like part of the Team DNA visual system.
-- It should appear immediately, not fade in.
+- It should feel immediate and lightweight; a very short fade is acceptable if it avoids visual popping.
 - The unavailable assessment message should stay short and human. Current copy: "Needs Team DNA first."
 - Keep the label owned by `TeamFace`; the parent field should only track hover when it needs to draw a connection preview.
 - The label belongs inside the same visual layer as the avatar so nudge/scale motion carries the name with it.
 - Do not show the label when hovering an already selected face; it is primarily for inspecting non-selected teammates.
 - Do not add tooltip dependencies for this behavior. The label is not a global design-system primitive.
+
+### Team edit mode is a data mutation seam
+
+The standalone prototype lets the team edit button enter a lightweight edit mode: the insight panel fades out, the face cluster centers, team name becomes editable, members can be removed, and a simple add button creates a new member placeholder.
+
+Keep the edit affordance on the face-cluster side of the layout, in the same row as the "Select to explore" label. Editing the roster/name is a team-explorer concern, not an insight-content concern.
+
+Monolith target: keep this as a thin UI over real team-management APIs. The UI should call add/remove/rename mutations from the Team tab's data layer rather than owning persistence. New members will likely enter as no-avatar and assessment-incomplete until backend/profile data catches up.
+
+### The insight panel should snap by readable sections
+
+The right panel mirrors the Human Session lobby pattern: the scrolling container owns vertical scroll snap, and each meaningful section opts in as a snap point.
+
+Current snap targets:
+
+- the top superpower blurb;
+- each supporting info block.
+
+Monolith target: keep this as local layout behavior for Team DNA. The Team tab shell should provide the outer page/subtab surface, but the Team DNA panel should own how its internal insight cards scroll.
+
+The active snap section should stay fully opaque while off-snap sections quiet down. This makes the panel feel responsive while scrolling without introducing extra chrome or page-level navigation.
 
 ### Typography token nuance: use display heading, not normal heading
 

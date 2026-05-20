@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
-import { AnimatePresence } from 'motion/react';
+import { AnimatePresence, motion } from 'motion/react';
+import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { DuoConnection } from './DuoConnection.jsx';
 import { TeamFace } from './TeamFace.jsx';
 
@@ -152,20 +153,31 @@ export function TeamFaceField({
   members,
   selectedIds,
   blockedAttempt,
+  isEditingTeam,
+  teamName,
+  onAddMember,
+  onEditTeam,
+  onCancelEditing,
+  onDoneEditing,
+  onRemoveMember,
   onSelectMember,
+  onTeamNameChange,
 }) {
   const hasSelection = selectedIds.length > 0;
   const fieldRef = useRef(null);
   const faceRefs = useRef(new Map());
   const hitboxRefs = useRef(new Map());
   const previousSelectedCount = useRef(selectedIds.length);
+  const previousMemberCount = useRef(members.length);
   const [faceNudges, setFaceNudges] = useState({});
   const [hoveredMemberId, setHoveredMemberId] = useState(null);
+  const [isAddButtonHidden, setIsAddButtonHidden] = useState(false);
   const [useSelectionNudgeMotion, setUseSelectionNudgeMotion] = useState(
     selectedIds.length === 2
   );
   const previewMember = members.find((member) => member.id === hoveredMemberId);
   const previewSelectedIds =
+    !isEditingTeam &&
     selectedIds.length === 1 &&
     previewMember &&
     previewMember.assessmentComplete !== false &&
@@ -213,6 +225,20 @@ export function TeamFaceField({
     return undefined;
   }, [selectedIds.length]);
 
+  useEffect(() => {
+    const wasRemovingMember = members.length < previousMemberCount.current;
+    previousMemberCount.current = members.length;
+
+    if (!isEditingTeam || !wasRemovingMember) return undefined;
+
+    setIsAddButtonHidden(true);
+    const timeout = window.setTimeout(() => {
+      setIsAddButtonHidden(false);
+    }, 420);
+
+    return () => window.clearTimeout(timeout);
+  }, [isEditingTeam, members.length]);
+
   // Monolith integration tip: duo nudges measure layout positions, not grid
   // row/column indexes, so this can survive a future horizontal rail.
   useLayoutEffect(() => {
@@ -239,14 +265,54 @@ export function TeamFaceField({
   }, [members, selectedIds]);
 
   return (
-    <div className="team-face-field-wrap" ref={fieldRef}>
-      <p
-        className="team-face-instruction"
-        data-hidden={selectedIds.length === 2 || undefined}
+    <motion.div className="team-face-field-wrap" ref={fieldRef} layout>
+      <div
+        className="team-face-toolbar"
+        data-hidden={isEditingTeam || selectedIds.length === 2 || undefined}
       >
-        {hasSelection ? 'Select another to pair' : 'Select to explore'}
-      </p>
-      <div className="team-face-grid" aria-label="Team members">
+        <p className="team-face-instruction">
+          {hasSelection ? 'Select another to pair' : 'Select to explore'}
+        </p>
+        {!hasSelection && !isEditingTeam && (
+          <button
+            type="button"
+            className="team-face-edit-button"
+            aria-label={`Edit ${teamName}`}
+            onClick={onEditTeam}
+          >
+            <BetterUpIcon name="Edit" size={19} strokeWidth={1.8} />
+          </button>
+        )}
+      </div>
+      {isEditingTeam && (
+        <div className="team-edit-header">
+          <div className="team-edit-name-control">
+            <input
+              className="team-edit-name-input"
+              value={teamName}
+              onChange={(event) => onTeamNameChange?.(event.target.value)}
+              aria-label="Team name"
+            />
+            <button
+              type="button"
+              className="team-edit-name-action team-edit-cancel-button"
+              onClick={onCancelEditing}
+              aria-label="Discard team edits"
+            >
+              <BetterUpIcon name="X" size={15} strokeWidth={2.2} />
+            </button>
+            <button
+              type="button"
+              className="team-edit-name-action team-edit-done-button"
+              onClick={onDoneEditing}
+              aria-label="Save team edits"
+            >
+              <BetterUpIcon name="Check" size={17} strokeWidth={2.2} />
+            </button>
+          </div>
+        </div>
+      )}
+      <motion.div className="team-face-grid" aria-label="Team members" layout>
         <AnimatePresence>
           {selectedIds.length === 2 ? (
             <DuoConnection
@@ -266,37 +332,58 @@ export function TeamFaceField({
             />
           ) : null}
         </AnimatePresence>
-        {members.length > 0 ? (
-          members.map((member) => (
-            <TeamFace
-              key={member.id}
-              ref={setHitboxNode(member.id)}
-              visualRef={setFaceNode(member.id)}
-              member={member}
-              isBlocked={blockedAttempt?.memberId === member.id}
-              blockedAttempt={blockedAttempt?.attempt ?? 0}
-              isSelected={selectedIds.includes(member.id)}
-              isDuoSelected={
-                selectedIds.length === 2 && selectedIds.includes(member.id)
-              }
-              nudge={faceNudges[member.id]}
-              nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
-              isDimmed={hasSelection && !selectedIds.includes(member.id)}
-              onSelect={() => onSelectMember(member.id)}
-              onHoverChange={(isHovered) =>
-                setHoveredMemberId((current) => {
-                  if (isHovered) return member.id;
-                  return current === member.id ? null : current;
-                })
-              }
-            />
-          ))
-        ) : (
-          <div className="team-face-empty-state">
-            <p>No team members</p>
-          </div>
+        <AnimatePresence initial={false}>
+          {members.length > 0 ? (
+            members.map((member) => (
+              <TeamFace
+                key={member.id}
+                ref={setHitboxNode(member.id)}
+                visualRef={setFaceNode(member.id)}
+                member={member}
+                isBlocked={blockedAttempt?.memberId === member.id}
+                blockedAttempt={blockedAttempt?.attempt ?? 0}
+                isSelected={selectedIds.includes(member.id)}
+                isDuoSelected={
+                  selectedIds.length === 2 && selectedIds.includes(member.id)
+                }
+                isEditingTeam={isEditingTeam}
+                nudge={faceNudges[member.id]}
+                nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
+                isDimmed={hasSelection && !selectedIds.includes(member.id)}
+                onRemove={() => onRemoveMember?.(member.id)}
+                onSelect={() => onSelectMember(member.id)}
+                onHoverChange={(isHovered) =>
+                  setHoveredMemberId((current) => {
+                    if (isHovered) return member.id;
+                    return current === member.id ? null : current;
+                  })
+                }
+              />
+            ))
+          ) : (
+            <motion.div className="team-face-empty-state" layout>
+              <p>No team members</p>
+            </motion.div>
+          )}
+        </AnimatePresence>
+        {isEditingTeam && (
+          <motion.button
+            type="button"
+            className="team-edit-add-member-button"
+            onClick={onAddMember}
+            aria-label="Add team member"
+            animate={{
+              opacity: isAddButtonHidden ? 0 : 1,
+              scale: isAddButtonHidden ? 0.88 : 1,
+            }}
+            disabled={isAddButtonHidden}
+            initial={false}
+            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
+          >
+            <BetterUpIcon name="Plus" size={24} strokeWidth={1.7} />
+          </motion.button>
         )}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
