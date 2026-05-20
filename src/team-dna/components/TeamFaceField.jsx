@@ -52,11 +52,11 @@ function getDistanceToSegment(point, start, end) {
   return Math.hypot(point.x - closest.x, point.y - closest.y);
 }
 
-function getPreviewObscuredIds(members, previewSelectedIds, fieldRef, faceRefs) {
-  if (!previewSelectedIds) return new Set();
+function getConnectionObscuredIds(members, connectionIds, fieldRef, faceRefs) {
+  if (!connectionIds) return new Set();
 
   const container = fieldRef.current;
-  const [firstId, secondId] = previewSelectedIds;
+  const [firstId, secondId] = connectionIds;
   const firstNode = faceRefs.current.get(firstId);
   const secondNode = faceRefs.current.get(secondId);
 
@@ -64,7 +64,7 @@ function getPreviewObscuredIds(members, previewSelectedIds, fieldRef, faceRefs) 
     return new Set();
   }
 
-  const selectedSet = new Set(previewSelectedIds);
+  const selectedSet = new Set(connectionIds);
   const start = getMeasuredFaceCenter(container, firstNode);
   const end = getMeasuredFaceCenter(container, secondNode);
   const obscuredIds = new Set();
@@ -288,7 +288,7 @@ export function TeamFaceField({
   const [faceNudges, setFaceNudges] = useState({});
   const [hoveredMemberId, setHoveredMemberId] = useState(null);
   const [isAddButtonHidden, setIsAddButtonHidden] = useState(false);
-  const [previewObscuredIds, setPreviewObscuredIds] = useState(new Set());
+  const [connectionObscuredIds, setConnectionObscuredIds] = useState(new Set());
   const [useSelectionNudgeMotion, setUseSelectionNudgeMotion] = useState(
     selectedIds.length === 2
   );
@@ -301,7 +301,9 @@ export function TeamFaceField({
     !selectedIds.includes(previewMember.id)
       ? [selectedIds[0], previewMember.id]
       : null;
-  const previewSelectedKey = previewSelectedIds?.join(':') ?? '';
+  const activeConnectionIds =
+    selectedIds.length === 2 ? selectedIds : previewSelectedIds;
+  const activeConnectionKey = activeConnectionIds?.join(':') ?? '';
 
   const setFaceNode = (memberId) => (node) => {
     if (node) {
@@ -386,14 +388,14 @@ export function TeamFaceField({
     let animationFrame = 0;
 
     const updateObscuredIds = () => {
-      const nextObscuredIds = getPreviewObscuredIds(
+      const nextObscuredIds = getConnectionObscuredIds(
         members,
-        previewSelectedIds,
+        activeConnectionIds,
         fieldRef,
         faceRefs
       );
 
-      setPreviewObscuredIds((currentObscuredIds) =>
+      setConnectionObscuredIds((currentObscuredIds) =>
         areSetsEqual(currentObscuredIds, nextObscuredIds)
           ? currentObscuredIds
           : nextObscuredIds
@@ -412,7 +414,7 @@ export function TeamFaceField({
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', scheduleUpdate);
     };
-  }, [members, previewSelectedKey]);
+  }, [members, activeConnectionKey]);
 
   return (
     <motion.div className="team-face-field-wrap" ref={fieldRef} layout>
@@ -495,7 +497,7 @@ export function TeamFaceField({
               key={`preview-${previewSelectedIds.join(':')}`}
               containerRef={fieldRef}
               faceRefs={faceRefs}
-              isObstructed={previewObscuredIds.size > 0}
+              isObstructed={connectionObscuredIds.size > 0}
               selectedIds={previewSelectedIds}
               variant="preview"
             />
@@ -519,7 +521,7 @@ export function TeamFaceField({
                 nudge={faceNudges[member.id]}
                 nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
                 isDimmed={hasSelection && !selectedIds.includes(member.id)}
-                isPreviewObscured={previewObscuredIds.has(member.id)}
+                isPreviewObscured={connectionObscuredIds.has(member.id)}
                 onRemove={() => onRemoveMember?.(member.id)}
                 onSelect={() => onSelectMember(member.id)}
                 onHoverChange={(isHovered) =>

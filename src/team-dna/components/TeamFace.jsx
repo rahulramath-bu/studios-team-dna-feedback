@@ -62,8 +62,12 @@ export const TeamFace = forwardRef(function TeamFace(
   const interactionScale =
     restingScale * (hovered ? HOVER_SCALE : 1) * (pressed ? PRESS_SCALE : 1);
   const isUnavailable = member.assessmentComplete === false;
-  const hoverLabel = isBlocked ? 'Needs Team DNA first' : member.name;
-  const showHoverLabel = !isEditingTeam && ((hovered && !isSelected) || isBlocked);
+  const hoverLabel = isSelected
+    ? 'Deselect'
+    : isBlocked
+      ? 'Needs Team DNA first'
+      : member.name;
+  const showHoverLabel = !isEditingTeam && (hovered || isBlocked);
   const dimmedOpacity = isPreviewObscured ? 0.1 : 0.26;
   const nudgeTransition =
     nudgeMotion === 'selection'
