@@ -7,11 +7,36 @@ function getCenterWithin(containerRect, node) {
   return {
     x: rect.left - containerRect.left + rect.width / 2,
     y: rect.top - containerRect.top + rect.height / 2,
+    radius: Math.min(rect.width, rect.height) / 2,
   };
 }
 
 function makeLine(start, end) {
   return `M ${start.x} ${start.y} L ${end.x} ${end.y}`;
+}
+
+function getEdgeConnection(start, end, radiusOffset = 0) {
+  const dx = end.x - start.x;
+  const dy = end.y - start.y;
+  const distance = Math.hypot(dx, dy);
+
+  if (!distance) {
+    return { start, end };
+  }
+
+  const ux = dx / distance;
+  const uy = dy / distance;
+
+  return {
+    start: {
+      x: start.x + ux * (start.radius + radiusOffset),
+      y: start.y + uy * (start.radius + radiusOffset),
+    },
+    end: {
+      x: end.x - ux * (end.radius + radiusOffset),
+      y: end.y - uy * (end.radius + radiusOffset),
+    },
+  };
 }
 
 /**
@@ -47,8 +72,13 @@ export function DuoConnection({ containerRef, faceRefs, selectedIds, variant = '
       }
 
       const containerRect = container.getBoundingClientRect();
-      const start = getCenterWithin(containerRect, firstNode);
-      const end = getCenterWithin(containerRect, secondNode);
+      const startCenter = getCenterWithin(containerRect, firstNode);
+      const endCenter = getCenterWithin(containerRect, secondNode);
+      const { start, end } = getEdgeConnection(
+        startCenter,
+        endCenter,
+        variant === 'preview' ? 8 : 0
+      );
 
       setConnection({
         path: makeLine(start, end),
