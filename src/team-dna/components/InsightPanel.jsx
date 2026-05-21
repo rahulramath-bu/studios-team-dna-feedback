@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { InfoBlock } from './InfoBlock.jsx';
 
@@ -13,14 +13,26 @@ const BASELINE_REVEAL_TRANSITION = {
  *
  * What: renders the current team/person/duo narrative plus supporting card
  * slots inside a self-contained scrollable panel.
- * How: keys each selected insight as a local read state, preserves scroll
- * depth across person/duo comparisons, and uses one calm whole-page fade for
- * every read transition.
+ * How: keys each selected insight as a local read state, resets scroll by
+ * default when the read changes, and uses one calm whole-page fade for every
+ * read transition.
  * Port: keep internal scroll, fades, and read transitions inside Team DNA. The
  * monolith shell should provide available height, not become the scroll
  * container for these sections.
  */
-export function InsightPanel({ insight, isHidden, onSelectMember }) {
+export function InsightPanel({
+  insight,
+  isHidden,
+  preserveScroll = false,
+  onSelectMember,
+}) {
+  const scrollRef = useRef(null);
+  const resetScrollAfterExit = () => {
+    if (preserveScroll) return;
+
+    scrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+  };
+
   return (
     <AnimatePresence>
       {!isHidden && (
@@ -33,9 +45,9 @@ export function InsightPanel({ insight, isHidden, onSelectMember }) {
         >
           <div className="team-dna-scroll-fade top" aria-hidden="true" />
           <div className="team-dna-scroll-fade bottom" aria-hidden="true" />
-          <div className="team-dna-insight-scroll">
+          <div className="team-dna-insight-scroll" ref={scrollRef}>
             <div className="team-dna-insight-content">
-              <AnimatePresence mode="wait">
+              <AnimatePresence mode="wait" onExitComplete={resetScrollAfterExit}>
                 {/* Monolith integration seam: the selected insight is keyed as a
                     local read state. The route should swap data; this panel owns
                     the narrative transition between team/person/duo reads. */}

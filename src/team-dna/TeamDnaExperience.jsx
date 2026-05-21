@@ -23,6 +23,7 @@ const INTRO_CHROME_REVEAL_MS = 4300;
  */
 export function TeamDnaExperience({
   dataset,
+  preserveInsightScroll = false,
   onAddMember,
   onBeginTeamEdit,
   onCancelTeamEdit,
@@ -178,6 +179,7 @@ export function TeamDnaExperience({
       <InsightPanel
         insight={insight}
         isHidden={isEditingTeam || isIntroInsightHidden}
+        preserveScroll={preserveInsightScroll}
         onSelectMember={handleSelectMember}
       />
       <TeamDnaChatInputBridge

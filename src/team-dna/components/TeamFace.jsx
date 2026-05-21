@@ -12,23 +12,37 @@ const FACE_PRESENCE_TRANSITION = {
   scale: { type: 'spring', stiffness: 420, damping: 28, mass: 0.72 },
   layout: { type: 'spring', stiffness: 260, damping: 30 },
 };
+const FIRST_NAME_DEFAULT_SCALE = 0.21;
+const FIRST_NAME_SHRINK_AFTER = 7;
+const FIRST_NAME_SHRINK_STEP = 0.025;
+const FIRST_NAME_MIN_SCALE = 0.13;
 
-function getInitials(name) {
-  return name
-    .split(' ')
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0])
-    .join('')
-    .toUpperCase();
+function getFirstName(name) {
+  const normalizedName = String(name ?? '').trim();
+
+  return normalizedName.split(/\s+/)[0] || 'Team';
+}
+
+function getFirstNameSizeScale(firstName) {
+  const length = Array.from(firstName).length;
+
+  if (length <= FIRST_NAME_SHRINK_AFTER) {
+    return FIRST_NAME_DEFAULT_SCALE;
+  }
+
+  return Math.max(
+    FIRST_NAME_MIN_SCALE,
+    FIRST_NAME_DEFAULT_SCALE -
+      (length - FIRST_NAME_SHRINK_AFTER) * FIRST_NAME_SHRINK_STEP
+  );
 }
 
 /**
  * Single teammate pressable.
  *
- * What: semantic face button for one team member, including avatar/initials,
- * selected ring, dimming, hover label, edit remove control, unavailable shake,
- * selected pulse, and press feedback.
+ * What: semantic face button for one team member, including avatar/first-name
+ * fallback, selected ring, dimming, hover label, edit remove control,
+ * unavailable shake, selected pulse, and press feedback.
  * How: separates transforms across nested motion layers so hover, press,
  * selected scale, duo nudge, pulse, and blocked shake can compose without
  * fighting over one CSS transform.
@@ -59,6 +73,7 @@ export const TeamFace = forwardRef(function TeamFace(
   const { pressed, handlers } = useTeamDnaPressable();
   const [hovered, setHovered] = useState(false);
   const [tooltipPosition, setTooltipPosition] = useState({ x: 0, y: 0 });
+  const fallbackFirstName = getFirstName(member.name);
   const restingScale = isSelected ? 1.22 : isDimmed ? 0.68 : 1;
   const interactionScale =
     restingScale * (hovered ? HOVER_SCALE : 1) * (pressed ? PRESS_SCALE : 1);
@@ -151,8 +166,14 @@ export const TeamFace = forwardRef(function TeamFace(
           {member.avatarUrl ? (
             <img className="team-face-image" src={member.avatarUrl} alt="" />
           ) : (
-            <span className="team-face-initials" aria-hidden="true">
-              {getInitials(member.name)}
+            <span
+              className="team-face-name-fallback"
+              style={{
+                '--team-face-name-scale': getFirstNameSizeScale(fallbackFirstName),
+              }}
+              aria-hidden="true"
+            >
+              {fallbackFirstName}
             </span>
           )}
         </motion.span>

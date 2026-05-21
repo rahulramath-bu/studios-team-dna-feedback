@@ -7,7 +7,7 @@ import { TEAM_SIZE_PRESETS } from './teamDnaDevState.js';
  *
  * What: hidden debug bar for stress-testing Team DNA states while designing.
  * How: toggles with backslash and mutates a separate dev overlay for team size,
- * missing avatars, incomplete assessments, and shell preview.
+ * missing avatars, incomplete assessments, shell preview, and transition flags.
  * Port: do not port this. The monolith should get these states from real data,
  * permissions, feature flags, and route context.
  */
@@ -117,6 +117,19 @@ export function TeamDnaDevPanel({ baseMembers, devState, setDevState }) {
                     setDevState((current) => ({
                       ...current,
                       showMonolithShell: !current.showMonolithShell,
+                    }))
+                  }
+                />
+              </DevSection>
+
+              <DevSection title="Behavior">
+                <DevToggle
+                  label="Keep insight scroll"
+                  value={devState.preserveInsightScroll}
+                  onChange={() =>
+                    setDevState((current) => ({
+                      ...current,
+                      preserveInsightScroll: !current.preserveInsightScroll,
                     }))
                   }
                 />

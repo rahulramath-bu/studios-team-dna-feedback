@@ -128,6 +128,7 @@ export function TeamDnaPage() {
         <main className="team-dna-page" aria-label="Team DNA">
           <TeamDnaExperience
             dataset={scenarioDataset}
+            preserveInsightScroll={devState.preserveInsightScroll}
             onAddMember={addMember}
             onBeginTeamEdit={beginTeamEdit}
             onCancelTeamEdit={cancelTeamEdit}

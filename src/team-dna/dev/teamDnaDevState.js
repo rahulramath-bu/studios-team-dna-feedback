@@ -14,6 +14,7 @@ export function createInitialDevState(members) {
   return {
     isOpen: false,
     showMonolithShell: true,
+    preserveInsightScroll: false,
     teamSize: members.length,
     memberStates: Object.fromEntries(
       members.map((member) => [
