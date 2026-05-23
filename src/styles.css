@@ -623,13 +623,19 @@ button {
 }
 
 .team-dna-empty-state {
+  --empty-copy-width: 620px;
+  --empty-preview-width: 432px;
+  --empty-pane-gap: 112px;
+  --empty-experience-width: calc(
+    var(--empty-copy-width) + var(--empty-preview-width) + var(--empty-pane-gap)
+  );
+
   display: grid;
-  grid-template-columns: minmax(0, 720px) minmax(220px, 320px);
+  grid-template-columns: minmax(0, var(--empty-copy-width)) var(--empty-preview-width);
   min-height: 100vh;
   align-items: center;
-  justify-content: center;
-  column-gap: clamp(64px, 10vw, 160px);
-  width: min(100% - 96px, 1180px);
+  column-gap: var(--empty-pane-gap);
+  width: min(calc(100% - 48px), var(--empty-experience-width));
   margin: 0 auto;
   padding: 118px 0 96px;
 }
@@ -2836,6 +2842,12 @@ button {
     --people-pane-width: 360px;
     --detail-pane-width: 540px;
     --pane-gap: 64px;
+  }
+
+  .team-dna-empty-state {
+    --empty-copy-width: 500px;
+    --empty-preview-width: 432px;
+    --empty-pane-gap: 76px;
   }
 
   .team-face-field-wrap {

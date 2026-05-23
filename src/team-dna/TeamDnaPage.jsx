@@ -4,10 +4,7 @@ import { TeamDnaEmptyPreview } from './components/TeamDnaEmptyPreview.jsx';
 import { getTeamDna } from './data/teamDnaAdapter.js';
 import { MonolithTeamShell } from './dev/MonolithTeamShell.jsx';
 import { TeamDnaDevPanel } from './dev/TeamDnaDevPanel.jsx';
-import {
-  applyTeamDnaDevState,
-  createInitialDevState,
-} from './dev/teamDnaDevState.js';
+import { createInitialDevState } from './dev/teamDnaDevState.js';
 
 const primaryTeamDna = getTeamDna({ teamId: 'flighthouse' });
 const SAMPLE_TEAM_ID = 'sample-team';
@@ -19,6 +16,7 @@ function cloneTeamDataset(baseDataset, { id, name, sample = false }) {
     members: baseDataset.members.map((member) => ({
       ...member,
       id: `${id}-${member.id}`,
+      sourceAvatarUrl: member.sourceAvatarUrl ?? member.avatarUrl,
     })),
     insights: {
       team: undefined,
@@ -34,6 +32,7 @@ function makeTeamVariant(baseDataset, { id, name, memberIds, pendingIds = [] }) 
     return {
       ...member,
       id: `${id}-${member.id}`,
+      sourceAvatarUrl: member.sourceAvatarUrl ?? member.avatarUrl,
       assessmentComplete: !pendingIds.includes(memberId),
     };
   });
@@ -49,13 +48,32 @@ function makeTeamVariant(baseDataset, { id, name, memberIds, pendingIds = [] }) 
   };
 }
 
-const initialTeamDatasets = [
-  cloneTeamDataset(primaryTeamDna, {
-    id: SAMPLE_TEAM_ID,
-    name: 'Sample Team',
-    sample: true,
-  }),
-];
+const sampleTeamDataset = cloneTeamDataset(primaryTeamDna, {
+  id: SAMPLE_TEAM_ID,
+  name: 'Sample Team',
+  sample: true,
+});
+
+/**
+ * Optional seeded team used by the empty-state CTA.
+ *
+ * What: Sample Team is a normal Team DNA dataset with `team.sample = true`.
+ * How: it is not present in `teamRecords` until "Try with sample data" is
+ * clicked; that click inserts/resets it as canonical team data.
+ * Port: keep this client-side seed separate from backend teams, but once
+ * inserted it should flow through the same selected-team/member logic.
+ */
+const initialTeamDatasets = [];
+
+const emptyTeamDataset = {
+  team: { id: 'empty-state', name: 'Empty state' },
+  members: [],
+  insights: {
+    team: undefined,
+    people: {},
+    pairs: {},
+  },
+};
 
 /**
  * Standalone prototype page.
@@ -73,9 +91,10 @@ function cloneEditState(value) {
 
 function createNewMember(teamId, index) {
   return {
-    id: `${teamId}-new-member-${Date.now()}`,
+    id: `${teamId}-new-member-${index}-${Date.now()}`,
     name: `New teammate ${index}`,
     avatarUrl: '',
+    sourceAvatarUrl: '',
     assessmentComplete: false,
     bigFive: {
       openness: 50,
@@ -87,10 +106,11 @@ function createNewMember(teamId, index) {
   };
 }
 
-function hasRealTeamMembers(records) {
-  return Object.values(records).some(
-    (record) => !record.dataset.team.sample && record.dataset.members.length > 0
-  );
+function createTeamRecord(dataset) {
+  return {
+    dataset,
+    devState: createInitialDevState(dataset.members),
+  };
 }
 
 export function TeamDnaPage() {
@@ -106,25 +126,26 @@ export function TeamDnaPage() {
     Object.fromEntries(
       initialTeamDatasets.map((dataset) => [
         dataset.team.id,
-        {
-          dataset,
-          devState: createInitialDevState(dataset.members),
-        },
+        createTeamRecord(dataset),
       ])
     )
   );
-  const sampleRecord = teamRecords[SAMPLE_TEAM_ID] ?? Object.values(teamRecords)[0];
+  const [emptyDevState, setEmptyDevState] = useState(() =>
+    createInitialDevState(emptyTeamDataset.members)
+  );
   const activeRecord = activeTeamId ? teamRecords[activeTeamId] : null;
-  const visibleRecord = activeRecord ?? sampleRecord;
-  const isTrueEmptyState =
-    !activeRecord && !hasRealTeamMembers(teamRecords);
+  const visibleRecord = activeRecord ?? {
+    dataset: emptyTeamDataset,
+    devState: emptyDevState,
+  };
+  // Empty state is intentionally data-shaped: the selected canonical team must
+  // have members. Sample teams do not get a special bypass; clicking the sample
+  // CTA simply reseeds Sample Team with members and selects it.
+  const isTrueEmptyState = !activeRecord || activeRecord.dataset.members.length === 0;
   const editableTeamDna = visibleRecord.dataset;
   const devState = visibleRecord.devState;
   const [editSnapshot, setEditSnapshot] = useState(null);
-  const scenarioDataset = useMemo(
-    () => applyTeamDnaDevState(editableTeamDna, devState),
-    [editableTeamDna, devState]
-  );
+  const scenarioDataset = editableTeamDna;
   const teamOptions = useMemo(
     () => Object.values(teamRecords).map((record) => record.dataset.team),
     [teamRecords]
@@ -132,7 +153,7 @@ export function TeamDnaPage() {
 
   const updateActiveRecord = (updater) => {
     setTeamRecords((current) => {
-      const targetTeamId = activeTeamId ?? SAMPLE_TEAM_ID;
+      const targetTeamId = activeTeamId;
       const record = current[targetTeamId];
       if (!record) return current;
 
@@ -152,6 +173,13 @@ export function TeamDnaPage() {
   };
 
   const updateActiveDevState = (updater) => {
+    if (!activeRecord) {
+      setEmptyDevState((current) =>
+        typeof updater === 'function' ? updater(current) : updater
+      );
+      return;
+    }
+
     updateActiveRecord((record) => ({
       ...record,
       devState:
@@ -170,6 +198,8 @@ export function TeamDnaPage() {
   };
 
   const beginTeamEdit = () => {
+    if (!activeTeamId) return;
+
     setEditSnapshot({
       teamId: activeTeamId,
       dataset: cloneEditState(editableTeamDna),
@@ -197,42 +227,75 @@ export function TeamDnaPage() {
   // Porting seam: replace these local mutations with team rename/add/remove
   // API mutations, or remove edit mode if roster management lives elsewhere.
   const removeMember = (memberId) => {
-    updateActiveDataset((current) => ({
-      ...current,
-      members: current.members.filter((member) => member.id !== memberId),
-    }));
-    updateActiveDevState((current) => {
-      const { [memberId]: removedMember, ...memberStates } = current.memberStates;
+    updateActiveRecord((record) => {
+      const nextMembers = record.dataset.members.filter(
+        (member) => member.id !== memberId
+      );
+
       return {
-        ...current,
-        teamSize: Math.max(0, Math.min(current.teamSize, editableTeamDna.members.length - 1)),
-        memberStates,
+        ...record,
+        dataset: {
+          ...record.dataset,
+          members: nextMembers,
+        },
       };
     });
   };
 
   const addMember = () => {
-    const insertIndex = Math.min(devState.teamSize, editableTeamDna.members.length);
-    const member = createNewMember(activeTeamId, insertIndex + 1);
+    const member = createNewMember(editableTeamDna.team.id, editableTeamDna.members.length + 1);
 
     updateActiveDataset((current) => ({
       ...current,
-      members: [
-        ...current.members.slice(0, insertIndex),
-        member,
-        ...current.members.slice(insertIndex),
-      ],
+      members: [...current.members, member],
     }));
-    updateActiveDevState((current) => ({
-      ...current,
-      teamSize: current.teamSize + 1,
-      memberStates: {
-        ...current.memberStates,
-        [member.id]: {
-          hasAvatar: false,
-          assessmentComplete: false,
+  };
+
+  const setActiveTeamSize = (teamSize) => {
+    if (!activeRecord) return;
+
+    updateActiveRecord((record) => {
+      const currentMembers = record.dataset.members;
+      const nextMembers =
+        teamSize <= currentMembers.length
+          ? currentMembers.slice(0, teamSize)
+          : [
+              ...currentMembers,
+              ...Array.from({ length: teamSize - currentMembers.length }, (_, index) =>
+                createNewMember(record.dataset.team.id, currentMembers.length + index + 1)
+              ),
+            ];
+
+      return {
+        ...record,
+        dataset: {
+          ...record.dataset,
+          members: nextMembers,
         },
-      },
+      };
+    });
+  };
+
+  const updateMemberCanonicalState = (memberId, updater) => {
+    updateActiveDataset((current) => ({
+      ...current,
+      members: current.members.map((member) =>
+        member.id === memberId ? updater(member) : member
+      ),
+    }));
+  };
+
+  const toggleMemberAvatar = (memberId) => {
+    updateMemberCanonicalState(memberId, (member) => ({
+      ...member,
+      avatarUrl: member.avatarUrl ? '' : member.sourceAvatarUrl || '',
+    }));
+  };
+
+  const toggleMemberAssessment = (memberId) => {
+    updateMemberCanonicalState(memberId, (member) => ({
+      ...member,
+      assessmentComplete: member.assessmentComplete === false,
     }));
   };
 
@@ -244,7 +307,12 @@ export function TeamDnaPage() {
   };
 
   const trySampleTeam = () => {
-    switchTeam(SAMPLE_TEAM_ID);
+    setEditSnapshot(null);
+    setTeamRecords((current) => ({
+      ...current,
+      [SAMPLE_TEAM_ID]: createTeamRecord(cloneEditState(sampleTeamDataset)),
+    }));
+    setActiveTeamId(SAMPLE_TEAM_ID);
   };
 
   return (
@@ -279,6 +347,10 @@ export function TeamDnaPage() {
       <TeamDnaDevPanel
         baseMembers={editableTeamDna.members}
         devState={devState}
+        canResizeTeam={Boolean(activeRecord)}
+        onSetTeamSize={setActiveTeamSize}
+        onToggleMemberAvatar={toggleMemberAvatar}
+        onToggleMemberAssessment={toggleMemberAssessment}
         showLayoutOutlines={showLayoutOutlines}
         setShowLayoutOutlines={setShowLayoutOutlines}
         setDevState={updateActiveDevState}

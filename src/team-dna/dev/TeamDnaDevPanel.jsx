@@ -6,14 +6,19 @@ import { TEAM_SIZE_PRESETS } from './teamDnaDevState.js';
  * Dev-only scenario harness.
  *
  * What: hidden debug bar for stress-testing Team DNA states while designing.
- * How: toggles with backslash and mutates a separate dev overlay for team size,
- * missing avatars, incomplete assessments, shell preview, and transition flags.
+ * How: toggles with backslash. Shell/behavior controls are local debug flags;
+ * team size, avatar availability, and DNA completion call back into canonical
+ * TeamDnaPage data so they match the real porting contract.
  * Port: do not port this. The monolith should get these states from real data,
  * permissions, feature flags, and route context.
  */
 export function TeamDnaDevPanel({
   baseMembers,
+  canResizeTeam,
   devState,
+  onSetTeamSize,
+  onToggleMemberAssessment,
+  onToggleMemberAvatar,
   setDevState,
   showLayoutOutlines,
   setShowLayoutOutlines,
@@ -29,26 +34,10 @@ export function TeamDnaDevPanel({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [setDevState]);
 
-  const updateMember = (memberId, patch) => {
-    setDevState((current) => ({
-      ...current,
-      memberStates: {
-        ...current.memberStates,
-        [memberId]: {
-          ...current.memberStates[memberId],
-          ...patch,
-        },
-      },
-    }));
-  };
-
   const setTeamSize = (teamSize) => {
-    setDevState((current) => ({ ...current, teamSize }));
+    onSetTeamSize?.(teamSize);
   };
-
-  const visibleMemberIds = new Set(
-    baseMembers.slice(0, devState.teamSize).map((member) => member.id)
-  );
+  const teamSize = baseMembers.length;
 
   return (
     <>
@@ -86,16 +75,16 @@ export function TeamDnaDevPanel({
                 <div className="team-dna-dev-stepper">
                   <button
                     type="button"
-                    onClick={() => setTeamSize(Math.max(0, devState.teamSize - 1))}
+                    disabled={!canResizeTeam}
+                    onClick={() => setTeamSize(Math.max(0, teamSize - 1))}
                   >
                     -
                   </button>
-                  <span>{devState.teamSize}</span>
+                  <span>{teamSize}</span>
                   <button
                     type="button"
-                    onClick={() =>
-                      setTeamSize(Math.min(baseMembers.length, devState.teamSize + 1))
-                    }
+                    disabled={!canResizeTeam}
+                    onClick={() => setTeamSize(teamSize + 1)}
                   >
                     +
                   </button>
@@ -106,8 +95,9 @@ export function TeamDnaDevPanel({
                       key={size}
                       type="button"
                       className="team-dna-dev-chip"
-                      data-active={devState.teamSize === size || undefined}
-                      onClick={() => setTeamSize(Math.min(size, baseMembers.length))}
+                      disabled={!canResizeTeam}
+                      data-active={teamSize === size || undefined}
+                      onClick={() => setTeamSize(size)}
                     >
                       {size}
                     </button>
@@ -149,14 +139,13 @@ export function TeamDnaDevPanel({
               <DevSection title="Member states">
                 <div className="team-dna-dev-member-list">
                   {baseMembers.map((member, index) => {
-                    const state = devState.memberStates[member.id];
-                    const isVisible = visibleMemberIds.has(member.id);
+                    const hasAvatar = Boolean(member.avatarUrl);
+                    const hasDna = member.assessmentComplete !== false;
 
                     return (
                       <div
                         key={member.id}
                         className="team-dna-dev-member-row"
-                        data-muted={!isVisible || undefined}
                       >
                         <span className="team-dna-dev-member-index">
                           {String(index + 1).padStart(2, '0')}
@@ -164,19 +153,13 @@ export function TeamDnaDevPanel({
                         <span className="team-dna-dev-member-name">{member.name}</span>
                         <DevToggle
                           label="Avatar"
-                          value={state.hasAvatar}
-                          onChange={() =>
-                            updateMember(member.id, { hasAvatar: !state.hasAvatar })
-                          }
+                          value={hasAvatar}
+                          onChange={() => onToggleMemberAvatar?.(member.id)}
                         />
                         <DevToggle
                           label="DNA"
-                          value={state.assessmentComplete}
-                          onChange={() =>
-                            updateMember(member.id, {
-                              assessmentComplete: !state.assessmentComplete,
-                            })
-                          }
+                          value={hasDna}
+                          onChange={() => onToggleMemberAssessment?.(member.id)}
                         />
                       </div>
                     );
