@@ -634,6 +634,12 @@ button {
   padding: 118px 0 96px;
 }
 
+.monolith-shell-preview .team-dna-empty-state {
+  min-height: calc(100vh - var(--monolith-shell-chrome));
+  padding: 78px 0 92px;
+  transform: translateY(-26px);
+}
+
 .team-dna-empty-state[data-layout-debug] {
   outline: 2px solid rgba(73, 86, 255, 0.9);
 }
@@ -2849,6 +2855,12 @@ button {
     width: min(100% - 48px, 680px);
     min-height: 100vh;
     padding: 132px 0 72px;
+  }
+
+  .monolith-shell-preview .team-dna-empty-state {
+    min-height: calc(100vh - var(--monolith-shell-chrome));
+    padding: 92px 0 72px;
+    transform: none;
   }
 
   .team-dna-empty-copy h1 {
