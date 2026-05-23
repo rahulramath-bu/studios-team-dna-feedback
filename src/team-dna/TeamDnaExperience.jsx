@@ -3,6 +3,7 @@ import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
 import { TeamDnaChatInputBridge } from './components/TeamDnaChatInputBridge.jsx';
+import { TeamContextSwitcher } from './components/TeamContextSwitcher.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
@@ -23,7 +24,12 @@ const INTRO_CHROME_REVEAL_MS = 4300;
  */
 export function TeamDnaExperience({
   dataset,
+  showLayoutOutlines = false,
   preserveInsightScroll = false,
+  teamOptions = [],
+  selectedTeamId,
+  teamSwitcherTopOffset,
+  onTeamChange,
   onAddMember,
   onBeginTeamEdit,
   onCancelTeamEdit,
@@ -55,12 +61,22 @@ export function TeamDnaExperience({
     [dataset.members]
   );
 
+  const resolvedTeamOptions =
+    teamOptions.length > 0 ? teamOptions : [dataset.team];
+  const resolvedSelectedTeamId = selectedTeamId ?? dataset.team.id;
+
   useEffect(() => {
     setSelectedIds((current) => {
       const next = current.filter((id) => selectableMemberIds.has(id));
       return next.length === current.length ? current : next;
     });
   }, [selectableMemberIds, setSelectedIds]);
+
+  useEffect(() => {
+    setSelectedIds([]);
+    setBlockedAttempt(null);
+    setIsEditingTeam(false);
+  }, [dataset.team.id, setSelectedIds]);
 
   useEffect(() => {
     if (shouldReduceMotion) {
@@ -154,20 +170,30 @@ export function TeamDnaExperience({
       className="team-dna-experience"
       data-editing={isEditingTeam || undefined}
       data-intro={isIntroLayoutActive || undefined}
+      data-layout-debug={showLayoutOutlines || undefined}
     >
+      <TeamContextSwitcher
+        teamOptions={resolvedTeamOptions}
+        selectedTeamId={resolvedSelectedTeamId}
+        selectedTeamName={dataset.team.name}
+        disabled={isEditingTeam}
+        introHidden={isIntroChromeHidden}
+        topOffset={teamSwitcherTopOffset}
+        onEditTeam={handleStartTeamEdit}
+        onTeamChange={onTeamChange}
+      />
       <div className="team-dna-people-pane">
         <TeamFaceField
+          teamId={dataset.team.id}
           members={dataset.members}
           selectedIds={selectedIds}
           blockedAttempt={blockedAttempt}
           entityEyebrow={insight.entityEyebrow ?? insight.eyebrow}
           entityTitle={insight.entityTitle ?? insight.title}
           introActive={isIntroLayoutActive}
-          introChromeHidden={isIntroChromeHidden}
           isEditingTeam={isEditingTeam}
           teamName={dataset.team.name}
           onAddMember={onAddMember}
-          onEditTeam={handleStartTeamEdit}
           onCancelEditing={handleCancelEditing}
           onDoneEditing={handleDoneEditing}
           onRemoveMember={onRemoveMember}

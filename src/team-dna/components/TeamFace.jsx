@@ -176,6 +176,11 @@ export const TeamFace = forwardRef(function TeamFace(
               {fallbackFirstName}
             </span>
           )}
+          {isUnavailable && (
+            <span className="team-face-pending-pill" aria-hidden="true">
+              Pending
+            </span>
+          )}
         </motion.span>
       </motion.span>
     </motion.span>

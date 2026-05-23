@@ -11,7 +11,13 @@ import { TEAM_SIZE_PRESETS } from './teamDnaDevState.js';
  * Port: do not port this. The monolith should get these states from real data,
  * permissions, feature flags, and route context.
  */
-export function TeamDnaDevPanel({ baseMembers, devState, setDevState }) {
+export function TeamDnaDevPanel({
+  baseMembers,
+  devState,
+  setDevState,
+  showLayoutOutlines,
+  setShowLayoutOutlines,
+}) {
   useEffect(() => {
     const handleKeyDown = (event) => {
       if (event.key === '\\') {
@@ -123,6 +129,11 @@ export function TeamDnaDevPanel({ baseMembers, devState, setDevState }) {
               </DevSection>
 
               <DevSection title="Behavior">
+                <DevToggle
+                  label="Layout outlines"
+                  value={showLayoutOutlines}
+                  onChange={() => setShowLayoutOutlines((current) => !current)}
+                />
                 <DevToggle
                   label="Keep insight scroll"
                   value={devState.preserveInsightScroll}

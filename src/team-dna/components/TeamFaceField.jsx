@@ -9,6 +9,7 @@ const DUO_MAX_NUDGE = 32;
 const SECONDARY_MIN_CENTER_DISTANCE = 126;
 const SECONDARY_MAX_NUDGE = 24;
 const NUDGE_RELAXATION_STEPS = 3;
+const TEAM_FACE_SWAP_EXIT_MS = 240;
 
 function getLayoutCenter(node) {
   return {
@@ -252,9 +253,9 @@ function getEntityTitleStyle(title) {
 /**
  * Left-side team face field.
  *
- * What: renders the selectable team cluster, edit affordance, team-name editor,
- * add/remove controls, hover preview line, selected duo line, and selected-pair
- * nudge behavior.
+ * What: renders the selectable team cluster, team-name editor, add/remove
+ * controls, hover preview line, selected duo line, and selected-pair nudge
+ * behavior.
  * How: keeps stable button hitboxes while inner visual layers scale; stores DOM
  * refs for each face so DuoConnection and nudge math can measure real positions
  * instead of assuming a specific grid.
@@ -263,17 +264,16 @@ function getEntityTitleStyle(title) {
  * with the monolith icon component.
  */
 export function TeamFaceField({
+  teamId,
   members,
   selectedIds,
   blockedAttempt,
   entityEyebrow,
   entityTitle,
   introActive,
-  introChromeHidden,
   isEditingTeam,
   teamName,
   onAddMember,
-  onEditTeam,
   onCancelEditing,
   onDoneEditing,
   onRemoveMember,
@@ -287,14 +287,17 @@ export function TeamFaceField({
   const hitboxRefs = useRef(new Map());
   const previousSelectedCount = useRef(selectedIds.length);
   const previousMemberCount = useRef(members.length);
+  const previousTeamId = useRef(teamId);
   const [faceNudges, setFaceNudges] = useState({});
   const [hoveredMemberId, setHoveredMemberId] = useState(null);
   const [isAddButtonHidden, setIsAddButtonHidden] = useState(false);
+  const [isTeamSwapWaiting, setIsTeamSwapWaiting] = useState(false);
+  const [displayedMembers, setDisplayedMembers] = useState(members);
   const [connectionObscuredIds, setConnectionObscuredIds] = useState(new Set());
   const [useSelectionNudgeMotion, setUseSelectionNudgeMotion] = useState(
     selectedIds.length === 2
   );
-  const previewMember = members.find((member) => member.id === hoveredMemberId);
+  const previewMember = displayedMembers.find((member) => member.id === hoveredMemberId);
   const previewSelectedIds =
     !isEditingTeam &&
     selectedIds.length === 1 &&
@@ -322,6 +325,27 @@ export function TeamFaceField({
       hitboxRefs.current.delete(memberId);
     }
   };
+
+  useEffect(() => {
+    if (previousTeamId.current === teamId) {
+      setDisplayedMembers(members);
+      return undefined;
+    }
+
+    previousTeamId.current = teamId;
+    setHoveredMemberId(null);
+    setConnectionObscuredIds(new Set());
+    setFaceNudges({});
+    setIsTeamSwapWaiting(true);
+    setDisplayedMembers([]);
+
+    const timeout = window.setTimeout(() => {
+      setDisplayedMembers(members);
+      setIsTeamSwapWaiting(false);
+    }, TEAM_FACE_SWAP_EXIT_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [teamId, members]);
 
   useEffect(() => {
     const wasDuo = previousSelectedCount.current === 2;
@@ -368,7 +392,7 @@ export function TeamFaceField({
 
     const updateNudges = () => {
       setFaceNudges(
-        resolveFaceNudges(members, selectedIds, hitboxRefs)
+        resolveFaceNudges(displayedMembers, selectedIds, hitboxRefs)
       );
     };
 
@@ -384,14 +408,14 @@ export function TeamFaceField({
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', scheduleUpdate);
     };
-  }, [members, selectedIds]);
+  }, [displayedMembers, selectedIds]);
 
   useLayoutEffect(() => {
     let animationFrame = 0;
 
     const updateObscuredIds = () => {
       const nextObscuredIds = getConnectionObscuredIds(
-        members,
+        displayedMembers,
         activeConnectionIds,
         fieldRef,
         faceRefs
@@ -416,7 +440,7 @@ export function TeamFaceField({
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', scheduleUpdate);
     };
-  }, [members, activeConnectionKey]);
+  }, [displayedMembers, activeConnectionKey]);
 
   return (
     <motion.div className="team-face-field-wrap" ref={fieldRef} layout>
@@ -437,24 +461,11 @@ export function TeamFaceField({
               {entityEyebrow}
             </p>
           )}
-          <div className="team-face-context-title-row">
-            <h2 className="team-face-context-title">
-              <span style={getEntityTitleStyle(entityTitle)}>
-                {entityTitle}
-              </span>
-            </h2>
-            {!hasSelection && (
-              <button
-                type="button"
-                className="team-face-edit-button"
-                data-intro-hidden={introChromeHidden || undefined}
-                aria-label={`Edit ${teamName}`}
-                onClick={onEditTeam}
-              >
-                <BetterUpIcon name="Edit" size={19} strokeWidth={1.8} />
-              </button>
-            )}
-          </div>
+          <h2 className="team-face-context-title">
+            <span style={getEntityTitleStyle(entityTitle)}>
+              {entityTitle}
+            </span>
+          </h2>
         </div>
       )}
       {isEditingTeam && (
@@ -507,8 +518,8 @@ export function TeamFaceField({
           ) : null}
         </AnimatePresence>
         <AnimatePresence initial={introActive}>
-          {members.length > 0 ? (
-            members.map((member, index) => (
+          {displayedMembers.length > 0 ? (
+            displayedMembers.map((member, index) => (
               <TeamFace
                 key={member.id}
                 ref={setHitboxNode(member.id)}
@@ -536,7 +547,7 @@ export function TeamFaceField({
                 }
               />
             ))
-          ) : (
+          ) : isTeamSwapWaiting ? null : (
             <motion.div className="team-face-empty-state" layout>
               <p>No team members</p>
             </motion.div>
