@@ -190,6 +190,7 @@ export function TeamDnaPage() {
     !activeRecord || visibleRecord.dataset.members.length === 0;
   const editableTeamDna = visibleRecord.dataset;
   const devState = visibleRecord.devState;
+  const canManageTeam = devState.canManageTeam !== false;
   const generationStatusByTargetId = devState.generationStatusByTargetId ?? {};
   const scenarioDataset = editableTeamDna;
   const teamOptions = useMemo(
@@ -236,10 +237,13 @@ export function TeamDnaPage() {
   };
 
   const openCreateTeam = () => {
+    if (!canManageTeam) return;
     setTeamManagementOverlay({ mode: 'create' });
   };
 
   const openEditTeam = (teamId = activeTeamId) => {
+    if (!canManageTeam) return;
+
     if (!teamId) {
       openCreateTeam();
       return;
@@ -402,6 +406,102 @@ export function TeamDnaPage() {
     });
   };
 
+  const setMemberAssessmentStates = (memberAssessmentStates) => {
+    setTeamDnaResultsByEmployeeId((current) => {
+      const next = { ...current };
+
+      memberAssessmentStates.forEach(({ memberId, assessmentComplete }) => {
+        const currentResult = next[memberId] ?? {};
+
+        next[memberId] = {
+          ...currentResult,
+          assessmentComplete,
+          bigFive: currentResult.bigFive ?? NEUTRAL_BIG_FIVE,
+        };
+      });
+
+      return next;
+    });
+  };
+
+  const clearGenerationStatusForTarget = (target) => {
+    if (!target?.id) return;
+
+    updateActiveDevState((current) => {
+      const nextStatusByTargetId = { ...(current.generationStatusByTargetId ?? {}) };
+      delete nextStatusByTargetId[target.id];
+
+      return {
+        ...current,
+        generationStatusByTargetId: nextStatusByTargetId,
+      };
+    });
+  };
+
+  const getMemberIdsForGenerationScenario = (target) => {
+    if (target?.scope === 'team') {
+      return editableTeamDna.members.map((member) => member.id);
+    }
+
+    return target?.memberIds ?? [];
+  };
+
+  const makeNotReadyAssessmentScenario = (target) => {
+    const memberIds = getMemberIdsForGenerationScenario(target);
+
+    if (target?.scope === 'team') {
+      const completeCount = Math.max(
+        0,
+        Math.min(
+          memberIds.length,
+          (target.minimumCompletedCount ?? 1) - 1
+        )
+      );
+
+      return memberIds.map((memberId, index) => ({
+        memberId,
+        assessmentComplete: index < completeCount,
+      }));
+    }
+
+    if (target?.scope === 'duo') {
+      return memberIds.map((memberId, index) => ({
+        memberId,
+        assessmentComplete: index === 0,
+      }));
+    }
+
+    return memberIds.map((memberId) => ({
+      memberId,
+      assessmentComplete: false,
+    }));
+  };
+
+  const setGenerationScenarioForTarget = (
+    target,
+    status,
+    eventType = 'teamDnaInsightGenerationSucceeded'
+  ) => {
+    if (!target?.id) return;
+
+    if (status === 'not_ready') {
+      // `not_ready` is source-data readiness, not an AI job result. The debug
+      // harness mutates the same member assessment data the real product will
+      // use, then lets the normal lifecycle resolver derive the waiting state.
+      setMemberAssessmentStates(makeNotReadyAssessmentScenario(target));
+      clearGenerationStatusForTarget(target);
+      return;
+    }
+
+    setMemberAssessmentStates(
+      getMemberIdsForGenerationScenario(target).map((memberId) => ({
+        memberId,
+        assessmentComplete: true,
+      }))
+    );
+    setGenerationStatusForTarget(target, status, eventType);
+  };
+
   const switchTeam = (teamId) => {
     if (!teamRecords[teamId]) return;
 
@@ -430,6 +530,7 @@ export function TeamDnaPage() {
         <main className="team-dna-page" aria-label="Team DNA">
           {isTrueEmptyState ? (
             <TeamDnaEmptyState
+              canManageTeam={canManageTeam}
               onAddTeam={openCreateTeam}
               onTrySample={trySampleTeam}
             />
@@ -440,6 +541,7 @@ export function TeamDnaPage() {
               teamOptions={teamOptions}
               selectedTeamId={activeTeamId}
               teamSwitcherTopOffset={devState.showMonolithShell ? 104 : 34}
+              canManageTeam={canManageTeam}
               onAddTeam={openCreateTeam}
               onEditTeam={openEditTeam}
               onTeamChange={switchTeam}
@@ -466,7 +568,7 @@ export function TeamDnaPage() {
         activeGenerationTarget={activeGenerationTarget}
         devState={devState}
         canResizeTeam={Boolean(activeRecord)}
-        onSetGenerationStatus={setGenerationStatusForTarget}
+        onSetGenerationStatus={setGenerationScenarioForTarget}
         onSetTeamSize={setActiveTeamSize}
         onToggleMemberAvatar={toggleMemberAvatar}
         onToggleMemberAssessment={toggleMemberAssessment}
@@ -476,7 +578,7 @@ export function TeamDnaPage() {
   );
 }
 
-function TeamDnaEmptyState({ onAddTeam, onTrySample }) {
+function TeamDnaEmptyState({ canManageTeam, onAddTeam, onTrySample }) {
   return (
     <section
       className="team-dna-empty-state"
@@ -499,22 +601,31 @@ function TeamDnaEmptyState({ onAddTeam, onTrySample }) {
           framework to reveal how people work, what brings out their best, and
           where teammates can multiply each other’s impact.
         </p>
-        <div className="team-dna-empty-actions">
-          <button
-            type="button"
-            className="team-dna-empty-primary"
-            onClick={onAddTeam}
-          >
-            Add your team
-          </button>
-          <button
-            type="button"
-            className="team-dna-empty-secondary"
-            onClick={onTrySample}
-          >
-            Try with sample data
-          </button>
-        </div>
+        {canManageTeam ? (
+            <div className="team-dna-empty-actions">
+              <button
+                type="button"
+                className="team-dna-empty-primary"
+                onClick={onAddTeam}
+              >
+                Add your team
+              </button>
+              <button
+                type="button"
+                className="team-dna-empty-secondary"
+                onClick={onTrySample}
+              >
+                Try with sample data
+              </button>
+            </div>
+        ) : (
+          <div className="team-dna-empty-actions">
+            <p className="team-dna-empty-note">
+              After a manager or admin adds you to a team, you’ll see your team
+              summary here.
+            </p>
+          </div>
+        )}
       </div>
       <TeamDnaEmptyPreview />
     </section>

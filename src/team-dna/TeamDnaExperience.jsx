@@ -73,8 +73,11 @@ function buildGrowChatPromptPayload({ dataset, insight, message, scope, selected
  * How: keeps selection local and ID-based, blocks members without completed
  * assessments from entering insight state, and delegates team management to
  * the route-level overlay so roster mutations stay outside the face field.
+ * `canManageTeam` is the prototype permission seam for manager/admin-only
+ * controls such as team switching/editing and lifecycle generation actions.
  * Port: this is the main component to mount inside the monolith Team DNA tab.
- * Keep routing, gates, API hooks, analytics, and shell tabs outside of it.
+ * Keep routing, gates, API hooks, analytics, shell tabs, and the real
+ * role/permission lookup outside of it.
  */
 export function TeamDnaExperience({
   dataset,
@@ -83,6 +86,7 @@ export function TeamDnaExperience({
   teamOptions = [],
   selectedTeamId,
   teamSwitcherTopOffset,
+  canManageTeam = true,
   onAddTeam,
   onEditTeam,
   onTeamChange,
@@ -208,7 +212,14 @@ export function TeamDnaExperience({
   const generationTarget = generationLifecycle?.target;
 
   useEffect(() => {
-    onGenerationTargetChange?.(generationTarget ?? null);
+    onGenerationTargetChange?.(
+      generationTarget
+        ? {
+            ...generationTarget,
+            status: generationLifecycle?.status,
+          }
+        : null
+    );
   }, [
     generationTarget?.id,
     generationTarget?.scope,
@@ -216,6 +227,7 @@ export function TeamDnaExperience({
     generationTarget?.totalCount,
     generationTarget?.canGenerateTeam,
     generationTarget?.canGenerateTeamEarly,
+    generationLifecycle?.status,
     onGenerationTargetChange,
   ]);
 
@@ -241,16 +253,18 @@ export function TeamDnaExperience({
       data-intro={isIntroGateActive || undefined}
       data-layout-debug={showLayoutOutlines || undefined}
     >
-      <TeamContextSwitcher
-        teamOptions={resolvedTeamOptions}
-        selectedTeamId={resolvedSelectedTeamId}
-        selectedTeamName={dataset.team.name}
-        introHidden={isIntroChromeHidden}
-        topOffset={teamSwitcherTopOffset}
-        onAddTeam={onAddTeam}
-        onEditTeam={handleEditTeam}
-        onTeamChange={onTeamChange}
-      />
+      {canManageTeam ? (
+        <TeamContextSwitcher
+          teamOptions={resolvedTeamOptions}
+          selectedTeamId={resolvedSelectedTeamId}
+          selectedTeamName={dataset.team.name}
+          introHidden={isIntroChromeHidden}
+          topOffset={teamSwitcherTopOffset}
+          onAddTeam={onAddTeam}
+          onEditTeam={handleEditTeam}
+          onTeamChange={onTeamChange}
+        />
+      ) : null}
       <div className="team-dna-people-pane">
         <TeamFaceField
           teamId={dataset.team.id}
@@ -269,6 +283,7 @@ export function TeamDnaExperience({
         insight={insight}
         isHidden={isIntroGateActive}
         preserveScroll={preserveInsightScroll}
+        canManageTeam={canManageTeam}
         onSelectMember={handleSelectMember}
         onLifecycleAction={onInsightLifecycleAction}
       />

@@ -1887,7 +1887,11 @@ button.team-management-row {
 }
 
 .team-dna-empty-note {
-  display: none;
+  max-width: 360px;
+  margin: 0;
+  color: var(--foreground-muted);
+  font-size: 14px;
+  line-height: 1.55;
 }
 
 .team-dna-empty-preview {
@@ -3174,7 +3178,11 @@ button.team-management-row {
 }
 
 .insight-lifecycle-status[data-tone='working'] {
-  background: rgba(var(--team-dna-neutral-rgb), 0.09);
+  justify-content: flex-start;
+  margin-bottom: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
 }
 
 .insight-lifecycle-status[data-tone='notice'] {
@@ -3263,11 +3271,28 @@ button.team-management-row {
   line-height: 1.1;
 }
 
-.insight-waiting-state p:last-child {
+.insight-waiting-state > p:not(.insight-waiting-kicker) {
   margin: 18px 0 0;
   color: var(--foreground-body);
   font-size: 16px;
   line-height: 1.65;
+}
+
+.insight-waiting-action {
+  height: 38px;
+  margin-top: 26px;
+  padding: 0 18px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 999px;
+  background: var(--page-background);
+  color: var(--team-dna-focus);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.insight-waiting-action:hover {
+  background: rgba(var(--team-dna-focus-rgb), 0.08);
 }
 
 .insight-summary {

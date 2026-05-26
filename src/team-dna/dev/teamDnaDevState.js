@@ -11,6 +11,7 @@ export function createInitialDevState(members) {
   return {
     isOpen: false,
     showMonolithShell: true,
+    canManageTeam: true,
     generationStatusByTargetId: {},
     lastGenerationEvent: null,
   };

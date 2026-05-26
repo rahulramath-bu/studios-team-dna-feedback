@@ -357,13 +357,16 @@ For the first version, use this readiness rule:
 ```txt
 Person read: 1 completed assessment.
 Duo read: 2 completed assessments.
-Team read: at least 3 completed assessments.
-Default team read waits for everyone, unless a manager generates early.
+Team summary hard minimum: at least 3 completed assessments.
+Default team summary waits for everyone.
+Manager can generate anyway once the hard minimum is met.
 ```
 
 That means a team with 1-2 completed assessments should show a waiting state,
-not a fake team insight. A team with 3+ completed assessments can be generated
-early if the manager chooses to move forward before everyone finishes.
+not a fake team summary and not a CTA. A team with 3+ completed assessments
+should show the deterministic team summary with a quiet "generate anyway" notice
+if the manager chooses to move forward before everyone finishes. When everyone
+has completed, the team summary should move into generation/ready state.
 
 Fallback is available only after the required source data exists:
 
@@ -397,7 +400,7 @@ The visible states are:
 | Status | Meaning | UI behavior |
 | --- | --- | --- |
 | `not_ready` | Not enough completed assessments yet. | Show a waiting state; no fallback should pretend to know the read. Mostly team-visible, defensive for person/duo. |
-| `pending` | Enough assessment data exists and the backend is generating the AI read. | Show a small "AI insights generating" status and deterministic fallback underneath. |
+| `pending` | Enough assessment data exists and the backend is generating the AI read. | Show a small unframed "AI insights generating" status and deterministic fallback underneath. |
 | `ready` | AI read exists and matches the current source snapshot. | Show the normal generated read. |
 | `failed` | Enough assessment data exists but AI generation failed. | Quietly show deterministic fallback; log/retry through backend/telemetry rather than alarming the user by default. |
 | `stale` | AI read exists, but team membership or assessment data changed later. | Keep the existing read visible. For team/admin reads, show a refresh affordance. |
@@ -436,6 +439,43 @@ swap the team's generated identity every time a new member completes. If a team
 read already exists, keep it visible and mark it stale so the manager can
 refresh it with the new member snapshot.
 
+The team summary readiness POV is:
+
+```txt
+0-2 completed assessments
+-> hard waiting state
+-> no generate CTA
+
+3+ completed assessments, but not everyone
+-> enough signal to generate
+-> show the deterministic summary
+-> show a small "generate anyway" notice/action, similar to stale refresh
+
+everyone completed
+-> leave waiting
+-> generate normally or show the ready summary
+
+existing generated summary + later membership/assessment change
+-> keep old summary visible
+-> mark stale and show a quiet refresh action
+```
+
+Manager/admin-only controls are gated by a single prototype permission flag:
+
+```txt
+canManageTeam
+```
+
+In this standalone build, the debug panel can toggle that flag. In the monolith,
+replace it with the real Team Tooling permission/role decision, for example
+team lead, manager, admin, or whoever owns that team. When `canManageTeam` is
+false, hide team management controls and manager-only lifecycle actions like
+"generate anyway" and stale refresh. The member/read experience can still render
+normally. If the user has no team yet and cannot manage teams, keep the same
+introductory empty-state headline/body, but replace setup/demo CTAs with a short
+note that after a manager or admin adds them to a team, their team summary will
+appear there.
+
 ### Prototype simulation
 
 `src/team-dna/data/teamDnaGenerationLifecycle.mock.js` is the local backend
@@ -454,8 +494,11 @@ stale       = old generated copy visible; team reads may show refresh
 
 The debug panel intentionally does not expose separate event-shooter buttons.
 Clicking a state directly simulates the backend job ending up in that visible
-state. The event names stay documented above for engineering, but the prototype
-control should stay simple enough to explain in a demo.
+state. The exception is `waiting`: because that is a source-data readiness gate,
+the debug panel mutates member assessment completion and lets the normal
+lifecycle resolver derive `not_ready`. The event names stay documented above for
+engineering, but the prototype control should stay simple enough to explain in a
+demo.
 
 This exists so designers and engineers can see the real frontend states without
 needing a live generation service. The real monolith should replace the mock

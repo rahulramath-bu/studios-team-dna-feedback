@@ -13,7 +13,7 @@ const GENERATION_STATUS_LABELS = {
 const GENERATION_STATUS_DESCRIPTIONS = {
   not_ready: {
     title: 'Waiting for enough assessment data',
-    body: 'Shows no read yet. This is mainly for team pages with fewer than 3 completed assessments, and defensive for person/duo routes because pending people are not normally selectable.',
+    body: 'Mutates member DNA completion so the source data is actually incomplete. This is mainly for team pages, and defensive for person/duo routes because pending people are not normally selectable.',
   },
   pending: {
     title: 'AI generation is in progress',
@@ -70,7 +70,8 @@ export function TeamDnaDevPanel({
   };
   const teamSize = baseMembers.length;
   const selectedGenerationStatus =
-    devState.generationStatusByTargetId?.[activeGenerationTarget?.id];
+    devState.generationStatusByTargetId?.[activeGenerationTarget?.id] ??
+    activeGenerationTarget?.status;
   const generationDescription =
     GENERATION_STATUS_DESCRIPTIONS[selectedGenerationStatus] ??
     (activeGenerationTarget
@@ -145,6 +146,19 @@ export function TeamDnaDevPanel({
                 />
               </DevSection>
 
+              <DevSection title="Access">
+                <DevToggle
+                  label="Manager/admin"
+                  value={devState.canManageTeam !== false}
+                  onChange={() =>
+                    setDevState((current) => ({
+                      ...current,
+                      canManageTeam: current.canManageTeam === false,
+                    }))
+                  }
+                />
+              </DevSection>
+
               {baseMembers.length > 0 && (
                 <DevSection title="Member states">
                   <div className="team-dna-dev-member-list">
@@ -188,10 +202,7 @@ export function TeamDnaDevPanel({
               >
                 <div className="team-dna-dev-chip-row">
                   {TEAM_DNA_GENERATION_STATUSES.map((status) => {
-                    const isActive =
-                      devState.generationStatusByTargetId?.[
-                        activeGenerationTarget?.id
-                      ] === status;
+                    const isActive = selectedGenerationStatus === status;
 
                     return (
                       <button

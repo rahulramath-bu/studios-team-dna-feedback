@@ -16,9 +16,10 @@ const BASELINE_REVEAL_TRANSITION = {
  * How: keys each selected insight as a local read state, resets scroll by
  * default when the read changes, and uses one calm whole-page fade for each
  * transition. Lifecycle state controls the read: `not_ready` blocks when source
- * data is insufficient; `pending` shows a small generating strip over fallback;
+ * data is insufficient; `pending` shows a small unframed generating cue;
  * `failed` quietly falls back; `ready` uses generated copy; team `stale` keeps
- * old generated copy visible with a refresh affordance.
+ * old generated copy visible. `canManageTeam` gates manager-only refresh and
+ * generate-anyway affordances.
  * Port: this can be swapped back to a contained scroll panel if monolith needs
  * that shell behavior, but keep the selected-read transition owned by Team DNA.
  */
@@ -26,6 +27,7 @@ export function InsightPanel({
   insight,
   isHidden,
   preserveScroll = false,
+  canManageTeam = true,
   onSelectMember,
   onLifecycleAction,
 }) {
@@ -58,6 +60,7 @@ export function InsightPanel({
                 <InsightPage
                   key={insight.id}
                   insight={insight}
+                  canManageTeam={canManageTeam}
                   onSelectMember={onSelectMember}
                   onLifecycleAction={onLifecycleAction}
                 />
@@ -70,7 +73,12 @@ export function InsightPanel({
   );
 }
 
-function InsightPage({ insight, onSelectMember, onLifecycleAction }) {
+function InsightPage({
+  insight,
+  canManageTeam,
+  onSelectMember,
+  onLifecycleAction,
+}) {
   return (
     <motion.article
       className="team-dna-insight-page"
@@ -91,6 +99,7 @@ function InsightPage({ insight, onSelectMember, onLifecycleAction }) {
     >
       <InsightPageContent
         insight={insight}
+        canManageTeam={canManageTeam}
         onSelectMember={onSelectMember}
         onLifecycleAction={onLifecycleAction}
       />
@@ -98,18 +107,30 @@ function InsightPage({ insight, onSelectMember, onLifecycleAction }) {
   );
 }
 
-function InsightPageContent({ insight, onSelectMember, onLifecycleAction }) {
+function InsightPageContent({
+  insight,
+  canManageTeam,
+  onSelectMember,
+  onLifecycleAction,
+}) {
   const lifecycle = insight.generationLifecycle;
-  const isNotReady = lifecycle?.status === 'not_ready';
+  const isHardNotReady =
+    lifecycle?.status === 'not_ready' && !lifecycle?.target?.canGenerateTeam;
 
   return (
     <>
       <InsightLifecycleStatus
         lifecycle={lifecycle}
+        canManageTeam={canManageTeam}
         onLifecycleAction={onLifecycleAction}
       />
-      {isNotReady ? <InsightWaitingState lifecycle={lifecycle} /> : null}
-      {isNotReady ? null : (
+      {isHardNotReady ? (
+        <InsightWaitingState
+          lifecycle={lifecycle}
+          onLifecycleAction={onLifecycleAction}
+        />
+      ) : null}
+      {isHardNotReady ? null : (
         <>
           <section className="insight-primary-read">
             <div className="insight-heading-group">
@@ -124,7 +145,7 @@ function InsightPageContent({ insight, onSelectMember, onLifecycleAction }) {
   );
 }
 
-function getLifecycleCopy(lifecycle) {
+function getLifecycleCopy(lifecycle, canManageTeam) {
   const status = lifecycle?.status;
   const target = lifecycle?.target;
 
@@ -132,55 +153,93 @@ function getLifecycleCopy(lifecycle) {
     return {
       tone: 'working',
       label: 'AI insights generating',
-      text: 'Showing the basic read for now.',
     };
   }
 
   if (status === 'stale') {
+    if (!canManageTeam) return null;
     if (target?.scope !== 'team') return null;
 
     return {
       tone: 'notice',
-      label: 'Refresh available',
-      text: 'New assessment data is available for this team read.',
+      text: 'New assessment data is available for this team summary.',
       actionLabel: 'Refresh',
       actionType: 'teamDnaTeamInsightRefreshRequested',
     };
   }
 
-  if (status === 'not_ready') {
+  if (status === 'not_ready' && target?.canGenerateTeam) {
+    if (!canManageTeam) return null;
+
     return {
-      tone: 'quiet',
-      label: 'Waiting',
-      text: getNotReadyText(target),
-      actionLabel: target?.canGenerateTeam ? 'Generate now' : undefined,
-      actionType: target?.canGenerateTeam
-        ? 'teamDnaInsightGenerationRequested'
-        : undefined,
+      tone: 'notice',
+      text: `${target.completedCount} of ${target.totalCount} responses are in. Waiting for everyone is recommended, but you can move forward with what you have.`,
+      actionLabel: 'Generate anyway',
+      actionType: 'teamDnaInsightGenerationRequested',
     };
   }
+
+  if (status === 'not_ready') return null;
 
   return null;
 }
 
-function getNotReadyText(target) {
-  if (target?.scope !== 'team') {
-    return 'This read appears when the needed assessments are complete.';
+function getWaitingStateCopy(target) {
+  if (!target) {
+    return {
+      eyebrow: 'More responses needed',
+      title: 'Almost there',
+      text: 'This summary will appear after the needed assessments are complete.',
+    };
+  }
+
+  if (target?.scope === 'person') {
+    return {
+      eyebrow: 'Assessment needed',
+      title: 'Not ready yet',
+      text: 'This profile will appear after this person completes their assessment.',
+    };
+  }
+
+  if (target?.scope === 'duo') {
+    return {
+      eyebrow: 'Assessment needed',
+      title: 'Not ready yet',
+      text: 'This comparison will appear after both people complete their assessments.',
+    };
   }
 
   if (target.completedCount < target.minimumCompletedCount) {
-    return `${target.completedCount} of ${target.totalCount} assessments complete. Team insights need at least ${target.minimumCompletedCount} completed assessments.`;
+    return {
+      eyebrow: 'More responses needed',
+      title: 'Almost there',
+      text: `${target.completedCount} of ${target.totalCount} assessments are complete. Team summaries need at least ${target.minimumCompletedCount} responses.`,
+    };
   }
 
   if (target.completedCount === target.totalCount) {
-    return `${target.completedCount} of ${target.totalCount} assessments complete. Generate now to create team insights.`;
+    return {
+      eyebrow: 'Ready',
+      title: 'Ready to generate',
+      text: 'Everyone has completed their assessment. You can generate the team summary now.',
+      actionLabel: 'Generate now',
+    };
   }
 
-  return `${target.completedCount} of ${target.totalCount} assessments complete. Team insights will be ready when everyone finishes, or you can generate with current responses.`;
+  return {
+    eyebrow: 'Enough to start',
+    title: 'Ready when you are',
+    text: `${target.completedCount} of ${target.totalCount} assessments are complete. You can wait for everyone, or generate a first team summary now.`,
+    actionLabel: 'Generate anyway',
+  };
 }
 
-function InsightLifecycleStatus({ lifecycle, onLifecycleAction }) {
-  const copy = getLifecycleCopy(lifecycle);
+function InsightLifecycleStatus({
+  lifecycle,
+  canManageTeam,
+  onLifecycleAction,
+}) {
+  const copy = getLifecycleCopy(lifecycle, canManageTeam);
 
   if (!copy) return null;
 
@@ -200,8 +259,8 @@ function InsightLifecycleStatus({ lifecycle, onLifecycleAction }) {
       role="status"
     >
       <div>
-        <span>{copy.label}</span>
-        <p>{copy.text}</p>
+        {copy.label ? <span>{copy.label}</span> : null}
+        {copy.text ? <p>{copy.text}</p> : null}
       </div>
       {copy.actionLabel && (
         <button type="button" onClick={handleAction}>
@@ -212,18 +271,35 @@ function InsightLifecycleStatus({ lifecycle, onLifecycleAction }) {
   );
 }
 
-function InsightWaitingState({ lifecycle }) {
+function InsightWaitingState({ lifecycle, onLifecycleAction }) {
   const target = lifecycle?.target;
+  const canGenerateTeam = target?.scope === 'team' && target.canGenerateTeam;
+  const copy = getWaitingStateCopy(target);
+
+  const handleGenerate = () => {
+    if (!canGenerateTeam) return;
+
+    onLifecycleAction?.({
+      type: 'teamDnaInsightGenerationRequested',
+      target,
+      status: lifecycle.status,
+    });
+  };
 
   return (
-    <section className="insight-waiting-state" aria-label="Insight waiting state">
-      <p className="insight-waiting-kicker">Team DNA is still collecting signal.</p>
-      <h2>Waiting on assessments</h2>
-      <p>
-        {getNotReadyText(target)} The basic roster can still be managed, but the
-        team read should not pretend to know the team before there is enough
-        completed assessment data.
-      </p>
+    <section className="insight-waiting-state" aria-label="Assessment waiting state">
+      <p className="insight-waiting-kicker">{copy.eyebrow}</p>
+      <h2>{copy.title}</h2>
+      <p>{copy.text}</p>
+      {canGenerateTeam ? (
+        <button
+          className="insight-waiting-action"
+          type="button"
+          onClick={handleGenerate}
+        >
+          {copy.actionLabel ?? 'Generate now'}
+        </button>
+      ) : null}
     </section>
   );
 }
