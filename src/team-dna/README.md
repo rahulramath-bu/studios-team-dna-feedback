@@ -397,10 +397,10 @@ The visible states are:
 | Status | Meaning | UI behavior |
 | --- | --- | --- |
 | `not_ready` | Not enough completed assessments yet. | Show a waiting state; no fallback should pretend to know the read. Mostly team-visible, defensive for person/duo. |
-| `pending` | Enough assessment data exists and the backend is generating the AI read. | Show a soft status strip and deterministic fallback underneath. |
+| `pending` | Enough assessment data exists and the backend is generating the AI read. | Show a small "AI insights generating" status and deterministic fallback underneath. |
 | `ready` | AI read exists and matches the current source snapshot. | Show the normal generated read. |
-| `failed` | Enough assessment data exists but AI generation failed. | Show deterministic fallback plus retry affordance. |
-| `stale` | AI read exists, but team membership or assessment data changed later. | Keep the existing read visible and show a refresh affordance. |
+| `failed` | Enough assessment data exists but AI generation failed. | Quietly show deterministic fallback; log/retry through backend/telemetry rather than alarming the user by default. |
+| `stale` | AI read exists, but team membership or assessment data changed later. | Keep the existing read visible. For team/admin reads, show a refresh affordance. |
 
 `stale` does not mean the page is broken. It means the generated copy came from
 an older source snapshot. Example: a team read was generated with 5 completed

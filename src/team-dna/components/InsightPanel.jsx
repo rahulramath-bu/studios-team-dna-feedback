@@ -130,28 +130,18 @@ function getLifecycleCopy(lifecycle) {
   if (status === 'pending') {
     return {
       tone: 'working',
-      label: 'Generating',
-      text: target?.scope === 'team'
-        ? 'Building team insights from completed assessments.'
-        : 'Building this Team DNA read.',
-    };
-  }
-
-  if (status === 'failed') {
-    return {
-      tone: 'warning',
-      label: 'Basic read',
-      text: 'AI generation failed. Showing the stable Big Five fallback.',
-      actionLabel: 'Retry',
-      actionType: 'teamDnaInsightGenerationRequested',
+      label: 'AI insights generating',
+      text: 'Showing the basic read for now.',
     };
   }
 
   if (status === 'stale') {
+    if (target?.scope !== 'team') return null;
+
     return {
       tone: 'notice',
-      label: 'Needs refresh',
-      text: 'New assessment data is available. Refresh to include it in this read.',
+      label: 'Refresh available',
+      text: 'New assessment data is available for this team read.',
       actionLabel: 'Refresh',
       actionType: 'teamDnaTeamInsightRefreshRequested',
     };
@@ -206,7 +196,7 @@ function InsightLifecycleStatus({ lifecycle, onLifecycleAction }) {
     <div
       className="insight-lifecycle-status"
       data-tone={copy.tone}
-      role={copy.tone === 'warning' ? 'alert' : 'status'}
+      role="status"
     >
       <div>
         <span>{copy.label}</span>

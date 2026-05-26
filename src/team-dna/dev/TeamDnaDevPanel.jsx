@@ -25,11 +25,11 @@ const GENERATION_STATUS_DESCRIPTIONS = {
   },
   failed: {
     title: 'AI generation failed',
-    body: 'Enough assessment data still exists, so the page shows deterministic fallback with a retry affordance instead of going blank.',
+    body: 'Enough assessment data still exists, so the page quietly shows deterministic fallback. This should usually be logged for engineering instead of announced to the user.',
   },
   stale: {
     title: 'Generated read needs refresh',
-    body: 'Old generated copy still exists, but new team or assessment data arrived. The page keeps the old read visible and asks to refresh.',
+    body: 'Old generated copy still exists, but new team or assessment data arrived. This is mainly useful for team/admin reads where a refresh decision is visible.',
   },
 };
 
@@ -188,10 +188,6 @@ export function TeamDnaDevPanel({
                   <span>Target</span>
                   <strong>{activeGenerationTarget?.id ?? 'none'}</strong>
                 </div>
-                <p className="team-dna-dev-note">
-                  Fallback exists after the needed assessments exist. These
-                  states simulate backend generation jobs.
-                </p>
                 <div className="team-dna-dev-chip-row">
                   {TEAM_DNA_GENERATION_STATUSES.map((status) => {
                     const isActive =
