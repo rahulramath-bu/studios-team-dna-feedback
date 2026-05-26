@@ -146,6 +146,43 @@ export function TeamDnaDevPanel({
                 />
               </DevSection>
 
+              {baseMembers.length > 0 && (
+                <DevSection title="Member states">
+                  <div className="team-dna-dev-member-list">
+                    {baseMembers.map((member, index) => {
+                      const hasAvatar = Boolean(member.avatarUrl);
+                      const hasDna = member.assessmentComplete !== false;
+
+                      return (
+                        <div
+                          key={member.id}
+                          className="team-dna-dev-member-row"
+                        >
+                          <span className="team-dna-dev-member-index">
+                            {String(index + 1).padStart(2, '0')}
+                          </span>
+                          <span className="team-dna-dev-member-name">
+                            {member.name}
+                          </span>
+                          <DevToggle
+                            label="Avatar"
+                            value={hasAvatar}
+                            onChange={() => onToggleMemberAvatar?.(member.id)}
+                          />
+                          <DevToggle
+                            label="DNA"
+                            value={hasDna}
+                            onChange={() =>
+                              onToggleMemberAssessment?.(member.id)
+                            }
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </DevSection>
+              )}
+
               <DevSection title="AI lifecycle">
                 <div className="team-dna-dev-target">
                   <span>Target</span>
@@ -185,37 +222,6 @@ export function TeamDnaDevPanel({
                 <div className="team-dna-dev-status-copy">
                   <h4>{generationDescription.title}</h4>
                   <p>{generationDescription.body}</p>
-                </div>
-              </DevSection>
-
-              <DevSection title="Member states">
-                <div className="team-dna-dev-member-list">
-                  {baseMembers.map((member, index) => {
-                    const hasAvatar = Boolean(member.avatarUrl);
-                    const hasDna = member.assessmentComplete !== false;
-
-                    return (
-                      <div
-                        key={member.id}
-                        className="team-dna-dev-member-row"
-                      >
-                        <span className="team-dna-dev-member-index">
-                          {String(index + 1).padStart(2, '0')}
-                        </span>
-                        <span className="team-dna-dev-member-name">{member.name}</span>
-                        <DevToggle
-                          label="Avatar"
-                          value={hasAvatar}
-                          onChange={() => onToggleMemberAvatar?.(member.id)}
-                        />
-                        <DevToggle
-                          label="DNA"
-                          value={hasDna}
-                          onChange={() => onToggleMemberAssessment?.(member.id)}
-                        />
-                      </div>
-                    );
-                  })}
                 </div>
               </DevSection>
             </div>
