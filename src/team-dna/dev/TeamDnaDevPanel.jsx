@@ -183,11 +183,10 @@ export function TeamDnaDevPanel({
                 </DevSection>
               )}
 
-              <DevSection title="AI lifecycle">
-                <div className="team-dna-dev-target">
-                  <span>Target</span>
-                  <strong>{activeGenerationTarget?.id ?? 'none'}</strong>
-                </div>
+              <DevSection
+                title="Insight generation"
+                meta={activeGenerationTarget?.id ?? 'none'}
+              >
                 <div className="team-dna-dev-chip-row">
                   {TEAM_DNA_GENERATION_STATUSES.map((status) => {
                     const isActive =
@@ -228,10 +227,13 @@ export function TeamDnaDevPanel({
   );
 }
 
-function DevSection({ title, children }) {
+function DevSection({ title, meta, children }) {
   return (
     <section className="team-dna-dev-section">
-      <h3>{title}</h3>
+      <div className="team-dna-dev-section-header">
+        <h3>{title}</h3>
+        {meta && <span>{meta}</span>}
+      </div>
       {children}
     </section>
   );

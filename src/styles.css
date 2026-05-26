@@ -2812,11 +2812,30 @@ button.team-management-row {
   border-top: 1px solid rgba(var(--white-rgb), 0.1);
 }
 
-.team-dna-dev-section h3 {
+.team-dna-dev-section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
   margin-bottom: 14px;
+}
+
+.team-dna-dev-section h3 {
+  min-width: 0;
   color: rgba(var(--white-rgb), 0.48);
   font-size: 10px;
   letter-spacing: 2.3px;
+}
+
+.team-dna-dev-section-header span {
+  overflow: hidden;
+  color: rgba(var(--white-rgb), 0.44);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.2px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .team-dna-dev-section > .team-dna-dev-toggle + .team-dna-dev-toggle {
@@ -2871,29 +2890,6 @@ button.team-management-row {
   background: rgba(var(--team-dna-neutral-rgb), 0.2);
 }
 
-.team-dna-dev-target {
-  display: grid;
-  gap: 7px;
-  min-width: 0;
-  font-family: 'Söhne Mono', monospace;
-}
-
-.team-dna-dev-target span {
-  color: rgba(var(--white-rgb), 0.25);
-  font-size: 9px;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.team-dna-dev-target strong {
-  overflow: hidden;
-  color: rgba(var(--white-rgb), 0.58);
-  font-size: 13px;
-  font-weight: 500;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
 .team-dna-dev-chip:disabled {
   cursor: not-allowed;
   opacity: 0.28;
@@ -2901,7 +2897,7 @@ button.team-management-row {
 
 .team-dna-dev-status-copy {
   margin-top: 14px;
-  padding: 13px 14px;
+  padding: 18px 20px;
   border: 1px solid rgba(var(--white-rgb), 0.08);
   border-radius: 4px;
   background: rgba(var(--white-rgb), 0.035);
