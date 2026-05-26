@@ -7,8 +7,6 @@
  * Port: do not port this file. Real monolith state should come from API data,
  * feature flags, permissions, and product routing.
  */
-export const TEAM_SIZE_PRESETS = [0, 1, 3, 6, 9, 12];
-
 export function createInitialDevState(members) {
   return {
     isOpen: false,

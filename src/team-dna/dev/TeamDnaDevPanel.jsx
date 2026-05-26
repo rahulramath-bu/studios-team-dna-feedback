@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
-import { TEAM_SIZE_PRESETS } from './teamDnaDevState.js';
 import { TEAM_DNA_GENERATION_STATUSES } from '../data/teamDnaGenerationLifecycle.mock.js';
 
 const GENERATION_STATUS_LABELS = {
@@ -11,20 +10,28 @@ const GENERATION_STATUS_LABELS = {
   stale: 'stale',
 };
 
-const GENERATION_STATUS_HELP = [
-  ['waiting', 'no read yet'],
-  ['generating', 'fallback'],
-  ['ready', 'generated'],
-  ['failed', 'fallback'],
-  ['stale', 'old generated'],
-];
-
-const GENERATION_ACTION_HELP = [
-  ['Request', 'pending'],
-  ['Succeed', 'ready'],
-  ['Fail', 'failed'],
-  ['Mark stale', 'refresh'],
-];
+const GENERATION_STATUS_DESCRIPTIONS = {
+  not_ready: {
+    title: 'Waiting for enough assessment data',
+    body: 'Shows no read yet. This is mainly for team pages with fewer than 3 completed assessments, and defensive for person/duo routes because pending people are not normally selectable.',
+  },
+  pending: {
+    title: 'AI generation is in progress',
+    body: 'Enough assessment data exists, so the page shows the deterministic fallback while the backend writes the generated read.',
+  },
+  ready: {
+    title: 'Generated read is ready',
+    body: 'The AI-enriched copy matches the current source data, so the page shows the normal generated Team DNA read.',
+  },
+  failed: {
+    title: 'AI generation failed',
+    body: 'Enough assessment data still exists, so the page shows deterministic fallback with a retry affordance instead of going blank.',
+  },
+  stale: {
+    title: 'Generated read needs refresh',
+    body: 'Old generated copy still exists, but new team or assessment data arrived. The page keeps the old read visible and asks to refresh.',
+  },
+};
 
 /**
  * Dev-only scenario harness.
@@ -62,6 +69,17 @@ export function TeamDnaDevPanel({
     onSetTeamSize?.(teamSize);
   };
   const teamSize = baseMembers.length;
+  const selectedGenerationStatus =
+    devState.generationStatusByTargetId?.[activeGenerationTarget?.id];
+  const generationDescription =
+    GENERATION_STATUS_DESCRIPTIONS[selectedGenerationStatus] ?? {
+      title: activeGenerationTarget
+        ? 'Choose a lifecycle state'
+        : 'Select a team, person, or duo first',
+      body: activeGenerationTarget
+        ? 'Click one state to simulate the backend generation lifecycle for this target.'
+        : 'Add or select a Team DNA target so the lifecycle controls know what read they are changing.',
+    };
 
   return (
     <>
@@ -113,20 +131,6 @@ export function TeamDnaDevPanel({
                     +
                   </button>
                 </div>
-                <div className="team-dna-dev-chip-row">
-                  {TEAM_SIZE_PRESETS.map((size) => (
-                    <button
-                      key={size}
-                      type="button"
-                      className="team-dna-dev-chip"
-                      disabled={!canResizeTeam}
-                      data-active={teamSize === size || undefined}
-                      onClick={() => setTeamSize(size)}
-                    >
-                      {size}
-                    </button>
-                  ))}
-                </div>
               </DevSection>
 
               <DevSection title="Shell">
@@ -148,9 +152,9 @@ export function TeamDnaDevPanel({
                   <strong>{activeGenerationTarget?.id ?? 'none'}</strong>
                 </div>
                 <p className="team-dna-dev-note">
-                  Fallback exists after the needed assessments exist.
+                  Fallback exists after the needed assessments exist. These
+                  states simulate backend generation jobs.
                 </p>
-                <DevLegend items={GENERATION_STATUS_HELP} />
                 <div className="team-dna-dev-chip-row">
                   {TEAM_DNA_GENERATION_STATUSES.map((status) => {
                     const isActive =
@@ -178,58 +182,10 @@ export function TeamDnaDevPanel({
                     );
                   })}
                 </div>
-                <DevLegend items={GENERATION_ACTION_HELP} />
-                <div className="team-dna-dev-action-grid">
-                  <DevAction
-                    label="Request"
-                    disabled={!activeGenerationTarget}
-                    onClick={() =>
-                      onSetGenerationStatus?.(
-                        activeGenerationTarget,
-                        'pending',
-                        'teamDnaInsightGenerationRequested'
-                      )
-                    }
-                  />
-                  <DevAction
-                    label="Succeed"
-                    disabled={!activeGenerationTarget}
-                    onClick={() =>
-                      onSetGenerationStatus?.(
-                        activeGenerationTarget,
-                        'ready',
-                        'teamDnaInsightGenerationSucceeded'
-                      )
-                    }
-                  />
-                  <DevAction
-                    label="Fail"
-                    disabled={!activeGenerationTarget}
-                    onClick={() =>
-                      onSetGenerationStatus?.(
-                        activeGenerationTarget,
-                        'failed',
-                        'teamDnaInsightGenerationFailed'
-                      )
-                    }
-                  />
-                  <DevAction
-                    label="Mark stale"
-                    disabled={!activeGenerationTarget}
-                    onClick={() =>
-                      onSetGenerationStatus?.(
-                        activeGenerationTarget,
-                        'stale',
-                        'teamDnaTeamInsightMarkedStale'
-                      )
-                    }
-                  />
+                <div className="team-dna-dev-status-copy">
+                  <h4>{generationDescription.title}</h4>
+                  <p>{generationDescription.body}</p>
                 </div>
-                {devState.lastGenerationEvent && (
-                  <p className="team-dna-dev-event">
-                    {devState.lastGenerationEvent.type}
-                  </p>
-                )}
               </DevSection>
 
               <DevSection title="Member states">
@@ -290,32 +246,6 @@ function DevToggle({ label, value, onChange }) {
     >
       <span>{label}</span>
       <i />
-    </button>
-  );
-}
-
-function DevLegend({ items }) {
-  return (
-    <dl className="team-dna-dev-legend">
-      {items.map(([term, description]) => (
-        <React.Fragment key={`${term}-${description}`}>
-          <dt>{term}</dt>
-          <dd>{description}</dd>
-        </React.Fragment>
-      ))}
-    </dl>
-  );
-}
-
-function DevAction({ label, disabled, onClick }) {
-  return (
-    <button
-      type="button"
-      className="team-dna-dev-action"
-      disabled={disabled}
-      onClick={onClick}
-    >
-      {label}
     </button>
   );
 }

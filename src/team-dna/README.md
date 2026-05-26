@@ -452,14 +452,10 @@ failed      = fallback visible because AI failed
 stale       = old generated copy visible with refresh prompt
 ```
 
-The debug action buttons simulate backend lifecycle events:
-
-```txt
-Request    -> teamDnaInsightGenerationRequested -> pending
-Succeed    -> teamDnaInsightGenerationSucceeded -> ready
-Fail       -> teamDnaInsightGenerationFailed -> failed
-Mark stale -> teamDnaTeamInsightMarkedStale -> stale
-```
+The debug panel intentionally does not expose separate event-shooter buttons.
+Clicking a state directly simulates the backend job ending up in that visible
+state. The event names stay documented above for engineering, but the prototype
+control should stay simple enough to explain in a demo.
 
 This exists so designers and engineers can see the real frontend states without
 needing a live generation service. The real monolith should replace the mock

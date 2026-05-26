@@ -2899,69 +2899,43 @@ button.team-management-row {
 }
 
 .team-dna-dev-note {
-  margin: 9px 0 0;
+  margin: 10px 0 0;
   color: rgba(var(--white-rgb), 0.28);
   font-family: 'Söhne Mono', monospace;
-  font-size: 7px;
-  letter-spacing: 0.35px;
-  line-height: 1.45;
+  font-size: 9px;
+  letter-spacing: 0.2px;
+  line-height: 1.5;
 }
 
-.team-dna-dev-legend {
-  display: grid;
-  grid-template-columns: max-content minmax(0, 1fr);
-  gap: 4px 9px;
-  margin: 10px 0 0;
-  font-family: 'Söhne Mono', monospace;
-  font-size: 7px;
-  letter-spacing: 0.35px;
-  line-height: 1.35;
-}
-
-.team-dna-dev-legend dt {
-  color: rgba(var(--white-rgb), 0.42);
-  text-transform: uppercase;
-}
-
-.team-dna-dev-legend dd {
-  margin: 0;
-  color: rgba(var(--white-rgb), 0.25);
-}
-
-.team-dna-dev-action-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 7px;
-  margin-top: 12px;
-}
-
-.team-dna-dev-action {
-  height: 25px;
-  border: 1px solid rgba(var(--white-rgb), 0.14);
-  border-radius: 4px;
-  background: rgba(var(--white-rgb), 0.035);
-  color: rgba(var(--white-rgb), 0.48);
-  cursor: pointer;
-  font-family: 'Söhne Mono', monospace;
-  font-size: 8px;
-  letter-spacing: 0.6px;
-}
-
-.team-dna-dev-action:disabled,
 .team-dna-dev-chip:disabled {
   cursor: not-allowed;
   opacity: 0.28;
 }
 
-.team-dna-dev-event {
-  overflow: hidden;
-  margin: 10px 0 0;
-  color: rgba(var(--white-rgb), 0.28);
+.team-dna-dev-status-copy {
+  margin-top: 14px;
+  padding: 13px 14px;
+  border: 1px solid rgba(var(--white-rgb), 0.08);
+  border-radius: 4px;
+  background: rgba(var(--white-rgb), 0.035);
+}
+
+.team-dna-dev-status-copy h4 {
+  margin: 0 0 7px;
+  color: rgba(var(--white-rgb), 0.58);
   font-family: 'Söhne Mono', monospace;
-  font-size: 7px;
-  letter-spacing: 0.4px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.9px;
+  line-height: 1.35;
+  text-transform: uppercase;
+}
+
+.team-dna-dev-status-copy p {
+  margin: 0;
+  color: rgba(var(--white-rgb), 0.34);
+  font-size: 11px;
+  line-height: 1.45;
 }
 
 .team-dna-dev-member-list {
