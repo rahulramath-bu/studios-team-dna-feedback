@@ -1,13 +1,12 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
 import { TeamDnaChatInputBridge } from './components/TeamDnaChatInputBridge.jsx';
+import { TeamContextSwitcher } from './components/TeamContextSwitcher.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
-const INTRO_LAYOUT_RELEASE_MS = 2350;
-const INTRO_INSIGHT_REVEAL_MS = 2850;
 const INTRO_CHROME_REVEAL_MS = 4300;
 
 /**
@@ -16,34 +15,31 @@ const INTRO_CHROME_REVEAL_MS = 4300;
  * What: coordinates the two-pane Team DNA surface: face cluster on the left,
  * insight read on the right, and team/person/duo selection between them.
  * How: keeps selection local and ID-based, blocks members without completed
- * assessments from entering insight state, and hides the insight panel during
- * edit mode while route-level handlers perform persistence.
+ * assessments from entering insight state, and delegates team management to
+ * the route-level overlay so roster mutations stay outside the face field.
  * Port: this is the main component to mount inside the monolith Team DNA tab.
  * Keep routing, gates, API hooks, analytics, and shell tabs outside of it.
  */
 export function TeamDnaExperience({
   dataset,
+  showLayoutOutlines = false,
   preserveInsightScroll = false,
-  onAddMember,
-  onBeginTeamEdit,
-  onCancelTeamEdit,
-  onCommitTeamEdit,
-  onRemoveMember,
-  onTeamNameChange,
+  teamOptions = [],
+  selectedTeamId,
+  teamSwitcherTopOffset,
+  onAddTeam,
+  onEditTeam,
+  onTeamChange,
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
-  const [isIntroLayoutActive, setIsIntroLayoutActive] = useState(
-    !shouldReduceMotion
-  );
-  const [isIntroInsightHidden, setIsIntroInsightHidden] = useState(
-    !shouldReduceMotion
+  const [hasReleasedIntroGate, setHasReleasedIntroGate] = useState(
+    () => Boolean(shouldReduceMotion)
   );
   const [isIntroChromeHidden, setIsIntroChromeHidden] = useState(
     !shouldReduceMotion
   );
   const [blockedAttempt, setBlockedAttempt] = useState(null);
-  const [isEditingTeam, setIsEditingTeam] = useState(false);
   const blockedTimeoutRef = useRef(null);
   const selectableMemberIds = useMemo(
     () =>
@@ -55,6 +51,11 @@ export function TeamDnaExperience({
     [dataset.members]
   );
 
+  const resolvedTeamOptions =
+    teamOptions.length > 0 ? teamOptions : [dataset.team];
+  const resolvedSelectedTeamId = selectedTeamId ?? dataset.team.id;
+  const isIntroGateActive = !hasReleasedIntroGate && !shouldReduceMotion;
+
   useEffect(() => {
     setSelectedIds((current) => {
       const next = current.filter((id) => selectableMemberIds.has(id));
@@ -63,29 +64,30 @@ export function TeamDnaExperience({
   }, [selectableMemberIds, setSelectedIds]);
 
   useEffect(() => {
+    setSelectedIds([]);
+    setBlockedAttempt(null);
+  }, [dataset.team.id, setSelectedIds]);
+
+  useEffect(() => {
     if (shouldReduceMotion) {
-      setIsIntroLayoutActive(false);
-      setIsIntroInsightHidden(false);
+      setHasReleasedIntroGate(true);
       setIsIntroChromeHidden(false);
       return undefined;
     }
 
-    const layoutTimeout = window.setTimeout(() => {
-      setIsIntroLayoutActive(false);
-    }, INTRO_LAYOUT_RELEASE_MS);
-    const insightTimeout = window.setTimeout(() => {
-      setIsIntroInsightHidden(false);
-    }, INTRO_INSIGHT_REVEAL_MS);
+    if (hasReleasedIntroGate) {
+      setIsIntroChromeHidden(false);
+      return undefined;
+    }
+
     const chromeTimeout = window.setTimeout(() => {
       setIsIntroChromeHidden(false);
     }, INTRO_CHROME_REVEAL_MS);
 
     return () => {
-      window.clearTimeout(layoutTimeout);
-      window.clearTimeout(insightTimeout);
       window.clearTimeout(chromeTimeout);
     };
-  }, [shouldReduceMotion]);
+  }, [hasReleasedIntroGate, shouldReduceMotion]);
 
   useEffect(
     () => () => {
@@ -96,9 +98,11 @@ export function TeamDnaExperience({
     []
   );
 
-  const handleSelectMember = (memberId, options = {}) => {
-    if (isEditingTeam) return;
+  const releaseIntroGate = useCallback(() => {
+    setHasReleasedIntroGate(true);
+  }, []);
 
+  const handleSelectMember = (memberId, options = {}) => {
     const member = dataset.members.find((item) => item.id === memberId);
 
     if (member?.assessmentComplete === false) {
@@ -116,6 +120,8 @@ export function TeamDnaExperience({
       return;
     }
 
+    releaseIntroGate();
+
     if (options.mode === 'solo') {
       setSelectedIds([memberId]);
       return;
@@ -125,24 +131,12 @@ export function TeamDnaExperience({
   };
 
   const handleSelectTeam = () => {
-    if (isEditingTeam) return;
     setSelectedIds([]);
   };
 
-  const handleStartTeamEdit = () => {
-    onBeginTeamEdit?.();
+  const handleEditTeam = () => {
     setSelectedIds([]);
-    setIsEditingTeam(true);
-  };
-
-  const handleDoneEditing = () => {
-    onCommitTeamEdit?.();
-    setIsEditingTeam(false);
-  };
-
-  const handleCancelEditing = () => {
-    onCancelTeamEdit?.();
-    setIsEditingTeam(false);
+    onEditTeam?.();
   };
 
   const insight = getInsightForSelection(dataset, selectedIds);
@@ -152,39 +146,42 @@ export function TeamDnaExperience({
   return (
     <section
       className="team-dna-experience"
-      data-editing={isEditingTeam || undefined}
-      data-intro={isIntroLayoutActive || undefined}
+      data-intro={isIntroGateActive || undefined}
+      data-layout-debug={showLayoutOutlines || undefined}
     >
+      <TeamContextSwitcher
+        teamOptions={resolvedTeamOptions}
+        selectedTeamId={resolvedSelectedTeamId}
+        selectedTeamName={dataset.team.name}
+        introHidden={isIntroChromeHidden}
+        topOffset={teamSwitcherTopOffset}
+        onAddTeam={onAddTeam}
+        onEditTeam={handleEditTeam}
+        onTeamChange={onTeamChange}
+      />
       <div className="team-dna-people-pane">
         <TeamFaceField
+          teamId={dataset.team.id}
           members={dataset.members}
           selectedIds={selectedIds}
           blockedAttempt={blockedAttempt}
           entityEyebrow={insight.entityEyebrow ?? insight.eyebrow}
           entityTitle={insight.entityTitle ?? insight.title}
-          introActive={isIntroLayoutActive}
-          introChromeHidden={isIntroChromeHidden}
-          isEditingTeam={isEditingTeam}
-          teamName={dataset.team.name}
-          onAddMember={onAddMember}
-          onEditTeam={handleStartTeamEdit}
-          onCancelEditing={handleCancelEditing}
-          onDoneEditing={handleDoneEditing}
-          onRemoveMember={onRemoveMember}
+          introActive={isIntroGateActive}
+          showIntroHint={isIntroGateActive}
           onSelectMember={handleSelectMember}
           onSelectTeam={handleSelectTeam}
-          onTeamNameChange={onTeamNameChange}
         />
       </div>
       <InsightPanel
         insight={insight}
-        isHidden={isEditingTeam || isIntroInsightHidden}
+        isHidden={isIntroGateActive}
         preserveScroll={preserveInsightScroll}
         onSelectMember={handleSelectMember}
       />
       <TeamDnaChatInputBridge
         scope={questionScope}
-        isHidden={isEditingTeam || isIntroInsightHidden}
+        isHidden={isIntroGateActive}
       />
     </section>
   );

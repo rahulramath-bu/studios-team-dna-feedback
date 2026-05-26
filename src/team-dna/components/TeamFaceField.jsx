@@ -1,4 +1,4 @@
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { DuoConnection } from './DuoConnection.jsx';
@@ -9,6 +9,10 @@ const DUO_MAX_NUDGE = 32;
 const SECONDARY_MIN_CENTER_DISTANCE = 126;
 const SECONDARY_MAX_NUDGE = 24;
 const NUDGE_RELAXATION_STEPS = 3;
+const TEAM_FACE_SWAP_EXIT_MS = 240;
+const TAP_HINT_INITIAL_DELAY_MS = 5000;
+const TAP_HINT_VISIBLE_MS = 3300;
+const TAP_HINT_GAP_MS = 2600;
 
 function getLayoutCenter(node) {
   return {
@@ -252,51 +256,56 @@ function getEntityTitleStyle(title) {
 /**
  * Left-side team face field.
  *
- * What: renders the selectable team cluster, edit affordance, team-name editor,
- * add/remove controls, hover preview line, selected duo line, and selected-pair
- * nudge behavior.
+ * What: renders the selectable team cluster, team-name editor, add/remove
+ * controls, hover preview line, selected duo line, and selected-pair nudge
+ * behavior.
  * How: keeps stable button hitboxes while inner visual layers scale; stores DOM
  * refs for each face so DuoConnection and nudge math can measure real positions
  * instead of assuming a specific grid.
- * Port: keep this as Team DNA-owned interaction code. Wire add/remove/name
- * actions to monolith mutations at the route layer, and replace BetterUpIcon
- * with the monolith icon component.
+ * Port: keep this as Team DNA-owned interaction code. Team roster management
+ * now lives in the route-level overlay, so this component should stay focused
+ * on selecting people and showing the current team/person/duo context.
  */
 export function TeamFaceField({
+  teamId,
   members,
   selectedIds,
   blockedAttempt,
   entityEyebrow,
   entityTitle,
   introActive,
-  introChromeHidden,
-  isEditingTeam,
-  teamName,
-  onAddMember,
-  onEditTeam,
-  onCancelEditing,
-  onDoneEditing,
-  onRemoveMember,
+  showIntroHint = false,
   onSelectMember,
   onSelectTeam,
-  onTeamNameChange,
 }) {
   const hasSelection = selectedIds.length > 0;
   const fieldRef = useRef(null);
   const faceRefs = useRef(new Map());
   const hitboxRefs = useRef(new Map());
   const previousSelectedCount = useRef(selectedIds.length);
-  const previousMemberCount = useRef(members.length);
+  const previousTeamId = useRef(teamId);
   const [faceNudges, setFaceNudges] = useState({});
   const [hoveredMemberId, setHoveredMemberId] = useState(null);
-  const [isAddButtonHidden, setIsAddButtonHidden] = useState(false);
+  const [isTeamSwapWaiting, setIsTeamSwapWaiting] = useState(false);
+  const [displayedMembers, setDisplayedMembers] = useState(members);
   const [connectionObscuredIds, setConnectionObscuredIds] = useState(new Set());
+  const [activeTapHint, setActiveTapHint] = useState({
+    cycle: 0,
+    memberId: null,
+  });
   const [useSelectionNudgeMotion, setUseSelectionNudgeMotion] = useState(
     selectedIds.length === 2
   );
-  const previewMember = members.find((member) => member.id === hoveredMemberId);
+  const tapHintMemberIds = useMemo(
+    () =>
+      displayedMembers
+        .filter((member) => member.assessmentComplete !== false)
+        .map((member) => member.id),
+    [displayedMembers]
+  );
+  const tapHintMemberKey = tapHintMemberIds.join(':');
+  const previewMember = displayedMembers.find((member) => member.id === hoveredMemberId);
   const previewSelectedIds =
-    !isEditingTeam &&
     selectedIds.length === 1 &&
     previewMember &&
     previewMember.assessmentComplete !== false &&
@@ -324,6 +333,27 @@ export function TeamFaceField({
   };
 
   useEffect(() => {
+    if (previousTeamId.current === teamId) {
+      setDisplayedMembers(members);
+      return undefined;
+    }
+
+    previousTeamId.current = teamId;
+    setHoveredMemberId(null);
+    setConnectionObscuredIds(new Set());
+    setFaceNudges({});
+    setIsTeamSwapWaiting(true);
+    setDisplayedMembers([]);
+
+    const timeout = window.setTimeout(() => {
+      setDisplayedMembers(members);
+      setIsTeamSwapWaiting(false);
+    }, TEAM_FACE_SWAP_EXIT_MS);
+
+    return () => window.clearTimeout(timeout);
+  }, [teamId, members]);
+
+  useEffect(() => {
     const wasDuo = previousSelectedCount.current === 2;
     const isDuo = selectedIds.length === 2;
     previousSelectedCount.current = selectedIds.length;
@@ -348,18 +378,65 @@ export function TeamFaceField({
   }, [selectedIds.length]);
 
   useEffect(() => {
-    const wasRemovingMember = members.length < previousMemberCount.current;
-    previousMemberCount.current = members.length;
+    const canShowTapHint =
+      showIntroHint &&
+      selectedIds.length === 0 &&
+      tapHintMemberIds.length > 0;
 
-    if (!isEditingTeam || !wasRemovingMember) return undefined;
+    if (!canShowTapHint) {
+      setActiveTapHint({ cycle: 0, memberId: null });
+      return undefined;
+    }
 
-    setIsAddButtonHidden(true);
-    const timeout = window.setTimeout(() => {
-      setIsAddButtonHidden(false);
-    }, 420);
+    let cancelled = false;
+    let currentCycle = 0;
+    let previousMemberId = null;
+    const timeouts = [];
 
-    return () => window.clearTimeout(timeout);
-  }, [isEditingTeam, members.length]);
+    const setManagedTimeout = (callback, delay) => {
+      const timeout = window.setTimeout(callback, delay);
+      timeouts.push(timeout);
+    };
+
+    const queueHint = (delay) => {
+      setManagedTimeout(() => {
+        if (cancelled) return;
+
+        const candidateMemberIds =
+          tapHintMemberIds.length > 1
+            ? tapHintMemberIds.filter((memberId) => memberId !== previousMemberId)
+            : tapHintMemberIds;
+        const memberId =
+          candidateMemberIds[
+            Math.floor(Math.random() * candidateMemberIds.length)
+          ];
+
+        previousMemberId = memberId;
+        currentCycle += 1;
+        setActiveTapHint({ cycle: currentCycle, memberId });
+
+        setManagedTimeout(() => {
+          if (cancelled) return;
+
+          setActiveTapHint({ cycle: currentCycle, memberId: null });
+          queueHint(TAP_HINT_GAP_MS);
+        }, TAP_HINT_VISIBLE_MS);
+      }, delay);
+    };
+
+    queueHint(TAP_HINT_INITIAL_DELAY_MS);
+
+    return () => {
+      cancelled = true;
+      timeouts.forEach((timeout) => window.clearTimeout(timeout));
+      setActiveTapHint({ cycle: 0, memberId: null });
+    };
+  }, [
+    selectedIds.length,
+    showIntroHint,
+    tapHintMemberIds,
+    tapHintMemberKey,
+  ]);
 
   // Layout note: duo nudges measure positions, not grid row/column indexes, so
   // this can survive a future horizontal rail.
@@ -368,7 +445,7 @@ export function TeamFaceField({
 
     const updateNudges = () => {
       setFaceNudges(
-        resolveFaceNudges(members, selectedIds, hitboxRefs)
+        resolveFaceNudges(displayedMembers, selectedIds, hitboxRefs)
       );
     };
 
@@ -384,14 +461,14 @@ export function TeamFaceField({
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', scheduleUpdate);
     };
-  }, [members, selectedIds]);
+  }, [displayedMembers, selectedIds]);
 
   useLayoutEffect(() => {
     let animationFrame = 0;
 
     const updateObscuredIds = () => {
       const nextObscuredIds = getConnectionObscuredIds(
-        members,
+        displayedMembers,
         activeConnectionIds,
         fieldRef,
         faceRefs
@@ -416,75 +493,32 @@ export function TeamFaceField({
       window.cancelAnimationFrame(animationFrame);
       window.removeEventListener('resize', scheduleUpdate);
     };
-  }, [members, activeConnectionKey]);
+  }, [displayedMembers, activeConnectionKey]);
 
   return (
     <motion.div className="team-face-field-wrap" ref={fieldRef} layout>
-      {!isEditingTeam && (
-        <div className="team-face-context-header">
-          {hasSelection ? (
-            <button
-              type="button"
-              className="team-face-context-back"
-              onClick={onSelectTeam}
-              aria-label="Back to team view"
-            >
-              <BetterUpIcon name="ChevronLeft" size={13} strokeWidth={2.2} />
-              Team
-            </button>
-          ) : (
-            <p className="team-face-context-eyebrow">
-              {entityEyebrow}
-            </p>
-          )}
-          <div className="team-face-context-title-row">
-            <h2 className="team-face-context-title">
-              <span style={getEntityTitleStyle(entityTitle)}>
-                {entityTitle}
-              </span>
-            </h2>
-            {!hasSelection && (
-              <button
-                type="button"
-                className="team-face-edit-button"
-                data-intro-hidden={introChromeHidden || undefined}
-                aria-label={`Edit ${teamName}`}
-                onClick={onEditTeam}
-              >
-                <BetterUpIcon name="Edit" size={19} strokeWidth={1.8} />
-              </button>
-            )}
-          </div>
-        </div>
-      )}
-      {isEditingTeam && (
-        <div className="team-edit-header">
-          <div className="team-edit-name-control">
-            <input
-              className="team-edit-name-input"
-              value={teamName}
-              onChange={(event) => onTeamNameChange?.(event.target.value)}
-              aria-label="Team name"
-            />
-            <button
-              type="button"
-              className="team-edit-name-action team-edit-cancel-button"
-              onClick={onCancelEditing}
-              aria-label="Discard team edits"
-            >
-              <BetterUpIcon name="X" size={15} strokeWidth={2.2} />
-            </button>
-            <button
-              type="button"
-              className="team-edit-name-action team-edit-done-button"
-              onClick={onDoneEditing}
-              aria-label="Save team edits"
-            >
-              <BetterUpIcon name="Check" size={17} strokeWidth={2.2} />
-            </button>
-          </div>
-        </div>
-      )}
+      <div className="team-face-context-header">
+        {hasSelection ? (
+          <button
+            type="button"
+            className="team-face-context-back"
+            onClick={onSelectTeam}
+            aria-label="Back to team view"
+          >
+            <BetterUpIcon name="ChevronLeft" size={13} strokeWidth={2.2} />
+            Team
+          </button>
+        ) : (
+          <p className="team-face-context-eyebrow">
+            {entityEyebrow}
+          </p>
+        )}
+        <h2 className="team-face-context-title">
+          <span style={getEntityTitleStyle(entityTitle)}>
+            {entityTitle}
+          </span>
+        </h2>
+      </div>
       <motion.div className="team-face-grid" aria-label="Team members" layout>
         <AnimatePresence>
           {selectedIds.length === 2 ? (
@@ -507,58 +541,45 @@ export function TeamFaceField({
           ) : null}
         </AnimatePresence>
         <AnimatePresence initial={introActive}>
-          {members.length > 0 ? (
-            members.map((member, index) => (
-              <TeamFace
-                key={member.id}
-                ref={setHitboxNode(member.id)}
-                visualRef={setFaceNode(member.id)}
-                member={member}
-                isBlocked={blockedAttempt?.memberId === member.id}
-                blockedAttempt={blockedAttempt?.attempt ?? 0}
-                isSelected={selectedIds.includes(member.id)}
-                isDuoSelected={
-                  selectedIds.length === 2 && selectedIds.includes(member.id)
-                }
-                introDelay={introActive ? 0.24 + index * 0.055 : 0}
-                isEditingTeam={isEditingTeam}
-                nudge={faceNudges[member.id]}
-                nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
-                isDimmed={hasSelection && !selectedIds.includes(member.id)}
-                isPreviewObscured={connectionObscuredIds.has(member.id)}
-                onRemove={() => onRemoveMember?.(member.id)}
-                onSelect={() => onSelectMember(member.id)}
-                onHoverChange={(isHovered) =>
-                  setHoveredMemberId((current) => {
-                    if (isHovered) return member.id;
-                    return current === member.id ? null : current;
-                  })
-                }
-              />
-            ))
-          ) : (
+          {displayedMembers.length > 0 ? (
+            displayedMembers.map((member, index) => {
+              const isSelectedMember = selectedIds.includes(member.id);
+
+              return (
+                <TeamFace
+                  key={member.id}
+                  ref={setHitboxNode(member.id)}
+                  visualRef={setFaceNode(member.id)}
+                  member={member}
+                  isBlocked={blockedAttempt?.memberId === member.id}
+                  blockedAttempt={blockedAttempt?.attempt ?? 0}
+                  isSelected={isSelectedMember}
+                  isDuoSelected={
+                    selectedIds.length === 2 && isSelectedMember
+                  }
+                  introDelay={introActive ? 0.24 + index * 0.055 : 0}
+                  showTapHint={activeTapHint.memberId === member.id}
+                  tapHintCycle={activeTapHint.cycle}
+                  nudge={faceNudges[member.id]}
+                  nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
+                  isDimmed={hasSelection && !isSelectedMember}
+                  isPreviewObscured={connectionObscuredIds.has(member.id)}
+                  onSelect={() => onSelectMember(member.id)}
+                  onHoverChange={(isHovered) =>
+                    setHoveredMemberId((current) => {
+                      if (isHovered) return member.id;
+                      return current === member.id ? null : current;
+                    })
+                  }
+                />
+              );
+            })
+          ) : isTeamSwapWaiting ? null : (
             <motion.div className="team-face-empty-state" layout>
               <p>No team members</p>
             </motion.div>
           )}
         </AnimatePresence>
-        {isEditingTeam && (
-          <motion.button
-            type="button"
-            className="team-edit-add-member-button"
-            onClick={onAddMember}
-            aria-label="Add team member"
-            animate={{
-              opacity: isAddButtonHidden ? 0 : 1,
-              scale: isAddButtonHidden ? 0.88 : 1,
-            }}
-            disabled={isAddButtonHidden}
-            initial={false}
-            transition={{ duration: 0.16, ease: [0.22, 1, 0.36, 1] }}
-          >
-            <BetterUpIcon name="Plus" size={24} strokeWidth={1.7} />
-          </motion.button>
-        )}
       </motion.div>
     </motion.div>
   );
