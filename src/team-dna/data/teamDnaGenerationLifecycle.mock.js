@@ -15,8 +15,9 @@ export const TEAM_DNA_TEAM_MIN_COMPLETED_ASSESSMENTS = 3;
  *
  * What: describes the frontend-visible states for backend AI generation jobs.
  * How: turns the current team/person/duo selection into a stable generation
- * target id, then resolves a status from local debug overrides plus product
- * readiness rules.
+ * target id, then resolves a status from local debug overrides plus source-data
+ * readiness rules. `not_ready` is a source-data gate; once enough assessment
+ * data exists, pending/failed states should show deterministic fallback.
  * Port: replace this file with backend generation status fields from the real
  * Team DNA API. Keep the idea: data creates targets; AI enriches those targets.
  */

@@ -333,11 +333,18 @@ The simple rule:
 ```txt
 Data creates the team/person/duo targets.
 AI only enriches those targets with nicer readouts.
-The UI must still work while AI is pending, failed, stale, or unavailable.
+Once the required assessment data exists, deterministic fallback exists.
+```
+
+There are two different questions:
+
+```txt
+1. Is there enough assessment data to show a responsible read?
+2. If yes, is the nicer AI-written version ready?
 ```
 
 Do not think of the AI pass as "creating pages." Team DNA pages are view states
-created by real product data:
+created by real product data. AI attaches generated copy to those view states:
 
 | View target | Exists when | AI output attaches when |
 | --- | --- | --- |
@@ -358,6 +365,19 @@ That means a team with 1-2 completed assessments should show a waiting state,
 not a fake team insight. A team with 3+ completed assessments can be generated
 early if the manager chooses to move forward before everyone finishes.
 
+Fallback is available only after the required source data exists:
+
+| View target | Fallback exists when | No read when |
+| --- | --- | --- |
+| Person | That person completed the assessment. | That person has not completed the assessment. |
+| Duo | Both selected people completed the assessment. | Either selected person has not completed the assessment. |
+| Team | At least 3 team members completed the assessment. | Fewer than 3 team members completed the assessment. |
+
+In normal product flow, incomplete person and duo reads should usually be
+inaccessible because pending people are not selectable. The waiting state is
+mostly visible for the team read, because the team page can exist before enough
+people finish.
+
 ### Backend event model
 
 These event names are prototype seams, not final API names. They describe the
@@ -376,11 +396,16 @@ The visible states are:
 
 | Status | Meaning | UI behavior |
 | --- | --- | --- |
-| `not_ready` | Not enough completed assessments yet. | Show a waiting state. For teams with 3+ completed assessments, allow "Generate now." |
-| `pending` | Backend is generating the AI read. | Show a soft status strip and deterministic fallback underneath. |
+| `not_ready` | Not enough completed assessments yet. | Show a waiting state; no fallback should pretend to know the read. Mostly team-visible, defensive for person/duo. |
+| `pending` | Enough assessment data exists and the backend is generating the AI read. | Show a soft status strip and deterministic fallback underneath. |
 | `ready` | AI read exists and matches the current source snapshot. | Show the normal generated read. |
-| `failed` | AI generation failed. | Show deterministic fallback plus retry affordance. |
+| `failed` | Enough assessment data exists but AI generation failed. | Show deterministic fallback plus retry affordance. |
 | `stale` | AI read exists, but team membership or assessment data changed later. | Keep the existing read visible and show a refresh affordance. |
+
+`stale` does not mean the page is broken. It means the generated copy came from
+an older source snapshot. Example: a team read was generated with 5 completed
+members, then a 6th member finished. Keep the old generated read visible and
+offer refresh instead of silently changing the team's story.
 
 ### Generation timing
 
@@ -420,7 +445,20 @@ as production logic.
 The debug panel can mutate the selected team/person/duo target through:
 
 ```txt
-not_ready -> pending -> ready -> failed -> stale
+waiting     = not_ready, no responsible read yet
+generating  = pending, fallback visible while AI works
+ready       = generated copy visible
+failed      = fallback visible because AI failed
+stale       = old generated copy visible with refresh prompt
+```
+
+The debug action buttons simulate backend lifecycle events:
+
+```txt
+Request    -> teamDnaInsightGenerationRequested -> pending
+Succeed    -> teamDnaInsightGenerationSucceeded -> ready
+Fail       -> teamDnaInsightGenerationFailed -> failed
+Mark stale -> teamDnaTeamInsightMarkedStale -> stale
 ```
 
 This exists so designers and engineers can see the real frontend states without

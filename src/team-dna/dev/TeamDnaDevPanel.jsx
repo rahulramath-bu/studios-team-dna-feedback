@@ -3,12 +3,35 @@ import { AnimatePresence, motion } from 'motion/react';
 import { TEAM_SIZE_PRESETS } from './teamDnaDevState.js';
 import { TEAM_DNA_GENERATION_STATUSES } from '../data/teamDnaGenerationLifecycle.mock.js';
 
+const GENERATION_STATUS_LABELS = {
+  not_ready: 'waiting',
+  pending: 'generating',
+  ready: 'ready',
+  failed: 'failed',
+  stale: 'stale',
+};
+
+const GENERATION_STATUS_HELP = [
+  ['waiting', 'no read yet'],
+  ['generating', 'fallback'],
+  ['ready', 'generated'],
+  ['failed', 'fallback'],
+  ['stale', 'old generated'],
+];
+
+const GENERATION_ACTION_HELP = [
+  ['Request', 'pending'],
+  ['Succeed', 'ready'],
+  ['Fail', 'failed'],
+  ['Mark stale', 'refresh'],
+];
+
 /**
  * Dev-only scenario harness.
  *
  * What: hidden debug bar for stress-testing Team DNA states while designing.
- * How: toggles with backslash. Shell/behavior controls are local debug flags;
- * team size, avatar availability, and DNA completion call back into canonical
+ * How: toggles with backslash. Team size, avatar availability, assessment
+ * completion, and generated-insight lifecycle controls call back into canonical
  * TeamDnaPage data so they match the real porting contract.
  * Port: do not port this. The monolith should get these states from real data,
  * permissions, feature flags, and route context.
@@ -125,8 +148,9 @@ export function TeamDnaDevPanel({
                   <strong>{activeGenerationTarget?.id ?? 'none'}</strong>
                 </div>
                 <p className="team-dna-dev-note">
-                  ready/stale use generated copy; pending/failed show fallback.
+                  Fallback exists after the needed assessments exist.
                 </p>
+                <DevLegend items={GENERATION_STATUS_HELP} />
                 <div className="team-dna-dev-chip-row">
                   {TEAM_DNA_GENERATION_STATUSES.map((status) => {
                     const isActive =
@@ -149,11 +173,12 @@ export function TeamDnaDevPanel({
                           )
                         }
                       >
-                        {status}
+                        {GENERATION_STATUS_LABELS[status]}
                       </button>
                     );
                   })}
                 </div>
+                <DevLegend items={GENERATION_ACTION_HELP} />
                 <div className="team-dna-dev-action-grid">
                   <DevAction
                     label="Request"
@@ -266,6 +291,19 @@ function DevToggle({ label, value, onChange }) {
       <span>{label}</span>
       <i />
     </button>
+  );
+}
+
+function DevLegend({ items }) {
+  return (
+    <dl className="team-dna-dev-legend">
+      {items.map(([term, description]) => (
+        <React.Fragment key={`${term}-${description}`}>
+          <dt>{term}</dt>
+          <dd>{description}</dd>
+        </React.Fragment>
+      ))}
+    </dl>
   );
 }
 

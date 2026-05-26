@@ -15,8 +15,9 @@ const BASELINE_REVEAL_TRANSITION = {
  * slots inside the right-side reading column.
  * How: keys each selected insight as a local read state, resets scroll by
  * default when the read changes, and uses one calm whole-page fade for each
- * transition. In this prototype the right read participates in normal document
- * scroll while the face field stays sticky on the left.
+ * transition. The lifecycle strip shows backend AI job state: `not_ready`
+ * blocks the read when source data is insufficient; pending/failed still render
+ * deterministic fallback; ready/stale render generated copy.
  * Port: this can be swapped back to a contained scroll panel if monolith needs
  * that shell behavior, but keep the selected-read transition owned by Team DNA.
  */
