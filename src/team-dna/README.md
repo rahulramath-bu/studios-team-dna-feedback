@@ -237,10 +237,12 @@ their assessment.
 Assessment reminder actions are intentionally separated from team saves.
 `TeamManagementOverlay` emits `onTeamManagementAction({
 type: 'assessmentReminderRequested', ... })` when a manager clicks `Remind`;
-the prototype only changes the local button text to `Reminder sent!`. During
-the monolith port, wire that callback to the real assessment-reminder mutation,
-analytics event, toast/feedback surface, and any resend throttling rules. Do
-not treat the local "sent" UI as durable state.
+the prototype route returns a fake delayed success promise. The row behaves
+like the real deal should: `Remind` -> `Sending...` -> `Reminder sent!` only
+after the promise resolves. During the monolith port, replace the fake promise
+with the real assessment-reminder mutation, analytics event, toast/feedback
+surface, and any resend throttling rules. Do not treat the local "sent" UI as
+durable state.
 
 The save payload also includes a prototype-only `notificationPreference` object
 for the footer checkbox (`Notify new teammates`). That is an intent seam, not a
@@ -587,6 +589,82 @@ DNA-specific rotating placeholder questions at the Team DNA route/feature layer.
 The first realistic behavior can be a deep link into Lighthouse/Grow Chat with
 an initial message and Team DNA context. A richer future version can become a
 contextual AI layer over the Team DNA surface.
+
+Monolith already has the right handoff shape:
+
+- `MemberHome/components/shared/ChatInputSection.tsx` wraps the Lighthouse
+  `InputBox` and accepts `onSubmit(message)`.
+- `lighthouse/standalone/routes/ChatRouter.tsx` accepts
+  `initial_user_message` in search params, stores it as
+  `LH.initial-user-message`, creates the conversation, then navigates to the
+  conversation route.
+- `lighthouse/standalone/components/MainArea/MainArea.tsx` reads that pending
+  initial message and calls `sendUserMessage(...)` once the conversation is
+  ready.
+- `lighthouse/hooks/useGrowLogic.ts` sends the real socket payload with
+  `new_user_messages: [{ text }]`.
+
+Treat this as the working mechanism for the first port. It is not just a note
+about a possible future direction.
+
+```txt
+Team DNA ask box
+  -> setLocation('lighthouse.chat', { searchParams })
+  -> ChatRouter creates/opens the Lighthouse conversation
+  -> MainArea sends initial_user_message
+  -> useGrowLogic sends new_user_messages over the existing channel
+```
+
+For this standalone prototype, submitting the Team DNA ask box emits:
+
+```txt
+team-dna:grow-chat-prompt
+```
+
+with:
+
+```ts
+{
+  type: 'growChatInitialPromptRequested',
+  payload: {
+    initialUserMessage,
+    scope,
+    team,
+    selection,
+    monolith: {
+      route: 'lighthouse.chat',
+      searchParams: {
+        behavior: 'orchestration',
+        initial_user_message,
+        skip_initial_messages: 'true',
+        title,
+        custom_instructions
+      }
+    }
+  }
+}
+```
+
+During the monolith port, replace the `window.dispatchEvent(...)` placeholder
+with:
+
+```ts
+setLocation('lighthouse.chat', { searchParams })
+```
+
+or call the same route helper used by `useDeeplinkClickHandler`. Do not add a
+Team DNA-only AI endpoint unless product decides this should become a separate
+contextual AI surface instead of a Grow Chat handoff.
+
+Porting confidence:
+
+| Piece | Confidence | Future engineer action |
+| --- | --- | --- |
+| `initial_user_message` route param | High | Use it for the first Team DNA -> Grow Chat handoff. |
+| `custom_instructions` route param | High | Put concise Team DNA context here so Grow Chat knows the selected team/person/pair. |
+| `skip_initial_messages=true` | High | Use it so the user's Team DNA prompt starts the chat instead of generic starter copy. |
+| Prototype `team-dna:grow-chat-prompt` event | Low / local only | Delete it during port; it exists only because this repo is standalone. |
+| New Team DNA AI endpoint | Low / not recommended | Avoid unless product chooses a separate embedded contextual AI surface. |
 
 ### 7. Design-system tokens
 

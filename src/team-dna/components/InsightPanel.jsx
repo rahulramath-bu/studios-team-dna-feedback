@@ -12,13 +12,13 @@ const BASELINE_REVEAL_TRANSITION = {
  * Right-side insight read.
  *
  * What: renders the current team/person/duo narrative plus supporting card
- * slots inside a self-contained scrollable panel.
+ * slots inside the right-side reading column.
  * How: keys each selected insight as a local read state, resets scroll by
- * default when the read changes, and uses one calm whole-page fade for every
- * read transition.
- * Port: keep internal scroll, fades, and read transitions inside Team DNA. The
- * monolith shell should provide available height, not become the scroll
- * container for these sections.
+ * default when the read changes, and uses one calm whole-page fade for each
+ * transition. In this prototype the right read participates in normal document
+ * scroll while the face field stays sticky on the left.
+ * Port: this can be swapped back to a contained scroll panel if monolith needs
+ * that shell behavior, but keep the selected-read transition owned by Team DNA.
  */
 export function InsightPanel({
   insight,
@@ -30,6 +30,7 @@ export function InsightPanel({
   const resetScrollAfterExit = () => {
     if (preserveScroll) return;
 
+    document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
     scrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
 

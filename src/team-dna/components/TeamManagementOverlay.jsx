@@ -88,7 +88,8 @@ export function TeamManagementOverlay({
   const [isAddCardWaiting, setIsAddCardWaiting] = useState(false);
   const [recentlyAddedMemberKey, setRecentlyAddedMemberKey] = useState(null);
   const [notifyNewTeammates, setNotifyNewTeammates] = useState(true);
-  const [remindedMemberKeys, setRemindedMemberKeys] = useState(() => new Set());
+  const [reminderStatusesByMemberKey, setReminderStatusesByMemberKey] =
+    useState(() => ({}));
   const [bodyScrollState, setBodyScrollState] = useState({
     canScrollDown: false,
     canScrollUp: false,
@@ -188,7 +189,7 @@ export function TeamManagementOverlay({
     setIsAddCardWaiting(false);
     setRecentlyAddedMemberKey(null);
     setNotifyNewTeammates(true);
-    setRemindedMemberKeys(new Set());
+    setReminderStatusesByMemberKey({});
     setQuery('');
   }, [sourceRecord]);
 
@@ -332,23 +333,41 @@ export function TeamManagementOverlay({
 
   /**
    * What: prototype action seam for user-triggered team management side effects.
-   * How: emits structured intent while keeping the local prototype optimistic.
+   * How: emits structured intent and returns the caller's promise so row-level
+   * UI can wait for pending/success/failure instead of lying optimistically.
    * Port: wire this callback to real mutations/events for assessment reminders,
    * team saves, analytics, and toast feedback.
    */
   const emitTeamManagementAction = (type, payload) => {
-    onTeamManagementAction?.({
+    return onTeamManagementAction?.({
       type,
       payload,
       timestamp: new Date().toISOString(),
     });
   };
 
-  const remindEmployee = (employee) => {
-    const memberKey = `employee:${employee.id}`;
+  const setReminderStatus = (memberKey, status) => {
+    setReminderStatusesByMemberKey((current) => ({
+      ...current,
+      [memberKey]: status,
+    }));
+  };
 
-    setRemindedMemberKeys((current) => new Set(current).add(memberKey));
-    emitTeamManagementAction('assessmentReminderRequested', {
+  const requestAssessmentReminder = async (memberKey, payload) => {
+    if (reminderStatusesByMemberKey[memberKey] === 'pending') return;
+
+    setReminderStatus(memberKey, 'pending');
+
+    try {
+      await emitTeamManagementAction('assessmentReminderRequested', payload);
+      setReminderStatus(memberKey, 'sent');
+    } catch (error) {
+      setReminderStatus(memberKey, 'error');
+    }
+  };
+
+  const remindEmployee = (employee) => {
+    requestAssessmentReminder(`employee:${employee.id}`, {
       source: 'organizationEmployee',
       employeeId: employee.id,
       email: employee.email,
@@ -358,10 +377,8 @@ export function TeamManagementOverlay({
 
   const remindInvite = (email) => {
     const normalizedEmail = normalizeEmail(email);
-    const memberKey = `invite:${normalizedEmail}`;
 
-    setRemindedMemberKeys((current) => new Set(current).add(memberKey));
-    emitTeamManagementAction('assessmentReminderRequested', {
+    requestAssessmentReminder(`invite:${normalizedEmail}`, {
       source: 'manualInvite',
       email: normalizedEmail,
       name: normalizedEmail,
@@ -494,9 +511,10 @@ export function TeamManagementOverlay({
                   {selectedEmployees.map((employee) => {
                     const hasTeamDna =
                       teamDnaResultsByEmployeeId[employee.id]?.assessmentComplete === true;
-                    const reminderSent = remindedMemberKeys.has(
-                      `employee:${employee.id}`
-                    );
+                    const reminderStatus =
+                      reminderStatusesByMemberKey[`employee:${employee.id}`];
+                    const reminderPending = reminderStatus === 'pending';
+                    const reminderSent = reminderStatus === 'sent';
 
                     return (
                       <motion.div
@@ -535,13 +553,19 @@ export function TeamManagementOverlay({
                               className="team-management-remind-button"
                               aria-label={`Remind ${getEmployeeName(employee)} to complete assessment`}
                               title="Send assessment reminder"
+                              disabled={reminderPending}
+                              data-pending={reminderPending || undefined}
                               data-sent={reminderSent || undefined}
                               onClick={(event) => {
                                 event.stopPropagation();
                                 remindEmployee(employee);
                               }}
                             >
-                              {reminderSent ? 'Reminder sent!' : 'Remind'}
+                              {reminderPending
+                                ? 'Sending...'
+                                : reminderSent
+                                  ? 'Reminder sent!'
+                                  : 'Remind'}
                             </button>
                           </span>
                         )}
@@ -558,9 +582,10 @@ export function TeamManagementOverlay({
                   })}
                   {invitedEmails.map((email) => {
                     const normalizedEmail = normalizeEmail(email);
-                    const reminderSent = remindedMemberKeys.has(
-                      `invite:${normalizedEmail}`
-                    );
+                    const reminderStatus =
+                      reminderStatusesByMemberKey[`invite:${normalizedEmail}`];
+                    const reminderPending = reminderStatus === 'pending';
+                    const reminderSent = reminderStatus === 'sent';
 
                     return (
                       <motion.div
@@ -589,13 +614,19 @@ export function TeamManagementOverlay({
                             className="team-management-remind-button"
                             aria-label={`Remind ${email} to complete assessment`}
                             title="Send assessment reminder"
+                            disabled={reminderPending}
+                            data-pending={reminderPending || undefined}
                             data-sent={reminderSent || undefined}
                             onClick={(event) => {
                               event.stopPropagation();
                               remindInvite(email);
                             }}
                           >
-                            {reminderSent ? 'Reminder sent!' : 'Remind'}
+                            {reminderPending
+                              ? 'Sending...'
+                              : reminderSent
+                                ? 'Reminder sent!'
+                                : 'Remind'}
                           </button>
                         </span>
                         <button

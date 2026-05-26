@@ -31,6 +31,7 @@ const NEUTRAL_BIG_FIVE = {
   agreeableness: 50,
   neuroticism: 50,
 };
+const FAKE_ASSESSMENT_REMINDER_LATENCY_MS = 650;
 
 function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
@@ -252,9 +253,36 @@ export function TeamDnaPage() {
 
   const handleTeamManagementAction = (action) => {
     // Prototype-only action seam. In the monolith, replace this with real
-    // reminder mutations, analytics, and product feedback.
+    // reminder mutations, analytics, and product feedback. Returning a promise
+    // keeps the UI shaped like a real async mutation: pending first, then sent
+    // only after success.
     if (import.meta.env.DEV) {
       console.info('[Team DNA team management action]', action);
+    }
+
+    if (action.type === 'assessmentReminderRequested') {
+      return new Promise((resolve) => {
+        window.setTimeout(resolve, FAKE_ASSESSMENT_REMINDER_LATENCY_MS);
+      });
+    }
+
+    return Promise.resolve();
+  };
+
+  const handleGrowChatPrompt = (action) => {
+    // What: prototype-only Grow Chat seam for the bottom Team DNA ask box.
+    // How: emits a local event with the exact monolith route/search-param shape;
+    // no Lighthouse request is made from this standalone surface.
+    // Port: replace this dispatch with `setLocation('lighthouse.chat', {
+    // searchParams: action.payload.monolith.searchParams })`. Monolith ChatRouter
+    // already stores `initial_user_message` as `LH.initial-user-message`, creates
+    // the conversation, and lets MainArea send it when the socket is ready.
+    window.dispatchEvent(new CustomEvent('team-dna:grow-chat-prompt', {
+      detail: action,
+    }));
+
+    if (import.meta.env.DEV) {
+      console.info('[Team DNA Grow Chat prompt]', action);
     }
   };
 
@@ -375,6 +403,7 @@ export function TeamDnaPage() {
               onAddTeam={openCreateTeam}
               onEditTeam={openEditTeam}
               onTeamChange={switchTeam}
+              onGrowChatPrompt={handleGrowChatPrompt}
             />
           )}
         </main>

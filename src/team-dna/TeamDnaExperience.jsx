@@ -8,6 +8,62 @@ import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
 const INTRO_CHROME_REVEAL_MS = 1200;
+const GROW_CHAT_BEHAVIOR = 'orchestration';
+
+/**
+ * Grow Chat handoff payload builder.
+ *
+ * What: converts the current Team DNA read state into the monolith
+ * Lighthouse/Grow Chat initial-message route shape.
+ * How: keeps the user's question as `initial_user_message`, adds Team DNA
+ * context as `custom_instructions`, and points to the existing
+ * `lighthouse.chat` route instead of inventing a local AI request.
+ * Port: replace the prototype event consumer with
+ * `setLocation('lighthouse.chat', { searchParams: payload.monolith.searchParams })`.
+ * ChatRouter will create the conversation, store `LH.initial-user-message`,
+ * and MainArea will send it once the socket is ready.
+ */
+function buildGrowChatPromptPayload({ dataset, insight, message, scope, selectedIds }) {
+  const selectedMembers = dataset.members.filter((member) =>
+    selectedIds.includes(member.id)
+  );
+  const contextTitle =
+    insight.entityTitle ?? insight.title ?? dataset.team.name ?? 'Team DNA';
+  const selectionSummary =
+    selectedMembers.length > 0
+      ? selectedMembers.map((member) => member.name).join(', ')
+      : dataset.team.name;
+  const customInstructions = [
+    'Use the Team DNA context below when answering.',
+    `Team: ${dataset.team.name}`,
+    `Current view: ${scope}`,
+    `Current selection: ${selectionSummary}`,
+    'Keep advice practical, specific, and anchored in how this team can work better together.',
+  ].join('\n');
+
+  return {
+    initialUserMessage: message,
+    scope,
+    team: {
+      id: dataset.team.id,
+      name: dataset.team.name,
+    },
+    selection: {
+      ids: selectedIds,
+      names: selectedMembers.map((member) => member.name),
+    },
+    monolith: {
+      route: 'lighthouse.chat',
+      searchParams: {
+        behavior: GROW_CHAT_BEHAVIOR,
+        initial_user_message: message,
+        skip_initial_messages: 'true',
+        title: `Team DNA: ${contextTitle}`,
+        custom_instructions: customInstructions,
+      },
+    },
+  };
+}
 
 /**
  * Team DNA feature panel.
@@ -30,6 +86,7 @@ export function TeamDnaExperience({
   onAddTeam,
   onEditTeam,
   onTeamChange,
+  onGrowChatPrompt,
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
@@ -142,6 +199,19 @@ export function TeamDnaExperience({
   const insight = getInsightForSelection(dataset, selectedIds);
   const questionScope =
     selectedIds.length === 2 ? 'duo' : selectedIds.length === 1 ? 'person' : 'team';
+  const handleGrowChatPromptSubmit = ({ message, scope, submittedAt }) => {
+    onGrowChatPrompt?.({
+      type: 'growChatInitialPromptRequested',
+      payload: buildGrowChatPromptPayload({
+        dataset,
+        insight,
+        message,
+        scope,
+        selectedIds,
+      }),
+      timestamp: submittedAt,
+    });
+  };
 
   return (
     <section
@@ -182,6 +252,7 @@ export function TeamDnaExperience({
       <TeamDnaChatInputBridge
         scope={questionScope}
         isHidden={isIntroGateActive}
+        onSubmitPrompt={handleGrowChatPromptSubmit}
       />
     </section>
   );

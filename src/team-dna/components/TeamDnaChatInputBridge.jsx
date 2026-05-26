@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { AnimatePresence, motion } from 'motion/react';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 
@@ -40,13 +41,23 @@ const DOCK_TRANSITION = {
  * is not a new design-system primitive.
  * How: Team DNA owns fixed placement and rotating prompts; the input itself
  * stays shaped like the monolith's `ChatInputSection` -> Lighthouse `InputBox`.
+ * The dock portals to `document.body` so it stays viewport-fixed even when the
+ * Team DNA composition uses transforms for optical alignment. Submit emits an
+ * intent payload only; this prototype does not call Lighthouse directly.
  * Port: delete this bridge and render
  * `MemberHome/components/shared/ChatInputSection` or Lighthouse `InputBox` in
  * the same dock position. Both already accept a `placeholder` prop, so rotating
  * prompt state can remain in the Team DNA route without changing the shared
- * component.
+ * component. Wire submit to `setLocation('lighthouse.chat', { searchParams })`
+ * with `initial_user_message`, `custom_instructions`, and
+ * `skip_initial_messages=true`; do not add a Team DNA-only AI endpoint unless
+ * product chooses a separate contextual AI surface.
  */
-export function TeamDnaChatInputBridge({ scope = 'team', isHidden = false }) {
+export function TeamDnaChatInputBridge({
+  scope = 'team',
+  isHidden = false,
+  onSubmitPrompt,
+}) {
   const prompts = PLACEHOLDERS[scope] ?? PLACEHOLDERS.team;
   const [message, setMessage] = useState('');
   const [promptIndex, setPromptIndex] = useState(0);
@@ -75,6 +86,15 @@ export function TeamDnaChatInputBridge({ scope = 'team', isHidden = false }) {
 
   const handleSubmit = (event) => {
     event.preventDefault();
+    const trimmedMessage = message.trim();
+
+    if (!trimmedMessage) return;
+
+    onSubmitPrompt?.({
+      message: trimmedMessage,
+      scope,
+      submittedAt: new Date().toISOString(),
+    });
     setMessage('');
   };
 
@@ -84,7 +104,9 @@ export function TeamDnaChatInputBridge({ scope = 'team', isHidden = false }) {
     }
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <AnimatePresence>
       {!isHidden && (
         <motion.div
@@ -134,6 +156,7 @@ export function TeamDnaChatInputBridge({ scope = 'team', isHidden = false }) {
           </form>
         </motion.div>
       )}
-    </AnimatePresence>
+    </AnimatePresence>,
+    document.body
   );
 }

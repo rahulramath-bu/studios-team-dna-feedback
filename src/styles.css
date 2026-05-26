@@ -184,21 +184,23 @@ button {
 .team-dna-page {
   min-height: 100vh;
   background: var(--page-background);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .monolith-shell-preview {
   --monolith-nav-height: 70px;
   --monolith-shell-chrome: var(--monolith-nav-height);
 
-  height: 100vh;
   min-height: 100vh;
   background: var(--page-background);
   color: var(--team-dna-ink);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .monolith-primary-nav {
+  position: sticky;
+  top: 0;
+  z-index: 70;
   min-height: var(--monolith-nav-height);
   border-bottom: 1px solid var(--team-dna-nav-border);
   background: var(--white);
@@ -338,7 +340,7 @@ button {
 
 .monolith-shell-main {
   min-height: calc(100vh - var(--monolith-nav-height));
-  overflow: hidden;
+  overflow: visible;
   background: var(--page-background);
 }
 
@@ -357,8 +359,8 @@ button {
   min-height: calc(100vh - var(--monolith-shell-chrome));
 }
 
-.monolith-shell-preview .team-dna-people-pane,
-.monolith-shell-preview .team-dna-insight-pane {
+.monolith-shell-preview .team-dna-people-pane {
+  top: var(--monolith-shell-chrome);
   height: calc(100vh - var(--monolith-shell-chrome));
 }
 
@@ -1409,6 +1411,15 @@ button.team-management-row {
 .team-management-remind-button[data-sent] {
   color: rgba(var(--team-dna-ink-rgb), 0.58);
   cursor: default;
+}
+
+.team-management-remind-button[data-pending] {
+  color: rgba(var(--team-dna-ink-rgb), 0.58);
+  cursor: wait;
+}
+
+.team-management-remind-button:disabled {
+  pointer-events: none;
 }
 
 .team-management-row-actions {
@@ -3046,29 +3057,16 @@ button.team-management-row {
 
 .team-dna-insight-pane {
   position: relative;
-  height: 100vh;
   min-width: 0;
-  overflow: hidden;
+  overflow: visible;
 }
 
 .team-dna-insight-scroll {
-  height: 100%;
-  overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-}
-
-.team-dna-insight-scroll::-webkit-scrollbar {
-  display: none;
+  overflow: visible;
 }
 
 .team-dna-scroll-fade {
-  position: absolute;
-  left: 0;
-  right: 0;
-  z-index: 2;
-  height: 120px;
-  pointer-events: none;
+  display: none;
 }
 
 .team-dna-scroll-fade.top {
