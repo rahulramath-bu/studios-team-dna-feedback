@@ -23,33 +23,132 @@ function getInviteId(teamId, email) {
   return `${teamId}-invite-${normalizeEmail(email).replace(/[^a-z0-9]+/g, '-')}`;
 }
 
+function makeEmptyEmployeeAccessFields() {
+  return {
+    currentAccess: [],
+    upcomingAccess: [],
+    eligibleForAccess: [],
+    previousAccess: null,
+  };
+}
+
+function makeOrganizationEmployee({
+  id,
+  firstName,
+  lastName,
+  email = `${id}@betterup.co`,
+  title = '',
+  avatar = '',
+}) {
+  return {
+    id,
+    firstName,
+    lastName,
+    email,
+    title,
+    avatar,
+    ...makeEmptyEmployeeAccessFields(),
+  };
+}
+
+const directoryOnlyEmployees = [
+  makeOrganizationEmployee({
+    id: 'alex-morgan',
+    firstName: 'Alex',
+    lastName: 'Morgan',
+    title: 'Product Manager',
+    avatar: '/team-dna/avatars/directory-alex-morgan.jpg',
+  }),
+  makeOrganizationEmployee({
+    id: 'bianca-chen',
+    firstName: 'Bianca',
+    lastName: 'Chen',
+    title: 'Senior Data Scientist',
+    avatar: '/team-dna/avatars/directory-bianca-chen.jpg',
+  }),
+  makeOrganizationEmployee({
+    id: 'cam-johnson',
+    firstName: 'Cam',
+    lastName: 'Johnson',
+    title: 'Lifecycle Marketing Lead',
+  }),
+  makeOrganizationEmployee({
+    id: 'dalia-ortiz',
+    firstName: 'Dalia',
+    lastName: 'Ortiz',
+    title: 'Customer Success Manager',
+    avatar: '/team-dna/avatars/directory-dalia-ortiz.jpg',
+  }),
+  makeOrganizationEmployee({
+    id: 'eli-patel',
+    firstName: 'Eli',
+    lastName: 'Patel',
+    title: 'Staff Backend Engineer',
+    avatar: '/team-dna/avatars/directory-eli-patel.jpg',
+  }),
+  makeOrganizationEmployee({
+    id: 'faye-williams',
+    firstName: 'Faye',
+    lastName: 'Williams',
+    title: 'People Partner',
+  }),
+  makeOrganizationEmployee({
+    id: 'gabe-kim',
+    firstName: 'Gabe',
+    lastName: 'Kim',
+    title: 'Design Program Manager',
+  }),
+  makeOrganizationEmployee({
+    id: 'hana-ross',
+    firstName: 'Hana',
+    lastName: 'Ross',
+    title: 'Research Operations Lead',
+    avatar: '/team-dna/avatars/directory-hana-ross.jpg',
+  }),
+  makeOrganizationEmployee({
+    id: 'imani-brooks',
+    firstName: 'Imani',
+    lastName: 'Brooks',
+    title: 'Learning Experience Designer',
+  }),
+  makeOrganizationEmployee({
+    id: 'jules-rivera',
+    firstName: 'Jules',
+    lastName: 'Rivera',
+    title: 'Engineering Manager',
+  }),
+];
+
 /**
  * Mock organization directory.
  *
  * What: local fixture shaped like the monolith's normalized
  * `organization-employee` frontend model.
  * How: keeps every known monolith field present, even when this prototype only
- * needs name, email, title, and avatar for the team picker.
+ * needs name, email, title, and avatar for the team picker. Includes extra
+ * directory-only employees so the sample team is visibly a subset of the
+ * organization directory.
  * Port: replace this array with the real organization employee query. Do not
  * add Team DNA scores or team membership here; company identity should remain
  * reusable outside Team DNA.
  */
-export const mockOrganizationEmployees = teamDnaDataset.members.map((member) => {
-  const { firstName, lastName } = getNameParts(member.name);
+export const mockOrganizationEmployees = [
+  ...teamDnaDataset.members.map((member) => {
+    const { firstName, lastName } = getNameParts(member.name);
 
-  return {
-    id: member.id,
-    firstName,
-    lastName,
-    email: `${member.id}@betterup.co`,
-    title: member.role ?? '',
-    avatar: member.avatarUrl ?? '',
-    currentAccess: [],
-    upcomingAccess: [],
-    eligibleForAccess: [],
-    previousAccess: null,
-  };
-});
+    return makeOrganizationEmployee({
+      id: member.id,
+      firstName,
+      lastName,
+      email: `${member.id}@betterup.co`,
+      title: member.role ?? '',
+      avatar: member.avatarUrl ?? '',
+    });
+  }),
+  ...directoryOnlyEmployees,
+].sort((firstEmployee, secondEmployee) =>
+  getDisplayName(firstEmployee).localeCompare(getDisplayName(secondEmployee))
+);
 
 /**
  * Mock Team DNA assessment/results records.
@@ -86,7 +185,7 @@ export const mockTeamRecords = [];
 export const sampleTeamRecord = {
   id: 'sample-team',
   name: 'Sample Team',
-  memberEmployeeIds: mockOrganizationEmployees.map((employee) => employee.id),
+  memberEmployeeIds: teamDnaDataset.members.map((member) => member.id),
   invitedEmails: [],
   sample: true,
 };
