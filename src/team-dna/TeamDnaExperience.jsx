@@ -13,7 +13,7 @@ const GROW_CHAT_BEHAVIOR = 'orchestration';
 /**
  * Grow Chat handoff payload builder.
  *
- * What: converts the current Team DNA read state into the monolith
+ * What: converts the current Team DNA result state into the monolith
  * Lighthouse/Grow Chat initial-message route shape.
  * How: keeps the user's question as `initial_user_message`, adds Team DNA
  * context as `custom_instructions`, and points to the existing

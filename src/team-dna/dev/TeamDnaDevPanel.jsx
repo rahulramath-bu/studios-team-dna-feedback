@@ -13,23 +13,23 @@ const GENERATION_STATUS_LABELS = {
 const GENERATION_STATUS_DESCRIPTIONS = {
   not_ready: {
     title: 'Waiting for enough assessment data',
-    body: 'Mutates member DNA completion so the source data is actually incomplete. This is mainly for team pages, and defensive for person/duo routes because pending people are not normally selectable.',
+    body: 'Mutates member assessment completion so the source data is actually incomplete. This is mainly for team pages, and defensive for person/duo routes because pending people are not normally selectable.',
   },
   pending: {
     title: 'AI generation is in progress',
-    body: 'Enough assessment data exists, so the page shows the deterministic fallback while the backend writes the generated read.',
+    body: 'Enough assessment data exists, so the page shows the deterministic fallback while the backend writes the generated insight.',
   },
   ready: {
-    title: 'Generated read is ready',
-    body: 'The AI-enriched copy matches the current source data, so the page shows the normal generated Team DNA read.',
+    title: 'Generated insight is ready',
+    body: 'The AI-enriched copy matches the current source data, so the page shows the normal generated insight.',
   },
   failed: {
     title: 'AI generation failed',
     body: 'Enough assessment data still exists, so the page quietly shows deterministic fallback. This should usually be logged for engineering instead of announced to the user.',
   },
   stale: {
-    title: 'Generated read needs refresh',
-    body: 'Old generated copy still exists, but new team or assessment data arrived. This is mainly useful for team/admin reads where a refresh decision is visible.',
+    title: 'Generated insight needs refresh',
+    body: 'Old generated copy still exists, but new team or assessment data arrived. This is mainly useful for team/admin views where a refresh decision is visible.',
   },
 };
 
@@ -37,9 +37,9 @@ const GENERATION_STATUS_DESCRIPTIONS = {
  * Dev-only scenario harness.
  *
  * What: hidden debug bar for stress-testing Team DNA states while designing.
- * How: toggles with backslash. Team size, avatar availability, assessment
- * completion, and generated-insight lifecycle controls call back into canonical
- * TeamDnaPage data so they match the real porting contract.
+ * How: toggles with backslash. Access, team size, avatar availability,
+ * assessment completion, and generated-insight lifecycle controls call back
+ * into canonical TeamDnaPage data so they match the real porting contract.
  * Port: do not port this. The monolith should get these states from real data,
  * permissions, feature flags, and route context.
  */

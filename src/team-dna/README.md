@@ -350,7 +350,7 @@ created by real product data. AI attaches generated copy to those view states:
 | --- | --- | --- |
 | Person read | That person has completed the assessment. | The person-profile generation job succeeds. |
 | Duo read | Both selected people have completed the assessment. | The duo generation job for that pair succeeds. |
-| Team read | The team has enough completed assessments. | The team generation job succeeds for the chosen member snapshot. |
+| Team summary | The team has enough completed assessments. | The team generation job succeeds for the chosen member snapshot. |
 
 For the first version, use this readiness rule:
 
@@ -378,7 +378,7 @@ Fallback is available only after the required source data exists:
 
 In normal product flow, incomplete person and duo reads should usually be
 inaccessible because pending people are not selectable. The waiting state is
-mostly visible for the team read, because the team page can exist before enough
+mostly visible for the team summary, because the team page can exist before enough
 people finish.
 
 ### Backend event model
@@ -388,26 +388,26 @@ kind of backend/product events engineering should expect to wire:
 
 | Event | Frontend result |
 | --- | --- |
-| `teamDnaAssessmentCompleted` | Person generation can start. Duo generation can start for completed teammate pairs. Team read may become available or stale. |
+| `teamDnaAssessmentCompleted` | Person generation can start. Duo generation can start for completed teammate pairs. Team summary may become available or stale. |
 | `teamDnaInsightGenerationRequested` | Target status becomes `pending`. |
 | `teamDnaInsightGenerationSucceeded` | Target status becomes `ready`; generated copy can be used. |
 | `teamDnaInsightGenerationFailed` | Target status becomes `failed`; deterministic fallback remains visible. |
-| `teamDnaTeamInsightMarkedStale` | Existing team read remains visible, but a refresh prompt appears. |
+| `teamDnaTeamInsightMarkedStale` | Existing team summary remains visible, but a refresh prompt appears. |
 | `teamDnaTeamInsightRefreshRequested` | Team target status becomes `pending` again. |
 
 The visible states are:
 
 | Status | Meaning | UI behavior |
 | --- | --- | --- |
-| `not_ready` | Not enough completed assessments yet. | Show a waiting state; no fallback should pretend to know the read. Mostly team-visible, defensive for person/duo. |
-| `pending` | Enough assessment data exists and the backend is generating the AI read. | Show a small unframed "AI insights generating" status and deterministic fallback underneath. |
-| `ready` | AI read exists and matches the current source snapshot. | Show the normal generated read. |
+| `not_ready` | Not enough completed assessments yet. | Show a waiting state; no fallback should pretend to know the result. Mostly team-visible, defensive for person/duo. |
+| `pending` | Enough assessment data exists and the backend is generating the AI insight. | Show a small unframed "AI insights generating" status and deterministic fallback underneath. |
+| `ready` | AI insight exists and matches the current source snapshot. | Show the normal generated insight. |
 | `failed` | Enough assessment data exists but AI generation failed. | Quietly show deterministic fallback; log/retry through backend/telemetry rather than alarming the user by default. |
-| `stale` | AI read exists, but team membership or assessment data changed later. | Keep the existing read visible. For team/admin reads, show a refresh affordance. |
+| `stale` | AI insight exists, but team membership or assessment data changed later. | Keep the existing insight visible. For team/admin views, show a refresh affordance. |
 
 `stale` does not mean the page is broken. It means the generated copy came from
-an older source snapshot. Example: a team read was generated with 5 completed
-members, then a 6th member finished. Keep the old generated read visible and
+an older source snapshot. Example: a team summary was generated with 5 completed
+members, then a 6th member finished. Keep the old generated insight visible and
 offer refresh instead of silently changing the team's story.
 
 ### Generation timing
@@ -434,9 +434,9 @@ New member completes assessment
 -> mark the team aggregate stale or ready-to-generate
 ```
 
-Team generation should be explicit when the team is incomplete. Do not silently
+Team summary generation should be explicit when the team is incomplete. Do not silently
 swap the team's generated identity every time a new member completes. If a team
-read already exists, keep it visible and mark it stale so the manager can
+summary already exists, keep it visible and mark it stale so the manager can
 refresh it with the new member snapshot.
 
 The team summary readiness POV is:
@@ -459,6 +459,8 @@ existing generated summary + later membership/assessment change
 -> keep old summary visible
 -> mark stale and show a quiet refresh action
 ```
+
+### Manager/admin access seam
 
 Manager/admin-only controls are gated by a single prototype permission flag:
 
@@ -489,10 +491,10 @@ waiting     = not_ready, no responsible read yet
 generating  = pending, fallback visible while AI works
 ready       = generated copy visible
 failed      = fallback visible because AI failed
-stale       = old generated copy visible; team reads may show refresh
+stale       = old generated copy visible; team summaries may show refresh
 ```
 
-The debug panel intentionally does not expose separate event-shooter buttons.
+The debug panel intentionally does not expose separate event buttons.
 Clicking a state directly simulates the backend job ending up in that visible
 state. The exception is `waiting`: because that is a source-data readiness gate,
 the debug panel mutates member assessment completion and lets the normal
@@ -987,6 +989,8 @@ Before calling a monolith port done:
   to zero members.
 - Team, person, duo, incomplete-assessment, missing-avatar, empty-team, and
   large-team states all render.
+- Manager/admin access gates team management controls, generate-anyway, stale
+  refresh, and non-manager empty-state CTAs.
 - Pair lookup is order-insensitive.
 - `[]`, `[memberId]`, and `[memberId, memberId]` selection states work.
 - Generated insight data and deterministic fallback use the same UI path.

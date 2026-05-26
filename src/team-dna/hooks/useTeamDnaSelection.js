@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 /**
  * Team/person/duo selection state.
  *
- * What: keeps the current Team DNA read scope as zero, one, or two member IDs.
+ * What: keeps the current Team DNA result scope as zero, one, or two member IDs.
  * How: an empty array means team view, one ID means individual view, and two
  * IDs means duo view. When already paired, choosing another member preserves the
  * first selected person and replaces only the second.

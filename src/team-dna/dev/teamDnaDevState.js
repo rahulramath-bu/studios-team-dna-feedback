@@ -2,7 +2,8 @@
  * Debug scenario state helpers.
  *
  * What: creates local-only debug flags for the standalone route.
- * How: keeps only local debug UI flags here. Roster, avatar availability, and
+ * How: keeps only local debug UI flags here, including the prototype
+ * `canManageTeam` permission toggle. Roster, avatar availability, and
  * assessment completion are canonical member data owned by TeamDnaPage.
  * Port: do not port this file. Real monolith state should come from API data,
  * feature flags, permissions, and product routing.

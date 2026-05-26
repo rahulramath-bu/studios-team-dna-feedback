@@ -261,7 +261,7 @@ export function buildTeamInsight({ team, members, cards, authoredInsight }) {
         isEditable: true,
         summary: [
           {
-            text: 'Team DNA appears when assessment data is available.',
+            text: 'Team summary appears when assessment data is available.',
           },
         ],
         cards,

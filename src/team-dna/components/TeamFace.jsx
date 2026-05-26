@@ -228,7 +228,9 @@ export const TeamFace = forwardRef(function TeamFace(
       onClick={onSelect}
       aria-pressed={isSelected}
       aria-label={
-        isUnavailable ? `${member.name} needs Team DNA first` : `Explore ${member.name}`
+        isUnavailable
+          ? `${member.name} assessment incomplete`
+          : `Explore ${member.name}`
       }
       {...handlers}
       onPointerMove={updateTooltipPosition}
