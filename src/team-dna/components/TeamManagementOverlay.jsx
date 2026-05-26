@@ -86,6 +86,7 @@ export function TeamManagementOverlay({
   const [isAddingTeammate, setIsAddingTeammate] = useState(false);
   const [isAddCardWaiting, setIsAddCardWaiting] = useState(false);
   const [recentlyAddedMemberKey, setRecentlyAddedMemberKey] = useState(null);
+  const [notifyNewTeammates, setNotifyNewTeammates] = useState(true);
   const [bodyScrollState, setBodyScrollState] = useState({
     canScrollDown: false,
     canScrollUp: false,
@@ -131,12 +132,24 @@ export function TeamManagementOverlay({
       organizationEmployees.find((employee) => employee.id === employeeId)
     )
     .filter(Boolean);
+  const sourceEmployeeIdSet = useMemo(
+    () => new Set(sourceRecord.memberEmployeeIds),
+    [sourceRecord.memberEmployeeIds]
+  );
+  const sourceInviteEmailSet = useMemo(
+    () => new Set(sourceRecord.invitedEmails.map(normalizeEmail)),
+    [sourceRecord.invitedEmails]
+  );
   const teamMemberCount = selectedEmployees.length + invitedEmails.length;
-  const pendingEmployeeCount = selectedEmployees.filter(
+  const newPendingEmployeeCount = selectedEmployees.filter(
     (employee) =>
+      !sourceEmployeeIdSet.has(employee.id) &&
       teamDnaResultsByEmployeeId[employee.id]?.assessmentComplete !== true
   ).length;
-  const pendingCount = pendingEmployeeCount + invitedEmails.length;
+  const newPendingInviteCount = invitedEmails.filter(
+    (email) => !sourceInviteEmailSet.has(normalizeEmail(email))
+  ).length;
+  const newPendingCount = newPendingEmployeeCount + newPendingInviteCount;
   const canInviteQuery =
     looksLikeEmail(query) &&
     !organizationEmployees.some(
@@ -161,10 +174,7 @@ export function TeamManagementOverlay({
       },
     ];
   }, [canInviteQuery, filteredEmployees, query]);
-  const saveLabel =
-    pendingCount > 0
-      ? `Save and notify ${pendingCount} pending`
-      : 'Save team';
+  const saveLabel = 'Save team';
   const title = mode === 'edit' ? 'Edit team' : 'Add team';
   const activeSearchResult = searchResults[activeSearchIndex] ?? null;
 
@@ -175,6 +185,7 @@ export function TeamManagementOverlay({
     setIsAddingTeammate(false);
     setIsAddCardWaiting(false);
     setRecentlyAddedMemberKey(null);
+    setNotifyNewTeammates(true);
     setQuery('');
   }, [sourceRecord]);
 
@@ -326,6 +337,9 @@ export function TeamManagementOverlay({
         memberEmployeeIds: selectedEmployeeIds,
         invitedEmails,
         sample: sourceRecord.sample,
+        notificationPreference: {
+          notifyNewPendingTeammates: notifyNewTeammates && newPendingCount > 0,
+        },
       });
     }, 260);
   };
@@ -444,47 +458,62 @@ export function TeamManagementOverlay({
                       <motion.div
                         key={employee.id}
                         className="team-management-card team-management-member-card"
+                        data-assessment-pending={!hasTeamDna || undefined}
                         data-recently-added={
                           recentlyAddedMemberKey === `employee:${employee.id}` ||
                           undefined
                         }
                         {...MEMBER_CARD_MOTION}
                       >
+                        <span className="team-management-member-avatar-wrap">
+                          <span className="team-management-avatar" aria-hidden="true">
+                            {employee.avatar ? (
+                              <img src={employee.avatar} alt="" />
+                            ) : (
+                              getInitials(getEmployeeName(employee))
+                            )}
+                          </span>
+                        </span>
+                        <span className="team-management-row-copy">
+                          <strong>{getEmployeeName(employee)}</strong>
+                          {hasTeamDna ? (
+                            <small>{employee.title || employee.email}</small>
+                          ) : (
+                            <small className="team-management-inline-pending">
+                              Pending
+                            </small>
+                          )}
+                        </span>
+                        <span className="team-management-row-actions">
+                          {hasTeamDna ? (
+                            <span
+                              className="team-management-status-pill"
+                              data-status="ready"
+                              aria-label="Assessment complete"
+                              title="Assessment complete"
+                            >
+                              <BetterUpIcon name="Check" size={14} strokeWidth={2.2} />
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="team-management-remind-button"
+                              aria-label={`Remind ${getEmployeeName(employee)} to complete assessment`}
+                              title="Send assessment reminder"
+                              onClick={(event) => event.stopPropagation()}
+                            >
+                              Remind
+                            </button>
+                          )}
+                        </span>
                         <button
                           type="button"
                           className="team-management-remove-icon"
                           onClick={() => removeEmployee(employee.id)}
                           aria-label={`Remove ${getEmployeeName(employee)}`}
                         >
-                          <BetterUpIcon name="MinusCircle" size={17} strokeWidth={1.9} />
+                          <BetterUpIcon name="Trash" size={15} strokeWidth={1.8} />
                         </button>
-                        <span className="team-management-avatar" aria-hidden="true">
-                          {employee.avatar ? (
-                            <img src={employee.avatar} alt="" />
-                          ) : (
-                            getInitials(getEmployeeName(employee))
-                          )}
-                        </span>
-                        <span className="team-management-row-copy">
-                          <strong>{getEmployeeName(employee)}</strong>
-                          <small>{employee.title || employee.email}</small>
-                        </span>
-                        <span
-                          className="team-management-status-pill"
-                          data-status={hasTeamDna ? 'ready' : 'pending'}
-                          aria-label={
-                            hasTeamDna ? 'Assessment complete' : 'Assessment pending'
-                          }
-                          title={
-                            hasTeamDna ? 'Assessment complete' : 'Assessment pending'
-                          }
-                        >
-                          {hasTeamDna ? (
-                            <BetterUpIcon name="Check" size={14} strokeWidth={2.2} />
-                          ) : (
-                            'Pending'
-                          )}
-                        </span>
                       </motion.div>
                     );
                   })}
@@ -498,29 +527,36 @@ export function TeamManagementOverlay({
                       }
                       {...MEMBER_CARD_MOTION}
                     >
+                      <span className="team-management-member-avatar-wrap">
+                        <span className="team-management-avatar" aria-hidden="true">
+                          {getInitials(email)}
+                        </span>
+                      </span>
+                      <span className="team-management-row-copy">
+                        <strong>{email}</strong>
+                        <small className="team-management-inline-pending">
+                          Pending
+                        </small>
+                      </span>
+                      <span className="team-management-row-actions">
+                        <button
+                          type="button"
+                          className="team-management-remind-button"
+                          aria-label={`Remind ${email} to complete assessment`}
+                          title="Send assessment reminder"
+                          onClick={(event) => event.stopPropagation()}
+                        >
+                          Remind
+                        </button>
+                      </span>
                       <button
                         type="button"
                         className="team-management-remove-icon"
                         onClick={() => removeInvite(email)}
                         aria-label={`Remove ${email}`}
                       >
-                        <BetterUpIcon name="MinusCircle" size={17} strokeWidth={1.9} />
+                        <BetterUpIcon name="Trash" size={15} strokeWidth={1.8} />
                       </button>
-                      <span className="team-management-avatar" aria-hidden="true">
-                        {getInitials(email)}
-                      </span>
-                      <span className="team-management-row-copy">
-                        <strong>{email}</strong>
-                        <small>Manual email invite</small>
-                      </span>
-                      <span
-                        className="team-management-status-pill"
-                        data-status="pending"
-                        aria-label="Assessment pending"
-                        title="Assessment pending"
-                      >
-                        Pending
-                      </span>
                     </motion.div>
                   ))}
                   {!isAddCardWaiting && (
@@ -652,6 +688,16 @@ export function TeamManagementOverlay({
         </div>
 
         <footer className="team-management-footer">
+          {newPendingCount > 0 && (
+            <label className="team-management-notify-toggle">
+              <input
+                type="checkbox"
+                checked={notifyNewTeammates}
+                onChange={(event) => setNotifyNewTeammates(event.target.checked)}
+              />
+              <span>Notify new teammates</span>
+            </label>
+          )}
           <button
             type="button"
             className="team-management-secondary"
