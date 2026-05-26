@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
+import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 
 function getEmployeeName(employee) {
@@ -31,6 +32,23 @@ const EMPTY_TEAM_RECORD = {
   memberEmployeeIds: [],
   invitedEmails: [],
   sample: false,
+};
+
+const MEMBER_CARD_MOTION = {
+  layout: true,
+  initial: { opacity: 0, y: 8, scale: 0.98 },
+  animate: { opacity: 1, y: 0, scale: 1 },
+  exit: { opacity: 0, y: -8, scale: 0.98 },
+  transition: {
+    layout: { duration: 0.34, ease: [0.22, 1, 0.36, 1] },
+    opacity: { duration: 0.18 },
+    y: { duration: 0.22 },
+    scale: { duration: 0.22 },
+  },
+};
+
+const ADD_CARD_LAYOUT_TRANSITION = {
+  layout: { duration: 0.34, ease: [0.22, 1, 0.36, 1] },
 };
 
 /**
@@ -143,11 +161,11 @@ export function TeamManagementOverlay({
       },
     ];
   }, [canInviteQuery, filteredEmployees, query]);
-  const title = mode === 'edit' ? 'Edit team' : 'Add team';
   const saveLabel =
     pendingCount > 0
-      ? `Save and invite ${pendingCount} pending`
+      ? `Save and notify ${pendingCount} pending`
       : 'Save team';
+  const title = mode === 'edit' ? 'Edit team' : 'Add team';
   const activeSearchResult = searchResults[activeSearchIndex] ?? null;
 
   useEffect(() => {
@@ -224,7 +242,7 @@ export function TeamManagementOverlay({
     setIsAddCardWaiting(true);
     addCardTimerRef.current = window.setTimeout(() => {
       setIsAddCardWaiting(false);
-      setIsAddingTeammate(true);
+      setIsAddingTeammate(false);
     }, 420);
     recentlyAddedTimerRef.current = window.setTimeout(() => {
       setRecentlyAddedMemberKey(null);
@@ -416,194 +434,219 @@ export function TeamManagementOverlay({
               className="team-management-member-grid"
               aria-label="Selected team members"
             >
-              {selectedEmployees.map((employee) => {
-                const hasTeamDna =
-                  teamDnaResultsByEmployeeId[employee.id]?.assessmentComplete === true;
+              <LayoutGroup id="team-management-members">
+                <AnimatePresence initial={false} mode="popLayout">
+                  {selectedEmployees.map((employee) => {
+                    const hasTeamDna =
+                      teamDnaResultsByEmployeeId[employee.id]?.assessmentComplete === true;
 
-                return (
-                  <div
-                    key={employee.id}
-                    className="team-management-card team-management-member-card"
-                    data-recently-added={
-                      recentlyAddedMemberKey === `employee:${employee.id}` ||
-                      undefined
-                    }
-                  >
+                    return (
+                      <motion.div
+                        key={employee.id}
+                        className="team-management-card team-management-member-card"
+                        data-recently-added={
+                          recentlyAddedMemberKey === `employee:${employee.id}` ||
+                          undefined
+                        }
+                        {...MEMBER_CARD_MOTION}
+                      >
+                        <button
+                          type="button"
+                          className="team-management-remove-icon"
+                          onClick={() => removeEmployee(employee.id)}
+                          aria-label={`Remove ${getEmployeeName(employee)}`}
+                        >
+                          <BetterUpIcon name="MinusCircle" size={17} strokeWidth={1.9} />
+                        </button>
+                        <span className="team-management-avatar" aria-hidden="true">
+                          {employee.avatar ? (
+                            <img src={employee.avatar} alt="" />
+                          ) : (
+                            getInitials(getEmployeeName(employee))
+                          )}
+                        </span>
+                        <span className="team-management-row-copy">
+                          <strong>{getEmployeeName(employee)}</strong>
+                          <small>{employee.title || employee.email}</small>
+                        </span>
+                        <span
+                          className="team-management-status-pill"
+                          data-status={hasTeamDna ? 'ready' : 'pending'}
+                          aria-label={
+                            hasTeamDna ? 'Assessment complete' : 'Assessment pending'
+                          }
+                          title={
+                            hasTeamDna ? 'Assessment complete' : 'Assessment pending'
+                          }
+                        >
+                          {hasTeamDna ? (
+                            <BetterUpIcon name="Check" size={14} strokeWidth={2.2} />
+                          ) : (
+                            'Pending'
+                          )}
+                        </span>
+                      </motion.div>
+                    );
+                  })}
+                  {invitedEmails.map((email) => (
+                    <motion.div
+                      key={email}
+                      className="team-management-card team-management-member-card"
+                      data-recently-added={
+                        recentlyAddedMemberKey === `invite:${normalizeEmail(email)}` ||
+                        undefined
+                      }
+                      {...MEMBER_CARD_MOTION}
+                    >
+                      <button
+                        type="button"
+                        className="team-management-remove-icon"
+                        onClick={() => removeInvite(email)}
+                        aria-label={`Remove ${email}`}
+                      >
+                        <BetterUpIcon name="MinusCircle" size={17} strokeWidth={1.9} />
+                      </button>
+                      <span className="team-management-avatar" aria-hidden="true">
+                        {getInitials(email)}
+                      </span>
+                      <span className="team-management-row-copy">
+                        <strong>{email}</strong>
+                        <small>Manual email invite</small>
+                      </span>
+                      <span
+                        className="team-management-status-pill"
+                        data-status="pending"
+                        aria-label="Assessment pending"
+                        title="Assessment pending"
+                      >
+                        Pending
+                      </span>
+                    </motion.div>
+                  ))}
+                  {!isAddCardWaiting && (
+                    <motion.div
+                      key="team-management-add-card"
+                      ref={addCardRef}
+                      layout
+                      transition={ADD_CARD_LAYOUT_TRANSITION}
+                      className="team-management-add-card-layout"
+                    >
+                      <div
+                        className="team-management-card team-management-add-card"
+                        data-expanded={isAddingTeammate || undefined}
+                        data-revealed={teamMemberCount > 0 || undefined}
+                      >
                     <button
                       type="button"
-                      className="team-management-remove-icon"
-                      onClick={() => removeEmployee(employee.id)}
-                      aria-label={`Remove ${getEmployeeName(employee)}`}
+                      className="team-management-add-card-trigger"
+                      onClick={() => setIsAddingTeammate(true)}
+                      aria-expanded={isAddingTeammate}
                     >
-                      <BetterUpIcon name="X" size={14} strokeWidth={2} />
-                    </button>
-                    <span className="team-management-avatar" aria-hidden="true">
-                      {employee.avatar ? (
-                        <img src={employee.avatar} alt="" />
-                      ) : (
-                        getInitials(getEmployeeName(employee))
-                      )}
-                    </span>
-                    <span className="team-management-row-copy">
-                      <strong>{getEmployeeName(employee)}</strong>
-                      <small>{employee.title || employee.email}</small>
-                    </span>
-                    <span
-                      className="team-management-status-pill"
-                      data-status={hasTeamDna ? 'ready' : 'pending'}
-                    >
-                      {hasTeamDna ? 'Ready' : 'Pending'}
-                    </span>
-                  </div>
-                );
-              })}
-              {invitedEmails.map((email) => (
-                <div
-                  key={email}
-                  className="team-management-card team-management-member-card"
-                  data-recently-added={
-                    recentlyAddedMemberKey === `invite:${normalizeEmail(email)}` ||
-                    undefined
-                  }
-                >
-                  <button
-                    type="button"
-                    className="team-management-remove-icon"
-                    onClick={() => removeInvite(email)}
-                    aria-label={`Remove ${email}`}
-                  >
-                    <BetterUpIcon name="X" size={14} strokeWidth={2} />
-                  </button>
-                  <span className="team-management-avatar" aria-hidden="true">
-                    {getInitials(email)}
-                  </span>
-                  <span className="team-management-row-copy">
-                    <strong>{email}</strong>
-                    <small>Manual email invite</small>
-                  </span>
-                  <span
-                    className="team-management-status-pill"
-                    data-status="pending"
-                  >
-                    Pending
-                  </span>
-                </div>
-              ))}
-              {!isAddCardWaiting && (
-                <div
-                  ref={addCardRef}
-                  className="team-management-card team-management-add-card"
-                  data-expanded={isAddingTeammate || undefined}
-                  data-revealed={teamMemberCount > 0 || undefined}
-                >
-                  <button
-                    type="button"
-                    className="team-management-add-card-trigger"
-                    onClick={() => setIsAddingTeammate(true)}
-                    aria-expanded={isAddingTeammate}
-                  >
-                    <span className="team-management-add-card-icon">
-                      <BetterUpIcon
-                        className="team-management-add-card-icon-glyph team-management-add-card-icon-plus"
-                        name="Plus"
-                        size={18}
-                        strokeWidth={2}
-                      />
-                      <BetterUpIcon
-                        className="team-management-add-card-icon-glyph team-management-add-card-icon-search"
-                        name="Search"
-                        size={17}
-                        strokeWidth={2}
-                      />
-                    </span>
-                    <span>Add teammate</span>
-                  </button>
-                  <div className="team-management-add-card-body">
-                    <div className="team-management-add-card-body-inner">
-                      <label className="team-management-field">
-                        <span className="team-management-sr-label">
-                          Search teammates
-                        </span>
-                        <input
-                          ref={searchInputRef}
-                          value={query}
-                          onChange={(event) => setQuery(event.target.value)}
-                          onKeyDown={handleSearchKeyDown}
-                          placeholder="Search by name or email"
+                      <span className="team-management-add-card-icon">
+                        <BetterUpIcon
+                          className="team-management-add-card-icon-glyph team-management-add-card-icon-plus"
+                          name="Plus"
+                          size={18}
+                          strokeWidth={2}
                         />
-                      </label>
-                      {normalizedQuery && searchResults.length > 0 && (
-                        <div
-                          ref={searchResultsRef}
-                          className="team-management-search-results"
-                          data-can-scroll-down={
-                            searchScrollState.canScrollDown || undefined
-                          }
-                          data-can-scroll-up={
-                            searchScrollState.canScrollUp || undefined
-                          }
-                          aria-label="Organization employees"
-                          onScroll={updateSearchScrollState}
-                        >
-                          {searchResults.map((result, index) => {
-                            if (result.type === 'email') {
+                        <BetterUpIcon
+                          className="team-management-add-card-icon-glyph team-management-add-card-icon-search"
+                          name="Search"
+                          size={17}
+                          strokeWidth={2}
+                        />
+                      </span>
+                      <span>Add teammate</span>
+                    </button>
+                    <div className="team-management-add-card-body">
+                      <div className="team-management-add-card-body-inner">
+                        <label className="team-management-field">
+                          <span className="team-management-sr-label">
+                            Search teammates
+                          </span>
+                          <input
+                            ref={searchInputRef}
+                            value={query}
+                            onChange={(event) => setQuery(event.target.value)}
+                            onKeyDown={handleSearchKeyDown}
+                            placeholder="Search by name or email"
+                          />
+                        </label>
+                        {normalizedQuery && searchResults.length > 0 && (
+                          <div
+                            ref={searchResultsRef}
+                            className="team-management-search-results"
+                            data-can-scroll-down={
+                              searchScrollState.canScrollDown || undefined
+                            }
+                            data-can-scroll-up={
+                              searchScrollState.canScrollUp || undefined
+                            }
+                            aria-label="Organization employees"
+                            onScroll={updateSearchScrollState}
+                          >
+                            {searchResults.map((result, index) => {
+                              if (result.type === 'email') {
+                                return (
+                                  <button
+                                    key={result.key}
+                                    type="button"
+                                    className="team-management-row"
+                                    data-active={index === activeSearchIndex || undefined}
+                                    onClick={() => addInvite(result.email)}
+                                  >
+                                    <span className="team-management-avatar" aria-hidden="true">
+                                      +
+                                    </span>
+                                    <span className="team-management-row-copy">
+                                      <strong>{result.email}</strong>
+                                      <small>Add by email</small>
+                                    </span>
+                                    <span className="team-management-add-label">Add</span>
+                                  </button>
+                                );
+                              }
+
+                              const { employee } = result;
                               return (
                                 <button
                                   key={result.key}
                                   type="button"
                                   className="team-management-row"
                                   data-active={index === activeSearchIndex || undefined}
-                                  onClick={() => addInvite(result.email)}
+                                  onClick={() => addEmployee(employee.id)}
                                 >
                                   <span className="team-management-avatar" aria-hidden="true">
-                                    +
+                                    {employee.avatar ? (
+                                      <img src={employee.avatar} alt="" />
+                                    ) : (
+                                      getInitials(getEmployeeName(employee))
+                                    )}
                                   </span>
                                   <span className="team-management-row-copy">
-                                    <strong>{result.email}</strong>
-                                    <small>Add by email</small>
+                                    <strong>{getEmployeeName(employee)}</strong>
+                                    <small>{employee.title || employee.email}</small>
                                   </span>
-                                  <span className="team-management-add-label">Add</span>
+                                  <span className="team-management-add-label">
+                                    Add
+                                  </span>
                                 </button>
                               );
-                            }
-
-                            const { employee } = result;
-                            return (
-                              <button
-                                key={result.key}
-                                type="button"
-                                className="team-management-row"
-                                data-active={index === activeSearchIndex || undefined}
-                                onClick={() => addEmployee(employee.id)}
-                              >
-                                <span className="team-management-avatar" aria-hidden="true">
-                                  {employee.avatar ? (
-                                    <img src={employee.avatar} alt="" />
-                                  ) : (
-                                    getInitials(getEmployeeName(employee))
-                                  )}
-                                </span>
-                                <span className="team-management-row-copy">
-                                  <strong>{getEmployeeName(employee)}</strong>
-                                  <small>{employee.title || employee.email}</small>
-                                </span>
-                                <span className="team-management-add-label">
-                                  Add
-                                </span>
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                      {normalizedQuery && searchResults.length === 0 && (
-                        <p className="team-management-search-empty">
-                          No matching employees found.
-                        </p>
-                      )}
+                            })}
+                          </div>
+                        )}
+                        {normalizedQuery && searchResults.length === 0 && (
+                          <p className="team-management-search-empty">
+                            No matching employees found.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </div>
-              )}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </LayoutGroup>
             </div>
           </section>
         </div>
