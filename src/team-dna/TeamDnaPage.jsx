@@ -1,71 +1,20 @@
 import React, { useMemo, useState } from 'react';
 import { TeamDnaExperience } from './TeamDnaExperience.jsx';
 import { TeamDnaEmptyPreview } from './components/TeamDnaEmptyPreview.jsx';
-import { getTeamDna } from './data/teamDnaAdapter.js';
+import { TeamManagementOverlay } from './components/TeamManagementOverlay.jsx';
+import {
+  buildTeamDnaDatasetFromTeamRecord,
+  mockOrganizationEmployees,
+  mockTeamDnaResultsByEmployeeId,
+  mockTeamRecords,
+  normalizeTeamRecord,
+  sampleTeamRecord,
+} from './data/teamManagementMock.js';
 import { MonolithTeamShell } from './dev/MonolithTeamShell.jsx';
 import { TeamDnaDevPanel } from './dev/TeamDnaDevPanel.jsx';
 import { createInitialDevState } from './dev/teamDnaDevState.js';
 
-const primaryTeamDna = getTeamDna({ teamId: 'flighthouse' });
-const SAMPLE_TEAM_ID = 'sample-team';
-
-function cloneTeamDataset(baseDataset, { id, name, sample = false }) {
-  return {
-    ...baseDataset,
-    team: { id, name, sample },
-    members: baseDataset.members.map((member) => ({
-      ...member,
-      id: `${id}-${member.id}`,
-      sourceAvatarUrl: member.sourceAvatarUrl ?? member.avatarUrl,
-    })),
-    insights: {
-      team: undefined,
-      people: {},
-      pairs: {},
-    },
-  };
-}
-
-function makeTeamVariant(baseDataset, { id, name, memberIds, pendingIds = [] }) {
-  const members = memberIds.map((memberId) => {
-    const member = baseDataset.members.find((item) => item.id === memberId);
-    return {
-      ...member,
-      id: `${id}-${member.id}`,
-      sourceAvatarUrl: member.sourceAvatarUrl ?? member.avatarUrl,
-      assessmentComplete: !pendingIds.includes(memberId),
-    };
-  });
-
-  return {
-    team: { id, name },
-    members,
-    insights: {
-      team: undefined,
-      people: {},
-      pairs: {},
-    },
-  };
-}
-
-const sampleTeamDataset = cloneTeamDataset(primaryTeamDna, {
-  id: SAMPLE_TEAM_ID,
-  name: 'Sample Team',
-  sample: true,
-});
-
-/**
- * Optional seeded team used by the empty-state CTA.
- *
- * What: Sample Team is a normal Team DNA dataset with `team.sample = true`.
- * How: it is not present in `teamRecords` until "Try with sample data" is
- * clicked; that click inserts/resets it as canonical team data.
- * Port: keep this client-side seed separate from backend teams, but once
- * inserted it should flow through the same selected-team/member logic.
- */
-const initialTeamDatasets = [];
-
-const emptyTeamDataset = {
+const EMPTY_TEAM_DATASET = {
   team: { id: 'empty-state', name: 'Empty state' },
   members: [],
   insights: {
@@ -75,81 +24,185 @@ const emptyTeamDataset = {
   },
 };
 
-/**
- * Standalone prototype page.
- *
- * What: local route harness for the Team DNA experience.
- * How: loads fixture data, applies debug scenarios, owns in-memory team edits,
- * and optionally wraps the feature in a fake monolith shell preview.
- * Port: replace this with a monolith route/page that owns BrowserTitle,
- * analytics, loading/error states, generated API hooks, adapter mapping, and
- * real add/remove/rename mutations. The portable feature is TeamDnaExperience.
- */
-function cloneEditState(value) {
+const NEUTRAL_BIG_FIVE = {
+  openness: 50,
+  conscientiousness: 50,
+  extraversion: 50,
+  agreeableness: 50,
+  neuroticism: 50,
+};
+
+function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
-function createNewMember(teamId, index) {
-  return {
-    id: `${teamId}-new-member-${index}-${Date.now()}`,
-    name: `New teammate ${index}`,
-    avatarUrl: '',
-    sourceAvatarUrl: '',
-    assessmentComplete: false,
-    bigFive: {
-      openness: 50,
-      conscientiousness: 50,
-      extraversion: 50,
-      agreeableness: 50,
-      neuroticism: 50,
-    },
-  };
+function makeTeamRecordId(name) {
+  const slug = name
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    || 'team';
+
+  return `${slug}-${Date.now()}`;
 }
 
-function createTeamRecord(dataset) {
+function getDatasetForTeamRecord(
+  teamRecord,
+  organizationEmployees,
+  teamDnaResultsByEmployeeId
+) {
+  return buildTeamDnaDatasetFromTeamRecord(teamRecord, {
+    organizationEmployees,
+    teamDnaResultsByEmployeeId,
+  });
+}
+
+function createTeamRecordState(
+  teamRecord,
+  organizationEmployees,
+  teamDnaResultsByEmployeeId
+) {
+  const dataset = getDatasetForTeamRecord(
+    teamRecord,
+    organizationEmployees,
+    teamDnaResultsByEmployeeId
+  );
+
   return {
-    dataset,
+    teamRecord: cloneState(teamRecord),
     devState: createInitialDevState(dataset.members),
   };
 }
 
-export function TeamDnaPage() {
-  const [activeTeamId, setActiveTeamId] = useState(() => {
-    const firstRealTeam = initialTeamDatasets.find(
-      (dataset) => !dataset.team.sample && dataset.members.length > 0
-    );
+function getResizedTeamRecord(teamRecord, teamSize, organizationEmployees) {
+  const currentItems = [
+    ...teamRecord.memberEmployeeIds.map((employeeId) => ({
+      type: 'employee',
+      value: employeeId,
+    })),
+    ...teamRecord.invitedEmails.map((email) => ({
+      type: 'invite',
+      value: email,
+    })),
+  ];
+  const nextItems = currentItems.slice(0, teamSize);
+  const nextEmployeeIds = new Set(
+    nextItems
+      .filter((item) => item.type === 'employee')
+      .map((item) => item.value)
+  );
+  const availableEmployeeIds = organizationEmployees
+    .map((employee) => employee.id)
+    .filter((employeeId) => !nextEmployeeIds.has(employeeId));
 
-    return firstRealTeam?.team.id ?? null;
+  while (nextItems.length < teamSize) {
+    const employeeId = availableEmployeeIds.shift();
+
+    if (employeeId) {
+      nextItems.push({ type: 'employee', value: employeeId });
+      nextEmployeeIds.add(employeeId);
+    } else {
+      nextItems.push({
+        type: 'invite',
+        value: `new-teammate-${nextItems.length + 1}@example.com`,
+      });
+    }
+  }
+
+  return normalizeTeamRecord({
+    ...teamRecord,
+    memberEmployeeIds: nextItems
+      .filter((item) => item.type === 'employee')
+      .map((item) => item.value),
+    invitedEmails: nextItems
+      .filter((item) => item.type === 'invite')
+      .map((item) => item.value),
   });
-  const [showLayoutOutlines, setShowLayoutOutlines] = useState(false);
+}
+
+/**
+ * Standalone prototype page.
+ *
+ * What: local route harness for the Team DNA experience.
+ * How: owns three separate in-memory sources: monolith-shaped organization
+ * employees, temporary team records, and Team DNA assessment/results records.
+ * A mapper combines those into `TeamDnaDataset` for the current UI.
+ * Port: replace this with a monolith route/page that owns BrowserTitle,
+ * analytics, loading/error states, generated API hooks, real team mutations,
+ * and the data mapper. The portable feature is TeamDnaExperience.
+ */
+export function TeamDnaPage() {
+  const [organizationEmployees, setOrganizationEmployees] = useState(() =>
+    cloneState(mockOrganizationEmployees)
+  );
+  const [teamDnaResultsByEmployeeId, setTeamDnaResultsByEmployeeId] = useState(
+    () => cloneState(mockTeamDnaResultsByEmployeeId)
+  );
   const [teamRecords, setTeamRecords] = useState(() =>
     Object.fromEntries(
-      initialTeamDatasets.map((dataset) => [
-        dataset.team.id,
-        createTeamRecord(dataset),
+      mockTeamRecords.map((teamRecord) => [
+        teamRecord.id,
+        createTeamRecordState(
+          teamRecord,
+          mockOrganizationEmployees,
+          mockTeamDnaResultsByEmployeeId
+        ),
       ])
     )
   );
+  const [activeTeamId, setActiveTeamId] = useState(() => {
+    const firstRealTeam = mockTeamRecords.find(
+      (teamRecord) => !teamRecord.sample && teamRecord.memberEmployeeIds.length > 0
+    );
+
+    return firstRealTeam?.id ?? null;
+  });
+  const [teamManagementOverlay, setTeamManagementOverlay] = useState(null);
+  const [showLayoutOutlines, setShowLayoutOutlines] = useState(false);
   const [emptyDevState, setEmptyDevState] = useState(() =>
-    createInitialDevState(emptyTeamDataset.members)
+    createInitialDevState(EMPTY_TEAM_DATASET.members)
   );
   const activeRecord = activeTeamId ? teamRecords[activeTeamId] : null;
-  const visibleRecord = activeRecord ?? {
-    dataset: emptyTeamDataset,
-    devState: emptyDevState,
-  };
+  const activeDataset = useMemo(() => {
+    if (!activeRecord) return null;
+
+    return getDatasetForTeamRecord(
+      activeRecord.teamRecord,
+      organizationEmployees,
+      teamDnaResultsByEmployeeId
+    );
+  }, [activeRecord, organizationEmployees, teamDnaResultsByEmployeeId]);
+  const visibleRecord = activeRecord
+    ? {
+        dataset: activeDataset,
+        devState: activeRecord.devState,
+      }
+    : {
+        dataset: EMPTY_TEAM_DATASET,
+        devState: emptyDevState,
+      };
   // Empty state is intentionally data-shaped: the selected canonical team must
   // have members. Sample teams do not get a special bypass; clicking the sample
-  // CTA simply reseeds Sample Team with members and selects it.
-  const isTrueEmptyState = !activeRecord || activeRecord.dataset.members.length === 0;
+  // CTA simply reseeds Sample Team as a normal team record and selects it.
+  const isTrueEmptyState =
+    !activeRecord || visibleRecord.dataset.members.length === 0;
   const editableTeamDna = visibleRecord.dataset;
   const devState = visibleRecord.devState;
-  const [editSnapshot, setEditSnapshot] = useState(null);
   const scenarioDataset = editableTeamDna;
   const teamOptions = useMemo(
-    () => Object.values(teamRecords).map((record) => record.dataset.team),
+    () =>
+      Object.values(teamRecords).map(({ teamRecord }) => ({
+        id: teamRecord.id,
+        name: teamRecord.name,
+        sample: teamRecord.sample,
+      })),
     [teamRecords]
   );
+  const overlayTeamRecord =
+    teamManagementOverlay?.mode === 'edit' && teamManagementOverlay.teamId
+      ? teamRecords[teamManagementOverlay.teamId]?.teamRecord
+      : null;
 
   const updateActiveRecord = (updater) => {
     setTeamRecords((current) => {
@@ -162,14 +215,6 @@ export function TeamDnaPage() {
         [targetTeamId]: updater(record),
       };
     });
-  };
-
-  const updateActiveDataset = (updater) => {
-    updateActiveRecord((record) => ({
-      ...record,
-      dataset:
-        typeof updater === 'function' ? updater(record.dataset) : updater,
-    }));
   };
 
   const updateActiveDevState = (updater) => {
@@ -187,132 +232,117 @@ export function TeamDnaPage() {
     }));
   };
 
-  const updateTeamName = (name) => {
-    updateActiveDataset((current) => ({
-      ...current,
-      team: {
-        ...current.team,
-        name,
-      },
-    }));
+  const openCreateTeam = () => {
+    setTeamManagementOverlay({ mode: 'create' });
   };
 
-  const beginTeamEdit = () => {
-    if (!activeTeamId) return;
+  const openEditTeam = () => {
+    if (!activeTeamId) {
+      openCreateTeam();
+      return;
+    }
 
-    setEditSnapshot({
-      teamId: activeTeamId,
-      dataset: cloneEditState(editableTeamDna),
-      devState: cloneEditState(devState),
+    setTeamManagementOverlay({ mode: 'edit', teamId: activeTeamId });
+  };
+
+  const closeTeamManagement = () => {
+    setTeamManagementOverlay(null);
+  };
+
+  const saveTeamRecord = (draftTeamRecord) => {
+    const teamId = draftTeamRecord.id ?? makeTeamRecordId(draftTeamRecord.name);
+    const nextTeamRecord = normalizeTeamRecord({
+      ...draftTeamRecord,
+      id: teamId,
     });
-  };
-
-  const commitTeamEdit = () => {
-    setEditSnapshot(null);
-  };
-
-  const cancelTeamEdit = () => {
-    if (!editSnapshot) return;
 
     setTeamRecords((current) => ({
       ...current,
-      [editSnapshot.teamId]: {
-        dataset: editSnapshot.dataset,
-        devState: editSnapshot.devState,
+      [teamId]: {
+        teamRecord: nextTeamRecord,
+        devState:
+          current[teamId]?.devState ??
+          createInitialDevState(
+            getDatasetForTeamRecord(
+              nextTeamRecord,
+              organizationEmployees,
+              teamDnaResultsByEmployeeId
+            ).members
+          ),
       },
     }));
-    setEditSnapshot(null);
-  };
-
-  // Porting seam: replace these local mutations with team rename/add/remove
-  // API mutations, or remove edit mode if roster management lives elsewhere.
-  const removeMember = (memberId) => {
-    updateActiveRecord((record) => {
-      const nextMembers = record.dataset.members.filter(
-        (member) => member.id !== memberId
-      );
-
-      return {
-        ...record,
-        dataset: {
-          ...record.dataset,
-          members: nextMembers,
-        },
-      };
-    });
-  };
-
-  const addMember = () => {
-    const member = createNewMember(editableTeamDna.team.id, editableTeamDna.members.length + 1);
-
-    updateActiveDataset((current) => ({
-      ...current,
-      members: [...current.members, member],
-    }));
+    setActiveTeamId(teamId);
+    setTeamManagementOverlay(null);
   };
 
   const setActiveTeamSize = (teamSize) => {
     if (!activeRecord) return;
 
-    updateActiveRecord((record) => {
-      const currentMembers = record.dataset.members;
-      const nextMembers =
-        teamSize <= currentMembers.length
-          ? currentMembers.slice(0, teamSize)
-          : [
-              ...currentMembers,
-              ...Array.from({ length: teamSize - currentMembers.length }, (_, index) =>
-                createNewMember(record.dataset.team.id, currentMembers.length + index + 1)
-              ),
-            ];
-
-      return {
-        ...record,
-        dataset: {
-          ...record.dataset,
-          members: nextMembers,
-        },
-      };
-    });
-  };
-
-  const updateMemberCanonicalState = (memberId, updater) => {
-    updateActiveDataset((current) => ({
-      ...current,
-      members: current.members.map((member) =>
-        member.id === memberId ? updater(member) : member
+    updateActiveRecord((record) => ({
+      ...record,
+      teamRecord: getResizedTeamRecord(
+        record.teamRecord,
+        teamSize,
+        organizationEmployees
       ),
     }));
   };
 
   const toggleMemberAvatar = (memberId) => {
-    updateMemberCanonicalState(memberId, (member) => ({
-      ...member,
-      avatarUrl: member.avatarUrl ? '' : member.sourceAvatarUrl || '',
-    }));
+    const sourceEmployee = mockOrganizationEmployees.find(
+      (employee) => employee.id === memberId
+    );
+
+    if (!sourceEmployee) return;
+
+    setOrganizationEmployees((current) =>
+      current.map((employee) =>
+        employee.id === memberId
+          ? {
+              ...employee,
+              avatar: employee.avatar ? '' : sourceEmployee.avatar,
+            }
+          : employee
+      )
+    );
   };
 
   const toggleMemberAssessment = (memberId) => {
-    updateMemberCanonicalState(memberId, (member) => ({
-      ...member,
-      assessmentComplete: member.assessmentComplete === false,
-    }));
+    setTeamDnaResultsByEmployeeId((current) => {
+      const currentResult = current[memberId] ?? {};
+      const nextAssessmentComplete = currentResult.assessmentComplete !== true;
+
+      return {
+        ...current,
+        [memberId]: {
+          ...currentResult,
+          assessmentComplete: nextAssessmentComplete,
+          bigFive: currentResult.bigFive ?? NEUTRAL_BIG_FIVE,
+        },
+      };
+    });
   };
 
   const switchTeam = (teamId) => {
     if (!teamRecords[teamId]) return;
 
-    setEditSnapshot(null);
+    setTeamManagementOverlay(null);
     setActiveTeamId(teamId);
   };
 
   const trySampleTeam = () => {
-    setEditSnapshot(null);
+    const sampleRecordState = createTeamRecordState(
+      sampleTeamRecord,
+      organizationEmployees,
+      teamDnaResultsByEmployeeId
+    );
+
+    setTeamManagementOverlay(null);
     setTeamRecords((current) => ({
       ...current,
-      [SAMPLE_TEAM_ID]: createTeamRecord(cloneEditState(sampleTeamDataset)),
+      [sampleTeamRecord.id]: sampleRecordState,
     }));
-    setActiveTeamId(SAMPLE_TEAM_ID);
+    setActiveTeamId(sampleTeamRecord.id);
   };
 
   return (
@@ -322,7 +352,7 @@ export function TeamDnaPage() {
           {isTrueEmptyState ? (
             <TeamDnaEmptyState
               showLayoutOutlines={showLayoutOutlines}
-              onAddTeam={() => {}}
+              onAddTeam={openCreateTeam}
               onTrySample={trySampleTeam}
             />
           ) : (
@@ -333,17 +363,23 @@ export function TeamDnaPage() {
               teamOptions={teamOptions}
               selectedTeamId={activeTeamId}
               teamSwitcherTopOffset={devState.showMonolithShell ? 104 : 34}
-              onAddMember={addMember}
-              onBeginTeamEdit={beginTeamEdit}
-              onCancelTeamEdit={cancelTeamEdit}
-              onCommitTeamEdit={commitTeamEdit}
-              onRemoveMember={removeMember}
-              onTeamNameChange={updateTeamName}
+              onAddTeam={openCreateTeam}
+              onEditTeam={openEditTeam}
               onTeamChange={switchTeam}
             />
           )}
         </main>
       </MonolithTeamShell>
+      {teamManagementOverlay && (
+        <TeamManagementOverlay
+          mode={teamManagementOverlay.mode}
+          organizationEmployees={organizationEmployees}
+          teamRecord={overlayTeamRecord}
+          topOffset={devState.showMonolithShell ? 70 : 0}
+          onCancel={closeTeamManagement}
+          onSave={saveTeamRecord}
+        />
+      )}
       <TeamDnaDevPanel
         baseMembers={editableTeamDna.members}
         devState={devState}

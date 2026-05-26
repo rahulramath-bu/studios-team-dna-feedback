@@ -188,13 +188,11 @@ export function TeamDnaEmptyPreview() {
                   blockedAttempt={0}
                   isSelected={isSelected}
                   isDuoSelected={isSelected}
-                  isEditingTeam={false}
                   isDimmed={hasActivePair && !isSelected}
                   isPreviewObscured={false}
                   nudge={{ x: 0, y: 0 }}
                   nudgeMotion="selection"
                   onHoverChange={() => {}}
-                  onRemove={() => {}}
                   onSelect={() => {}}
                 />
               </div>

@@ -17,6 +17,7 @@ monolith data and keep the same UI mechanism.
 - [What This Is](#what-this-is)
 - [Core Product Philosophy](#core-product-philosophy)
 - [How The App Works](#how-the-app-works)
+- [Team Management Data Seams](#team-management-data-seams)
 - [Data And AI Philosophy](#data-and-ai-philosophy)
 - [Design System And Monolith Alignment](#design-system-and-monolith-alignment)
 - [Important Files](#important-files)
@@ -134,6 +135,107 @@ raw data -> adapter -> TeamDnaDataset -> selection resolver -> TeamDnaInsight ->
 Components should not know backend field names. Components should not import
 fixture data. Components should receive normalized view-model props.
 
+## Team Management Data Seams
+
+The add/edit team prototype uses three separate data sources on purpose:
+
+```txt
+organization employees + team records + Team DNA results -> TeamDnaDataset
+```
+
+That split is the porting contract. It keeps generic team concepts reusable
+while still giving this Team DNA surface the result fields it needs.
+
+| Fixture | Confidence | Purpose | Future replacement |
+| --- | --- | --- | --- |
+| `mockOrganizationEmployees` | High | Mirrors the monolith frontend `organization-employee` model exactly. | Real organization employee directory query. |
+| `mockTeamRecords` | Medium | Temporary minimal team roster seam. | Real Team/TeamMembership API once engineering defines it. |
+| `mockTeamDnaResultsByEmployeeId` | Feature-specific | Team DNA assessment completion, Big Five scores, and pronouns. | Real Team DNA assessment/results API. |
+
+`mockOrganizationEmployees` intentionally keeps the full normalized monolith
+frontend shape:
+
+```js
+{
+  id,
+  firstName,
+  lastName,
+  email,
+  title,
+  avatar,
+  currentAccess,
+  upcomingAccess,
+  eligibleForAccess,
+  previousAccess
+}
+```
+
+Some fields are blank arrays or `null` in the prototype because Team DNA does
+not need them yet. They stay present so the fixture is recognizable to an
+engineer comparing it against BetterUp's existing directory model.
+
+`mockTeamRecords` is intentionally smaller:
+
+```js
+{
+  id,
+  name,
+  memberEmployeeIds,
+  invitedEmails,
+  sample
+}
+```
+
+Do not treat that as a final backend contract. It is just the smallest useful
+placeholder for "a team has selected employees and maybe invited emails."
+
+`mockTeamDnaResultsByEmployeeId` keeps the Team DNA result layer separate:
+
+```js
+{
+  [employeeId]: {
+    assessmentComplete,
+    bigFive,
+    pronouns
+  }
+}
+```
+
+Do not collapse Big Five data into organization employees or team records. A
+person's assessment result belongs to the person/result layer, not to the
+company directory and not to one team roster.
+
+The single mapper is:
+
+```txt
+buildTeamDnaDatasetFromTeamRecord()
+```
+
+It is the only place where the three sources become `TeamDnaMember` objects.
+That is deliberate. Future engineers should replace fixture inputs and keep
+the UI consuming `TeamDnaDataset`.
+
+### Sample, invites, and empty state
+
+The sample team is not always present. "Try with sample data" inserts
+`sampleTeamRecord` as a normal team record with `sample: true`, then the same
+mapper creates the Team DNA dataset. If the sample team is edited down to zero
+members, it uses the same canonical empty state as any other empty team.
+
+Manual email entries are stored as `invitedEmails` on the team record. No real
+invite is sent in this prototype. The mapper turns those emails into pending
+Team DNA members with no avatar and `assessmentComplete: false`, which is why
+they show the same `PENDING` treatment as an employee who has not completed
+their assessment.
+
+The empty state is triggered only by data:
+
+```txt
+no selected team OR selected team has zero mapped members
+```
+
+There is no separate "show empty state" flag.
+
 ## Data And AI Philosophy
 
 ### The layered model
@@ -244,9 +346,11 @@ do not need to become generic primitives.
 | --- | --- |
 | `src/team-dna/TeamDnaExperience.jsx` | Main feature panel. Mount this inside the monolith route. |
 | `src/team-dna/TeamDnaPage.jsx` | Standalone local harness. Do not port as the final route. |
+| `src/team-dna/components/TeamManagementOverlay.jsx` | Minimal prototype add/edit team overlay. Keep the data flow; replace the visual shell with monolith patterns. |
 | `src/team-dna/data/teamDnaAdapter.js` | Replaceable data seam and selection resolver. |
 | `src/team-dna/data/teamDnaViewModel.d.ts` | Type-only frontend view-model contract for the monolith port. |
 | `src/team-dna/data/teamDnaMock.js` | Demo team data. Do not ship these people, avatars, or scores. |
+| `src/team-dna/data/teamManagementMock.js` | Organization employee, temporary team record, Team DNA result fixtures, and the mapper between them. |
 | `src/team-dna/data/teamDnaGeneratedInsights.mock.js` | Mock backend-generated insight records. Do not port as frontend AI logic. |
 | `src/team-dna/data/teamDnaPairInsights.js` | Deterministic fallback insight generation. |
 | `src/team-dna/data/teamDnaWatchOuts.js` | Deterministic fallback watch-outs. |
@@ -346,6 +450,25 @@ That page should own:
 `TeamDnaExperience` should remain mostly a feature panel.
 
 ### 3. Data adapter
+
+Team management has one extra mapping step before Team DNA rendering:
+
+```txt
+organization employee response
++ team/team-membership response
++ Team DNA assessment/results response
+-> mapTeamRecordToTeamDnaDataset()
+-> TeamDnaDataset
+```
+
+Keep organization directory data, team membership data, and Team DNA result
+data separate until this mapper. That prevents the future universal team
+model from accidentally becoming Team DNA-specific.
+
+The current organization employee fixture mirrors the monolith
+`organization-employee` frontend model. The current team record fixture is not
+authoritative; it is a temporary placeholder until the real Team/TeamMembership
+shape exists.
 
 Keep one mapping layer:
 
@@ -497,6 +620,7 @@ Port the feature code:
 - hooks under `src/team-dna/hooks`
 - deterministic data helpers under `src/team-dna/data`
 - `teamDnaViewModel.d.ts` as the type contract
+- the team-management mapper concept from `teamManagementMock.js`
 - the Team DNA CSS rules, converted to monolith styling conventions
 
 ### 12. What not to port
@@ -509,7 +633,10 @@ Do not port these as production code:
 - fake monolith shell assets
 - fixture avatars
 - `teamDnaMock.js` as real data
+- `mockTeamRecords` as the final backend team contract
+- `mockTeamDnaResultsByEmployeeId` as real assessment storage
 - `teamDnaGeneratedInsights.mock.js` as frontend AI logic
+- `TeamManagementOverlay` as the final production overlay design
 - `TeamDnaChatInputBridge` as a new input primitive
 - `BetterUpIcon`
 
@@ -537,6 +664,15 @@ Before calling a monolith port done:
 - No fake shell, debug panel, local font files, or fixture avatars ship.
 - Route/page layer owns API, loading, errors, analytics, title, and mutations.
 - Components receive `TeamDnaDataset`/`TeamDnaInsight`, not raw backend data.
+- Organization employees, team membership, and Team DNA results stay separate
+  until the mapper.
+- Add/edit team works from the empty state, the switcher add item, and the
+  switcher edit button.
+- Manual email invites create pending members without sending real invites in
+  the prototype.
+- Sample Team is inserted through the same team-record path as real teams.
+- Empty state appears when there is no selected team or the selected team maps
+  to zero members.
 - Team, person, duo, incomplete-assessment, missing-avatar, empty-team, and
   large-team states all render.
 - Pair lookup is order-insensitive.
@@ -560,6 +696,13 @@ No. The people, avatars, scores, and generated copy are demo data. The code path
 is real: data enters through an adapter, resolves into a normalized insight,
 and renders through reusable components. Real data should be able to replace
 the fixtures without changing the rendering model.
+
+### Why are there three mock data shapes?
+
+Because they mean different things. Organization employees are people in the
+company directory. Team records are which people belong to this team. Team DNA
+results are assessment data. Keeping them separate makes the future port less
+confusing and keeps generic team infrastructure from becoming Team DNA-only.
 
 ### Is the app using live AI right now?
 

@@ -363,12 +363,11 @@ button {
 .team-context-switcher {
   position: fixed;
   top: var(--team-context-top, 18px);
-  left: 50%;
+  left: 32px;
   z-index: 80;
   display: inline-flex;
   align-items: flex-end;
   gap: 10px;
-  transform: translateX(-50%);
   transition:
     opacity 900ms ease,
     transform 180ms ease;
@@ -381,10 +380,11 @@ button {
 
 .team-context-select-group {
   display: grid;
-  gap: 5px;
+  gap: 9px;
 }
 
 .team-context-label {
+  padding-left: 8px;
   color: var(--label-color);
   font-family: 'Söhne Mono', monospace;
   font-size: 10px;
@@ -396,22 +396,26 @@ button {
 
 .team-context-menu-wrap {
   position: relative;
-  min-width: 244px;
+  min-width: 0;
 }
 
 .team-context-menu-trigger {
   display: flex;
   position: relative;
-  width: 100%;
-  min-width: 244px;
-  min-height: 45px;
+  width: auto;
+  min-width: 0;
+  max-width: min(312px, calc(100vw - 124px));
+  min-height: 42px;
   align-items: center;
   justify-content: space-between;
-  gap: 16px;
-  padding: 11px 40px 11px 12px;
-  border: 1px solid var(--input);
-  border-radius: 2px;
-  background: var(--bg-form-field, var(--white));
+  gap: 10px;
+  padding: 9px 37px 9px 16px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  border-radius: 999px;
+  background: rgba(var(--team-dna-canvas-rgb), 0.74);
+  box-shadow:
+    0 10px 28px rgba(var(--team-dna-ink-rgb), 0.06),
+    inset 0 1px 0 rgba(var(--white-rgb), 0.38);
   color: var(--foreground-heading);
   cursor: pointer;
   font-family: 'Söhne', sans-serif;
@@ -419,9 +423,21 @@ button {
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.35;
+  backdrop-filter: blur(10px);
   transition:
+    background 160ms ease,
     border-color 160ms ease,
-    box-shadow 160ms ease;
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.team-context-menu-trigger:hover {
+  border-color: rgba(var(--team-dna-ink-rgb), 0.18);
+  background: rgba(var(--team-dna-canvas-rgb), 0.9);
+  box-shadow:
+    0 12px 32px rgba(var(--team-dna-ink-rgb), 0.08),
+    inset 0 1px 0 rgba(var(--white-rgb), 0.48);
+  transform: translateY(-1px);
 }
 
 .team-context-current-team {
@@ -448,7 +464,7 @@ button {
 .team-context-select-chevron {
   position: absolute;
   top: 50%;
-  right: 12px;
+  right: 13px;
   display: inline-flex;
   color: var(--muted-foreground);
   pointer-events: none;
@@ -457,7 +473,7 @@ button {
 
 .team-context-menu {
   position: absolute;
-  top: calc(100% + 4px);
+  top: calc(100% + 7px);
   left: 0;
   z-index: 85;
   width: 100%;
@@ -466,10 +482,11 @@ button {
   overflow: auto;
   padding: 4px;
   border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--popover);
+  border-radius: 14px;
+  background: rgba(var(--team-dna-canvas-rgb), 0.96);
   box-shadow: 0 10px 28px rgba(var(--team-dna-ink-rgb), 0.12);
   color: var(--popover-foreground);
+  backdrop-filter: blur(12px);
 }
 
 .team-context-menu-item {
@@ -523,31 +540,40 @@ button {
 
 .team-context-edit-button {
   display: inline-flex;
-  width: 36px;
-  height: 36px;
+  width: 42px;
+  height: 42px;
   align-items: center;
   justify-content: center;
   padding: 0;
-  border: 1px solid transparent;
-  border-radius: 2px;
-  background: transparent;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  border-radius: 999px;
+  background: rgba(var(--team-dna-canvas-rgb), 0.64);
+  box-shadow:
+    0 10px 28px rgba(var(--team-dna-ink-rgb), 0.05),
+    inset 0 1px 0 rgba(var(--white-rgb), 0.34);
   color: var(--team-dna-ink);
   cursor: pointer;
+  backdrop-filter: blur(10px);
   transition:
     background 160ms ease,
+    border-color 160ms ease,
     box-shadow 160ms ease,
     color 160ms ease,
     transform 160ms ease;
 }
 
 .team-context-edit-button:hover {
-  background: rgba(var(--team-dna-ink-rgb), 0.04);
-  box-shadow: 0 0 0 8px rgba(var(--team-dna-ink-rgb), 0.04);
+  border-color: rgba(var(--team-dna-ink-rgb), 0.18);
+  background: rgba(var(--team-dna-canvas-rgb), 0.9);
+  box-shadow:
+    0 12px 32px rgba(var(--team-dna-ink-rgb), 0.08),
+    inset 0 1px 0 rgba(var(--white-rgb), 0.46);
+  transform: translateY(-1px);
 }
 
 .team-context-edit-button:active {
-  background: rgba(var(--team-dna-ink-rgb), 0.08);
-  box-shadow: 0 0 0 8px rgba(var(--team-dna-ink-rgb), 0.08);
+  background: rgba(var(--team-dna-canvas-rgb), 1);
+  transform: translateY(0);
 }
 
 .team-context-edit-button:focus-visible {
@@ -559,6 +585,269 @@ button {
   cursor: default;
   opacity: 0.45;
   transform: none;
+}
+
+.team-management-overlay {
+  position: fixed;
+  inset: var(--team-management-top, 0px) 0 0;
+  z-index: 140;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: rgba(var(--team-dna-canvas-rgb), 0.96);
+  color: var(--team-dna-ink);
+}
+
+.team-management-panel {
+  width: min(1040px, 100%);
+  max-height: min(760px, calc(100vh - var(--team-management-top, 0px) - 64px));
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 32px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.1);
+  border-radius: 24px;
+  background: rgba(var(--white-rgb), 0.78);
+  box-shadow: 0 24px 80px rgba(var(--team-dna-ink-rgb), 0.14);
+  overflow: hidden;
+}
+
+.team-management-header,
+.team-management-footer,
+.team-management-selected-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.team-management-eyebrow,
+.team-management-field span,
+.team-management-selected-heading span {
+  margin: 0;
+  color: var(--label-color);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.1px;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.team-management-header h2 {
+  margin: 6px 0 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: clamp(34px, 4vw, 52px);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.02;
+}
+
+.team-management-icon-button {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.1);
+  border-radius: 999px;
+  background: rgba(var(--team-dna-canvas-rgb), 0.7);
+  color: var(--team-dna-ink);
+  cursor: pointer;
+}
+
+.team-management-grid {
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  gap: 24px;
+}
+
+.team-management-section {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.team-management-field {
+  display: grid;
+  gap: 8px;
+}
+
+.team-management-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
+  border-radius: 14px;
+  background: rgba(var(--white-rgb), 0.72);
+  color: var(--team-dna-ink);
+  font-size: 17px;
+  line-height: 1.2;
+  outline: none;
+}
+
+.team-management-field input:focus {
+  border-color: rgba(var(--team-dna-primary-rgb), 0.55);
+  box-shadow: 0 0 0 3px rgba(var(--team-dna-primary-rgb), 0.12);
+}
+
+.team-management-list {
+  min-height: 0;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.team-management-row {
+  width: 100%;
+  min-height: 64px;
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 12px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+  border-radius: 16px;
+  background: rgba(var(--white-rgb), 0.5);
+  color: var(--team-dna-ink);
+  text-align: left;
+}
+
+button.team-management-row {
+  cursor: pointer;
+}
+
+.team-management-row[data-selected] {
+  border-color: rgba(var(--team-dna-primary-rgb), 0.24);
+  background: rgba(var(--team-dna-primary-rgb), 0.06);
+}
+
+.team-management-avatar {
+  width: 44px;
+  height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.08);
+  color: var(--team-dna-ink);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.team-management-avatar img {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+}
+
+.team-management-row-copy {
+  min-width: 0;
+  display: grid;
+  gap: 3px;
+}
+
+.team-management-row-copy strong,
+.team-management-row-copy small {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-management-row-copy strong {
+  font-size: 16px;
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.team-management-row-copy small {
+  color: rgba(var(--team-dna-ink-rgb), 0.62);
+  font-size: 14px;
+  line-height: 1.25;
+}
+
+.team-management-add-label,
+.team-management-remove-button {
+  border: 0;
+  background: transparent;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.team-management-remove-button {
+  cursor: pointer;
+}
+
+.team-management-selected-heading strong {
+  min-width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.08);
+  color: var(--team-dna-ink);
+  font-size: 13px;
+}
+
+.team-management-empty {
+  margin: 0;
+  padding: 18px 2px;
+  color: rgba(var(--team-dna-ink-rgb), 0.56);
+  font-size: 15px;
+}
+
+.team-management-footer {
+  padding-top: 2px;
+}
+
+.team-management-primary,
+.team-management-secondary {
+  min-height: 44px;
+  padding: 0 22px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.team-management-primary {
+  border: 1px solid var(--primary);
+  background: var(--primary);
+  color: var(--white);
+}
+
+.team-management-secondary {
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.16);
+  background: transparent;
+  color: var(--team-dna-ink);
+}
+
+.team-management-icon-button:hover,
+.team-management-row:hover,
+.team-management-primary:hover,
+.team-management-secondary:hover,
+.team-management-remove-button:hover {
+  transform: translateY(-1px);
+}
+
+.team-management-icon-button:focus-visible,
+.team-management-row:focus-visible,
+.team-management-primary:focus-visible,
+.team-management-secondary:focus-visible,
+.team-management-remove-button:focus-visible {
+  outline: 2px solid var(--team-dna-focus);
+  outline-offset: 3px;
 }
 
 .team-dna-experience[data-layout-debug],
@@ -1223,13 +1512,6 @@ button {
     width 1200ms cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.team-dna-experience[data-editing] {
-  --composition-shift: 0px;
-
-  grid-template-columns: var(--people-pane-width);
-  width: min(calc(100% - 48px), var(--people-pane-width));
-}
-
 .team-dna-experience[data-intro] {
   --composition-shift: 0px;
 
@@ -1290,19 +1572,6 @@ button {
   letter-spacing: 0;
   line-height: 1.12;
   text-transform: none;
-}
-
-.team-face-toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 42px;
-  transition: opacity 520ms ease;
-}
-
-.team-face-toolbar[data-hidden] {
-  opacity: 0;
-  pointer-events: none;
 }
 
 .team-face-context-header {
@@ -1387,81 +1656,6 @@ button {
   margin: 0;
 }
 
-.team-dna-experience[data-editing] .team-face-toolbar {
-  margin-bottom: 0;
-}
-
-.team-edit-header {
-  display: flex;
-  align-items: center;
-  width: 100%;
-  margin-bottom: 38px;
-}
-
-.team-edit-name-control {
-  position: relative;
-  width: 100%;
-}
-
-.team-edit-name-input {
-  min-width: 0;
-  width: 100%;
-  height: 54px;
-  padding: 0;
-  padding-right: 82px;
-  border: 0;
-  border-bottom: 1px solid rgba(var(--team-dna-ink-rgb), 0.18);
-  background: transparent;
-  color: var(--foreground-heading);
-  font-family: var(--heading-display-font);
-  font-size: 39px;
-  font-weight: 400;
-  letter-spacing: var(--heading-display-tracking);
-  line-height: 1.04;
-}
-
-.team-edit-name-input:focus {
-  outline: 0;
-  border-bottom-color: rgba(var(--team-dna-ink-rgb), 0.48);
-}
-
-.team-edit-name-action {
-  position: absolute;
-  top: 50%;
-  display: flex;
-  width: 32px;
-  height: 32px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid rgba(var(--team-dna-primary-rgb), 0.2);
-  border-radius: 999px;
-  background: rgba(var(--team-dna-canvas-rgb), 0.92);
-  color: rgba(var(--team-dna-ink-rgb), 0.72);
-  cursor: pointer;
-  transform: translateY(-50%);
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
-}
-
-.team-edit-cancel-button {
-  right: 40px;
-}
-
-.team-edit-done-button {
-  right: 0;
-}
-
-.team-edit-name-action:hover {
-  border-color: transparent;
-  background: var(--duo-selection-accent);
-  color: var(--white);
-  transform: translateY(-50%) scale(1.04);
-}
-
 .team-face-grid {
   display: grid;
   grid-template-columns: repeat(3, var(--face-size));
@@ -1484,29 +1678,6 @@ button {
   background: transparent;
   cursor: pointer;
   transform-origin: center;
-}
-
-.team-face-button[data-editing] {
-  cursor: default;
-}
-
-.team-face-button[data-editing] .team-face-visual-layer {
-  animation: team-face-edit-jiggle 190ms ease-in-out infinite alternate;
-}
-
-.team-face-button[data-editing]:nth-child(2n) .team-face-visual-layer {
-  animation-direction: alternate-reverse;
-  animation-duration: 215ms;
-}
-
-@keyframes team-face-edit-jiggle {
-  from {
-    rotate: -1.2deg;
-  }
-
-  to {
-    rotate: 1.2deg;
-  }
 }
 
 .duo-connection-layer {
@@ -1603,65 +1774,6 @@ button {
   z-index: 30;
 }
 
-.team-face-remove-button {
-  position: absolute;
-  top: 4px;
-  right: 11px;
-  z-index: 4;
-  display: flex;
-  width: 25px;
-  height: 25px;
-  align-items: center;
-  justify-content: center;
-  padding: 0;
-  border: 1px solid rgba(var(--team-dna-primary-rgb), 0.22);
-  border-radius: 999px;
-  background: rgba(var(--team-dna-canvas-rgb), 0.92);
-  color: var(--duo-selection-accent);
-  cursor: pointer;
-  box-shadow: 0 5px 14px rgba(var(--team-dna-ink-rgb), 0.13);
-  transition:
-    background 160ms ease,
-    border-color 160ms ease,
-    color 160ms ease,
-    transform 160ms ease;
-}
-
-.team-face-remove-button:hover {
-  border-color: transparent;
-  background: var(--duo-selection-accent);
-  color: var(--white);
-  transform: scale(1.06);
-}
-
-.team-edit-add-member-button {
-  display: flex;
-  width: 54px;
-  height: 54px;
-  align-items: center;
-  justify-content: center;
-  justify-self: center;
-  align-self: center;
-  padding: 0;
-  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
-  border-radius: 999px;
-  background: rgba(var(--white-rgb), 0.24);
-  color: rgba(var(--team-dna-ink-rgb), 0.54);
-  cursor: pointer;
-  transition:
-    background 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    transform 180ms ease;
-}
-
-.team-edit-add-member-button:hover {
-  border-color: rgba(var(--team-dna-ink-rgb), 0.24);
-  background: rgba(var(--white-rgb), 0.38);
-  color: rgba(var(--team-dna-ink-rgb), 0.72);
-  transform: scale(1.04);
-}
-
 .team-face-ring {
   position: absolute;
   inset: -6px;
@@ -1756,6 +1868,35 @@ button {
   text-transform: uppercase;
   transform: translateX(-50%);
   white-space: nowrap;
+}
+
+.team-face-tap-hint {
+  bottom: 8px;
+  z-index: 4;
+  height: 24px;
+  padding: 0 10px;
+  animation: team-face-tap-hint-linger 3000ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  font-size: 10px;
+  letter-spacing: 0.72px;
+  pointer-events: none;
+}
+
+@keyframes team-face-tap-hint-linger {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(5px);
+  }
+
+  10%,
+  88% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-2px);
+  }
 }
 
 .team-face-button[data-unavailable] .team-face-image,

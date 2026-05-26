@@ -17,6 +17,7 @@ export function TeamContextSwitcher({
   disabled = false,
   introHidden = false,
   topOffset = 18,
+  onAddTeam,
   onEditTeam,
   onTeamChange,
 }) {
@@ -55,6 +56,7 @@ export function TeamContextSwitcher({
   };
 
   const handleAddTeam = () => {
+    onAddTeam?.();
     setIsOpen(false);
   };
 

@@ -1,7 +1,6 @@
 import React, { forwardRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
-import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { useTeamDnaPressable } from '../hooks/useTeamDnaPressable';
 
 const PRESS_SCALE = 1.08;
@@ -41,8 +40,8 @@ function getFirstNameSizeScale(firstName) {
  * Single teammate pressable.
  *
  * What: semantic face button for one team member, including avatar/first-name
- * fallback, selected ring, dimming, hover label, edit remove control,
- * unavailable shake, selected pulse, and press feedback.
+ * fallback, selected ring, dimming, hover label, unavailable shake, selected
+ * pulse, and press feedback.
  * How: separates transforms across nested motion layers so hover, press,
  * selected scale, duo nudge, pulse, and blocked shake can compose without
  * fighting over one CSS transform.
@@ -58,11 +57,11 @@ export const TeamFace = forwardRef(function TeamFace(
     isDimmed,
     isBlocked,
     introDelay = 0,
-    isEditingTeam,
+    showTapHint = false,
+    tapHintCycle = 0,
     blockedAttempt = 0,
     nudge = { x: 0, y: 0 },
     nudgeMotion = 'idle',
-    onRemove,
     onSelect,
     onHoverChange,
     isPreviewObscured,
@@ -77,13 +76,24 @@ export const TeamFace = forwardRef(function TeamFace(
   const restingScale = isSelected ? 1.22 : isDimmed ? 0.68 : 1;
   const interactionScale =
     restingScale * (hovered ? HOVER_SCALE : 1) * (pressed ? PRESS_SCALE : 1);
+  const visualScale = showTapHint
+    ? [
+        interactionScale,
+        interactionScale * 1.2,
+        interactionScale * 1.04,
+        interactionScale * 1.18,
+        interactionScale * 1.02,
+        interactionScale * 1.15,
+        interactionScale,
+      ]
+    : interactionScale;
   const isUnavailable = member.assessmentComplete === false;
   const hoverLabel = isSelected
     ? 'Deselect'
     : isBlocked
       ? 'Needs Team DNA first'
       : member.name;
-  const showHoverLabel = !isEditingTeam && (hovered || isBlocked);
+  const showHoverLabel = hovered || isBlocked;
   const dimmedOpacity = isPreviewObscured ? 0.1 : 0.26;
   const nudgeTransition =
     nudgeMotion === 'selection'
@@ -135,12 +145,18 @@ export const TeamFace = forwardRef(function TeamFace(
       className="team-face-visual-layer"
       animate={{
         opacity: isDimmed && !hovered ? dimmedOpacity : 1,
-        scale: interactionScale,
+        scale: visualScale,
         x: nudge.x,
         y: nudge.y,
       }}
       transition={{
-        scale: { type: 'spring', stiffness: 360, damping: 31 },
+        scale: showTapHint
+          ? {
+              duration: 2.8,
+              ease: [0.22, 1, 0.36, 1],
+              times: [0, 0.12, 0.26, 0.42, 0.58, 0.76, 1],
+            }
+          : { type: 'spring', stiffness: 360, damping: 31 },
         opacity: { duration: 0.18 },
         x: nudgeTransition,
         y: nudgeTransition,
@@ -181,43 +197,19 @@ export const TeamFace = forwardRef(function TeamFace(
               Pending
             </span>
           )}
+          {showTapHint && (
+            <span
+              key={`tap-hint-${tapHintCycle}`}
+              className="team-face-pending-pill team-face-tap-hint"
+              aria-hidden="true"
+            >
+              Tap me
+            </span>
+          )}
         </motion.span>
       </motion.span>
     </motion.span>
   );
-
-  if (isEditingTeam) {
-    return (
-      <motion.div
-        ref={ref}
-        layout
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        exit={{ opacity: 0, scale: 0 }}
-        transition={presenceTransition}
-        className="team-face-button"
-        data-editing={isEditingTeam || undefined}
-        data-unavailable={isUnavailable || undefined}
-        onPointerMove={updateTooltipPosition}
-        onHoverStart={(event) => {
-          updateTooltipPosition(event);
-          setHovered(true);
-        }}
-        onHoverEnd={() => setHovered(false)}
-      >
-        {faceVisual}
-        {hoverTooltip}
-        <button
-          type="button"
-          className="team-face-remove-button"
-          onClick={onRemove}
-          aria-label={`Remove ${member.name}`}
-        >
-          <BetterUpIcon name="X" size={13} strokeWidth={2.3} />
-        </button>
-      </motion.div>
-    );
-  }
 
   return (
     <motion.button
