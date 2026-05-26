@@ -527,7 +527,7 @@ export function TeamManagementOverlay({
                     <motion.div
                       key="team-management-add-card"
                       ref={addCardRef}
-                      layout
+                      layout="position"
                       transition={ADD_CARD_LAYOUT_TRANSITION}
                       className="team-management-add-card-layout"
                     >
