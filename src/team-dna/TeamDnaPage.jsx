@@ -160,6 +160,7 @@ export function TeamDnaPage() {
     return firstRealTeam?.id ?? null;
   });
   const [teamManagementOverlay, setTeamManagementOverlay] = useState(null);
+  const [activeGenerationTarget, setActiveGenerationTarget] = useState(null);
   const [showLayoutOutlines, setShowLayoutOutlines] = useState(false);
   const [emptyDevState, setEmptyDevState] = useState(() =>
     createInitialDevState(EMPTY_TEAM_DATASET.members)
@@ -190,6 +191,7 @@ export function TeamDnaPage() {
     !activeRecord || visibleRecord.dataset.members.length === 0;
   const editableTeamDna = visibleRecord.dataset;
   const devState = visibleRecord.devState;
+  const generationStatusByTargetId = devState.generationStatusByTargetId ?? {};
   const scenarioDataset = editableTeamDna;
   const teamOptions = useMemo(
     () =>
@@ -284,6 +286,47 @@ export function TeamDnaPage() {
     if (import.meta.env.DEV) {
       console.info('[Team DNA Grow Chat prompt]', action);
     }
+  };
+
+  const setGenerationStatusForTarget = (
+    target,
+    status,
+    eventType = 'teamDnaInsightGenerationSucceeded'
+  ) => {
+    if (!target?.id) return;
+
+    const event = {
+      type: eventType,
+      targetId: target.id,
+      status,
+      timestamp: new Date().toISOString(),
+    };
+
+    updateActiveDevState((current) => ({
+      ...current,
+      generationStatusByTargetId: {
+        ...(current.generationStatusByTargetId ?? {}),
+        [target.id]: status,
+      },
+      lastGenerationEvent: event,
+    }));
+
+    if (import.meta.env.DEV) {
+      console.info('[Team DNA generation lifecycle event]', event);
+    }
+  };
+
+  const handleInsightLifecycleAction = (action) => {
+    const nextStatus =
+      action.type === 'teamDnaInsightGenerationFailed'
+        ? 'failed'
+        : action.type === 'teamDnaTeamInsightMarkedStale'
+          ? 'stale'
+          : action.type === 'teamDnaAssessmentCompleted'
+            ? 'pending'
+            : 'pending';
+
+    setGenerationStatusForTarget(action.target, nextStatus, action.type);
   };
 
   const saveTeamRecord = (draftTeamRecord) => {
@@ -397,6 +440,7 @@ export function TeamDnaPage() {
               dataset={scenarioDataset}
               showLayoutOutlines={showLayoutOutlines}
               preserveInsightScroll={devState.preserveInsightScroll}
+              generationStatusByTargetId={generationStatusByTargetId}
               teamOptions={teamOptions}
               selectedTeamId={activeTeamId}
               teamSwitcherTopOffset={devState.showMonolithShell ? 104 : 34}
@@ -404,6 +448,8 @@ export function TeamDnaPage() {
               onEditTeam={openEditTeam}
               onTeamChange={switchTeam}
               onGrowChatPrompt={handleGrowChatPrompt}
+              onGenerationTargetChange={setActiveGenerationTarget}
+              onInsightLifecycleAction={handleInsightLifecycleAction}
             />
           )}
         </main>
@@ -421,8 +467,10 @@ export function TeamDnaPage() {
       )}
       <TeamDnaDevPanel
         baseMembers={editableTeamDna.members}
+        activeGenerationTarget={activeGenerationTarget}
         devState={devState}
         canResizeTeam={Boolean(activeRecord)}
+        onSetGenerationStatus={setGenerationStatusForTarget}
         onSetTeamSize={setActiveTeamSize}
         onToggleMemberAvatar={toggleMemberAvatar}
         onToggleMemberAssessment={toggleMemberAssessment}

@@ -25,6 +25,7 @@ export function InsightPanel({
   isHidden,
   preserveScroll = false,
   onSelectMember,
+  onLifecycleAction,
 }) {
   const scrollRef = useRef(null);
   const resetScrollAfterExit = () => {
@@ -56,6 +57,7 @@ export function InsightPanel({
                   key={insight.id}
                   insight={insight}
                   onSelectMember={onSelectMember}
+                  onLifecycleAction={onLifecycleAction}
                 />
               </AnimatePresence>
             </div>
@@ -66,7 +68,7 @@ export function InsightPanel({
   );
 }
 
-function InsightPage({ insight, onSelectMember }) {
+function InsightPage({ insight, onSelectMember, onLifecycleAction }) {
   return (
     <motion.article
       className="team-dna-insight-page"
@@ -88,22 +90,149 @@ function InsightPage({ insight, onSelectMember }) {
       <InsightPageContent
         insight={insight}
         onSelectMember={onSelectMember}
+        onLifecycleAction={onLifecycleAction}
       />
     </motion.article>
   );
 }
 
-function InsightPageContent({ insight, onSelectMember }) {
+function InsightPageContent({ insight, onSelectMember, onLifecycleAction }) {
+  const lifecycle = insight.generationLifecycle;
+  const isNotReady = lifecycle?.status === 'not_ready';
+
   return (
     <>
-      <section className="insight-primary-read">
-        <div className="insight-heading-group">
-          <InsightHeading insight={insight} />
-        </div>
-        <InsightSummary insight={insight} />
-      </section>
-      <InsightBlocks insight={insight} onSelectMember={onSelectMember} />
+      <InsightLifecycleStatus
+        lifecycle={lifecycle}
+        onLifecycleAction={onLifecycleAction}
+      />
+      {isNotReady ? <InsightWaitingState lifecycle={lifecycle} /> : null}
+      {isNotReady ? null : (
+        <>
+          <section className="insight-primary-read">
+            <div className="insight-heading-group">
+              <InsightHeading insight={insight} />
+            </div>
+            <InsightSummary insight={insight} />
+          </section>
+          <InsightBlocks insight={insight} onSelectMember={onSelectMember} />
+        </>
+      )}
     </>
+  );
+}
+
+function getLifecycleCopy(lifecycle) {
+  const status = lifecycle?.status;
+  const target = lifecycle?.target;
+
+  if (status === 'pending') {
+    return {
+      tone: 'working',
+      label: 'Generating',
+      text: target?.scope === 'team'
+        ? 'Building team insights from completed assessments.'
+        : 'Building this Team DNA read.',
+    };
+  }
+
+  if (status === 'failed') {
+    return {
+      tone: 'warning',
+      label: 'Basic read',
+      text: 'AI generation failed. Showing the stable Big Five fallback.',
+      actionLabel: 'Retry',
+      actionType: 'teamDnaInsightGenerationRequested',
+    };
+  }
+
+  if (status === 'stale') {
+    return {
+      tone: 'notice',
+      label: 'Needs refresh',
+      text: 'New assessment data is available. Refresh to include it in this read.',
+      actionLabel: 'Refresh',
+      actionType: 'teamDnaTeamInsightRefreshRequested',
+    };
+  }
+
+  if (status === 'not_ready') {
+    return {
+      tone: 'quiet',
+      label: 'Waiting',
+      text: getNotReadyText(target),
+      actionLabel: target?.canGenerateTeam ? 'Generate now' : undefined,
+      actionType: target?.canGenerateTeam
+        ? 'teamDnaInsightGenerationRequested'
+        : undefined,
+    };
+  }
+
+  return null;
+}
+
+function getNotReadyText(target) {
+  if (target?.scope !== 'team') {
+    return 'This read appears when the needed assessments are complete.';
+  }
+
+  if (target.completedCount < target.minimumCompletedCount) {
+    return `${target.completedCount} of ${target.totalCount} assessments complete. Team insights need at least ${target.minimumCompletedCount} completed assessments.`;
+  }
+
+  if (target.completedCount === target.totalCount) {
+    return `${target.completedCount} of ${target.totalCount} assessments complete. Generate now to create team insights.`;
+  }
+
+  return `${target.completedCount} of ${target.totalCount} assessments complete. Team insights will be ready when everyone finishes, or you can generate with current responses.`;
+}
+
+function InsightLifecycleStatus({ lifecycle, onLifecycleAction }) {
+  const copy = getLifecycleCopy(lifecycle);
+
+  if (!copy) return null;
+
+  const handleAction = () => {
+    if (!copy.actionType) return;
+    onLifecycleAction?.({
+      type: copy.actionType,
+      target: lifecycle.target,
+      status: lifecycle.status,
+    });
+  };
+
+  return (
+    <div
+      className="insight-lifecycle-status"
+      data-tone={copy.tone}
+      role={copy.tone === 'warning' ? 'alert' : 'status'}
+    >
+      <div>
+        <span>{copy.label}</span>
+        <p>{copy.text}</p>
+      </div>
+      {copy.actionLabel && (
+        <button type="button" onClick={handleAction}>
+          {copy.actionLabel}
+        </button>
+      )}
+    </div>
+  );
+}
+
+function InsightWaitingState({ lifecycle }) {
+  const target = lifecycle?.target;
+
+  return (
+    <section className="insight-waiting-state" aria-label="Insight waiting state">
+      <p className="insight-waiting-kicker">Team DNA is still collecting signal.</p>
+      <h2>Waiting on assessments</h2>
+      <p>
+        {getNotReadyText(target)} The basic roster can still be managed, but the
+        team read should not pretend to know the team before there is enough
+        completed assessment data.
+      </p>
+    </section>
   );
 }
 

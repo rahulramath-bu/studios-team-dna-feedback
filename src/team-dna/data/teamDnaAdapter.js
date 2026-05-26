@@ -7,6 +7,10 @@ import {
   buildPersonInsight,
   buildTeamInsight,
 } from './teamDnaPairInsights.js';
+import {
+  resolveTeamDnaGenerationLifecycle,
+  shouldUseGeneratedTeamDnaInsight,
+} from './teamDnaGenerationLifecycle.mock.js';
 
 /**
  * Replaceable Team DNA data seam.
@@ -126,27 +130,54 @@ function withSelectionCards(dataset, selectedIds, insight) {
   };
 }
 
-function getResolvedInsightCopy(insight) {
-  return insight?.source === 'ai' || insight?.source === 'override'
+function getResolvedInsightCopy(insight, lifecycle) {
+  const canUseGeneratedInsight =
+    insight?.source !== 'ai' || shouldUseGeneratedTeamDnaInsight(lifecycle);
+
+  return canUseGeneratedInsight &&
+    (insight?.source === 'ai' || insight?.source === 'override')
     ? insight
     : undefined;
 }
 
-export function getInsightForSelection(dataset, selectedIds) {
+function withGenerationLifecycle(insight, lifecycle) {
+  return {
+    ...insight,
+    generationLifecycle: lifecycle,
+  };
+}
+
+export function getInsightForSelection(
+  dataset,
+  selectedIds,
+  generationStatusByTargetId = {}
+) {
+  const lifecycle = resolveTeamDnaGenerationLifecycle(
+    dataset,
+    selectedIds,
+    generationStatusByTargetId
+  );
+
   if (selectedIds.length === 0) {
-    return withSelectionCards(
-      dataset,
-      selectedIds,
-      withEntityHeading(
-        buildTeamInsight({
-          team: dataset.team,
-          members: getSelectableMembers(dataset),
-          cards: [],
-          authoredInsight: getResolvedInsightCopy(dataset.insights.team),
-        }),
-        'Team',
-        dataset.team.name
-      )
+    return withGenerationLifecycle(
+      withSelectionCards(
+        dataset,
+        selectedIds,
+        withEntityHeading(
+          buildTeamInsight({
+            team: dataset.team,
+            members: getSelectableMembers(dataset),
+            cards: [],
+            authoredInsight: getResolvedInsightCopy(
+              dataset.insights.team,
+              lifecycle
+            ),
+          }),
+          'Team',
+          dataset.team.name
+        )
+      ),
+      lifecycle
     );
   }
 
@@ -155,20 +186,24 @@ export function getInsightForSelection(dataset, selectedIds) {
       (member) => member.id === selectedIds[0]
     );
 
-    return withSelectionCards(
-      dataset,
-      selectedIds,
-      withEntityHeading(
-        buildPersonInsight({
-          member: selectedMember,
-          cards: [],
-          authoredInsight: getResolvedInsightCopy(
-            dataset.insights.people?.[selectedIds[0]]
-          ),
-        }),
-        'Person',
-        selectedMember?.name ?? 'Team member'
-      )
+    return withGenerationLifecycle(
+      withSelectionCards(
+        dataset,
+        selectedIds,
+        withEntityHeading(
+          buildPersonInsight({
+            member: selectedMember,
+            cards: [],
+            authoredInsight: getResolvedInsightCopy(
+              dataset.insights.people?.[selectedIds[0]],
+              lifecycle
+            ),
+          }),
+          'Person',
+          selectedMember?.name ?? 'Team member'
+        )
+      ),
+      lifecycle
     );
   }
 
@@ -180,18 +215,24 @@ export function getInsightForSelection(dataset, selectedIds) {
     (member) => member.id === selectedIds[1]
   );
 
-  return withSelectionCards(
-    dataset,
-    selectedIds,
-    withEntityHeading(
-      buildPairInsight({
-        first: firstMember,
-        second: secondMember,
-        cards: [],
-        authoredInsight: getResolvedInsightCopy(dataset.insights.pairs?.[pairId]),
-      }),
-      'Pair',
-      `${getFirstName(firstMember)} x ${getFirstName(secondMember)}`
-    )
+  return withGenerationLifecycle(
+    withSelectionCards(
+      dataset,
+      selectedIds,
+      withEntityHeading(
+        buildPairInsight({
+          first: firstMember,
+          second: secondMember,
+          cards: [],
+          authoredInsight: getResolvedInsightCopy(
+            dataset.insights.pairs?.[pairId],
+            lifecycle
+          ),
+        }),
+        'Pair',
+        `${getFirstName(firstMember)} x ${getFirstName(secondMember)}`
+      )
+    ),
+    lifecycle
   );
 }

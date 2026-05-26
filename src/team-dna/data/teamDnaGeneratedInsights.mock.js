@@ -14,7 +14,8 @@ const INPUT_VERSION = 'team-dna-mock-generated-insights-v1';
  * tell whether those records came from this mock file or from a real API.
  * Port: do not port this as frontend AI logic. Replace the factory call in
  * `teamDnaMock.js` with real generated insight records from the backend, then
- * keep using the same adapter/rendering path.
+ * keep using the same adapter/rendering path. Generation job status belongs in
+ * the lifecycle/status layer, not inside this handcrafted copy factory.
  */
 
 const PERSON_SYNTHESIS = {

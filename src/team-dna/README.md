@@ -19,6 +19,7 @@ monolith data and keep the same UI mechanism.
 - [How The App Works](#how-the-app-works)
 - [Team Management Data Seams](#team-management-data-seams)
 - [Data And AI Philosophy](#data-and-ai-philosophy)
+- [AI Generation Lifecycle](#ai-generation-lifecycle)
 - [Design System And Monolith Alignment](#design-system-and-monolith-alignment)
 - [Important Files](#important-files)
 - [Local Development](#local-development)
@@ -325,6 +326,108 @@ AI should not be the source of truth for:
 The frontend should not choose models, hold protected prompts, or call an LLM
 directly for the main Team DNA result surface.
 
+## AI Generation Lifecycle
+
+The simple rule:
+
+```txt
+Data creates the team/person/duo targets.
+AI only enriches those targets with nicer readouts.
+The UI must still work while AI is pending, failed, stale, or unavailable.
+```
+
+Do not think of the AI pass as "creating pages." Team DNA pages are view states
+created by real product data:
+
+| View target | Exists when | AI output attaches when |
+| --- | --- | --- |
+| Person read | That person has completed the assessment. | The person-profile generation job succeeds. |
+| Duo read | Both selected people have completed the assessment. | The duo generation job for that pair succeeds. |
+| Team read | The team has enough completed assessments. | The team generation job succeeds for the chosen member snapshot. |
+
+For the first version, use this readiness rule:
+
+```txt
+Person read: 1 completed assessment.
+Duo read: 2 completed assessments.
+Team read: at least 3 completed assessments.
+Default team read waits for everyone, unless a manager generates early.
+```
+
+That means a team with 1-2 completed assessments should show a waiting state,
+not a fake team insight. A team with 3+ completed assessments can be generated
+early if the manager chooses to move forward before everyone finishes.
+
+### Backend event model
+
+These event names are prototype seams, not final API names. They describe the
+kind of backend/product events engineering should expect to wire:
+
+| Event | Frontend result |
+| --- | --- |
+| `teamDnaAssessmentCompleted` | Person generation can start. Duo generation can start for completed teammate pairs. Team read may become available or stale. |
+| `teamDnaInsightGenerationRequested` | Target status becomes `pending`. |
+| `teamDnaInsightGenerationSucceeded` | Target status becomes `ready`; generated copy can be used. |
+| `teamDnaInsightGenerationFailed` | Target status becomes `failed`; deterministic fallback remains visible. |
+| `teamDnaTeamInsightMarkedStale` | Existing team read remains visible, but a refresh prompt appears. |
+| `teamDnaTeamInsightRefreshRequested` | Team target status becomes `pending` again. |
+
+The visible states are:
+
+| Status | Meaning | UI behavior |
+| --- | --- | --- |
+| `not_ready` | Not enough completed assessments yet. | Show a waiting state. For teams with 3+ completed assessments, allow "Generate now." |
+| `pending` | Backend is generating the AI read. | Show a soft status strip and deterministic fallback underneath. |
+| `ready` | AI read exists and matches the current source snapshot. | Show the normal generated read. |
+| `failed` | AI generation failed. | Show deterministic fallback plus retry affordance. |
+| `stale` | AI read exists, but team membership or assessment data changed later. | Keep the existing read visible and show a refresh affordance. |
+
+### Generation timing
+
+After the future assessment surface is wired:
+
+```txt
+Assessment submit
+-> assessment engine saves answers/results
+-> person generation starts
+-> user waits briefly on "building your profile"
+-> user lands on their person read when ready
+```
+
+That wait should be bounded. If person generation is slow or fails, show the
+deterministic personal result and keep generation moving in the background.
+
+Duo generation should not block the person from seeing their own result:
+
+```txt
+New member completes assessment
+-> generate that person read
+-> generate pair reads with already-complete teammates
+-> mark the team aggregate stale or ready-to-generate
+```
+
+Team generation should be explicit when the team is incomplete. Do not silently
+swap the team's generated identity every time a new member completes. If a team
+read already exists, keep it visible and mark it stale so the manager can
+refresh it with the new member snapshot.
+
+### Prototype simulation
+
+`src/team-dna/data/teamDnaGenerationLifecycle.mock.js` is the local backend
+simulation for these states. It does not call OpenAI and should not be ported
+as production logic.
+
+The debug panel can mutate the selected team/person/duo target through:
+
+```txt
+not_ready -> pending -> ready -> failed -> stale
+```
+
+This exists so designers and engineers can see the real frontend states without
+needing a live generation service. The real monolith should replace the mock
+status map with backend generation fields, polling/subscription state, and real
+retry/refresh mutations.
+
 ## Design System And Monolith Alignment
 
 This prototype was cross-checked against the BetterUp monolith reference repo.
@@ -404,6 +507,7 @@ service when the user wants to add someone.
 | `src/team-dna/data/teamDnaMock.js` | Demo team data. Do not ship these people, avatars, or scores. |
 | `src/team-dna/data/teamManagementMock.js` | Organization employee, temporary team record, Team DNA result fixtures, and the mapper between them. |
 | `src/team-dna/data/teamDnaGeneratedInsights.mock.js` | Mock backend-generated insight records. Do not port as frontend AI logic. |
+| `src/team-dna/data/teamDnaGenerationLifecycle.mock.js` | Mock backend generation statuses for team/person/duo AI lifecycle states. Do not port as production logic. |
 | `src/team-dna/data/teamDnaPairInsights.js` | Deterministic fallback insight generation. |
 | `src/team-dna/data/teamDnaWatchOuts.js` | Deterministic fallback watch-outs. |
 | `src/team-dna/data/bigFiveTraits.js` | Trait order, labels, endpoint names, colors, and fallback spectrum copy. |
@@ -560,7 +664,9 @@ All three paths must produce the same `TeamDnaInsight` shape.
 
 ### 5. Generated insight status
 
-There is no live AI generation in this prototype.
+There is no live AI generation in this prototype. The debug harness simulates
+the backend status map through `teamDnaGenerationLifecycle.mock.js` so the UI
+can still show waiting, pending, failed, stale, and ready states.
 
 For the real monolith, prefer the Team Pulse pattern:
 

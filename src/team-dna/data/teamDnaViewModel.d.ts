@@ -18,6 +18,12 @@ export type TeamDnaTraitKey =
   | 'neuroticism';
 
 export type TeamDnaInsightSource = 'deterministic' | 'ai' | 'override';
+export type TeamDnaGenerationStatus =
+  | 'not_ready'
+  | 'pending'
+  | 'ready'
+  | 'failed'
+  | 'stale';
 
 export type TeamDnaPronouns = {
   subject: string;
@@ -120,6 +126,21 @@ export type TeamDnaInsight = {
   source?: TeamDnaInsightSource;
   generatedAt?: string;
   inputVersion?: string;
+  generationLifecycle?: {
+    status: TeamDnaGenerationStatus;
+    target: {
+      id: string;
+      scope: 'team' | 'person' | 'duo';
+      teamId: string;
+      memberIds: string[];
+      completedCount: number;
+      totalCount: number;
+      minimumCompletedCount: number;
+      canGenerateTeam: boolean;
+      canGenerateTeamEarly: boolean;
+    };
+    isPrototypeSimulation?: boolean;
+  };
   eyebrow: string;
   title: string;
   entityEyebrow?: string;

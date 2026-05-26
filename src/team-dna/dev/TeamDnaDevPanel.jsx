@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { TEAM_SIZE_PRESETS } from './teamDnaDevState.js';
+import { TEAM_DNA_GENERATION_STATUSES } from '../data/teamDnaGenerationLifecycle.mock.js';
 
 /**
  * Dev-only scenario harness.
@@ -13,9 +14,11 @@ import { TEAM_SIZE_PRESETS } from './teamDnaDevState.js';
  * permissions, feature flags, and route context.
  */
 export function TeamDnaDevPanel({
+  activeGenerationTarget,
   baseMembers,
   canResizeTeam,
   devState,
+  onSetGenerationStatus,
   onSetTeamSize,
   onToggleMemberAssessment,
   onToggleMemberAvatar,
@@ -136,6 +139,91 @@ export function TeamDnaDevPanel({
                 />
               </DevSection>
 
+              <DevSection title="AI lifecycle">
+                <div className="team-dna-dev-target">
+                  <span>Target</span>
+                  <strong>{activeGenerationTarget?.id ?? 'none'}</strong>
+                </div>
+                <div className="team-dna-dev-chip-row">
+                  {TEAM_DNA_GENERATION_STATUSES.map((status) => {
+                    const isActive =
+                      devState.generationStatusByTargetId?.[
+                        activeGenerationTarget?.id
+                      ] === status;
+
+                    return (
+                      <button
+                        key={status}
+                        type="button"
+                        className="team-dna-dev-chip"
+                        disabled={!activeGenerationTarget}
+                        data-active={isActive || undefined}
+                        onClick={() =>
+                          onSetGenerationStatus?.(
+                            activeGenerationTarget,
+                            status,
+                            `debug:set:${status}`
+                          )
+                        }
+                      >
+                        {status}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="team-dna-dev-action-grid">
+                  <DevAction
+                    label="Request"
+                    disabled={!activeGenerationTarget}
+                    onClick={() =>
+                      onSetGenerationStatus?.(
+                        activeGenerationTarget,
+                        'pending',
+                        'teamDnaInsightGenerationRequested'
+                      )
+                    }
+                  />
+                  <DevAction
+                    label="Succeed"
+                    disabled={!activeGenerationTarget}
+                    onClick={() =>
+                      onSetGenerationStatus?.(
+                        activeGenerationTarget,
+                        'ready',
+                        'teamDnaInsightGenerationSucceeded'
+                      )
+                    }
+                  />
+                  <DevAction
+                    label="Fail"
+                    disabled={!activeGenerationTarget}
+                    onClick={() =>
+                      onSetGenerationStatus?.(
+                        activeGenerationTarget,
+                        'failed',
+                        'teamDnaInsightGenerationFailed'
+                      )
+                    }
+                  />
+                  <DevAction
+                    label="Mark stale"
+                    disabled={!activeGenerationTarget}
+                    onClick={() =>
+                      onSetGenerationStatus?.(
+                        activeGenerationTarget,
+                        'stale',
+                        'teamDnaTeamInsightMarkedStale'
+                      )
+                    }
+                  />
+                </div>
+                {devState.lastGenerationEvent && (
+                  <p className="team-dna-dev-event">
+                    {devState.lastGenerationEvent.type}
+                  </p>
+                )}
+              </DevSection>
+
               <DevSection title="Member states">
                 <div className="team-dna-dev-member-list">
                   {baseMembers.map((member, index) => {
@@ -194,6 +282,19 @@ function DevToggle({ label, value, onChange }) {
     >
       <span>{label}</span>
       <i />
+    </button>
+  );
+}
+
+function DevAction({ label, disabled, onClick }) {
+  return (
+    <button
+      type="button"
+      className="team-dna-dev-action"
+      disabled={disabled}
+      onClick={onClick}
+    >
+      {label}
     </button>
   );
 }

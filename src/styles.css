@@ -2871,6 +2871,69 @@ button.team-management-row {
   background: rgba(var(--team-dna-neutral-rgb), 0.2);
 }
 
+.team-dna-dev-target {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  padding: 10px 11px;
+  border: 1px solid rgba(var(--white-rgb), 0.08);
+  border-radius: 4px;
+  background: rgba(var(--white-rgb), 0.035);
+  font-family: 'Söhne Mono', monospace;
+}
+
+.team-dna-dev-target span {
+  color: rgba(var(--white-rgb), 0.25);
+  font-size: 7px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+
+.team-dna-dev-target strong {
+  overflow: hidden;
+  color: rgba(var(--white-rgb), 0.58);
+  font-size: 8px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-dna-dev-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.team-dna-dev-action {
+  height: 25px;
+  border: 1px solid rgba(var(--white-rgb), 0.14);
+  border-radius: 4px;
+  background: rgba(var(--white-rgb), 0.035);
+  color: rgba(var(--white-rgb), 0.48);
+  cursor: pointer;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 8px;
+  letter-spacing: 0.6px;
+}
+
+.team-dna-dev-action:disabled,
+.team-dna-dev-chip:disabled {
+  cursor: not-allowed;
+  opacity: 0.28;
+}
+
+.team-dna-dev-event {
+  overflow: hidden;
+  margin: 10px 0 0;
+  color: rgba(var(--white-rgb), 0.28);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.4px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .team-dna-dev-member-list {
   display: grid;
   gap: 10px;
@@ -3108,6 +3171,101 @@ button.team-management-row {
   font-weight: 400;
   letter-spacing: var(--heading-display-tracking);
   line-height: 1.12;
+}
+
+.insight-lifecycle-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 34px;
+  padding: 15px 17px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 6px;
+  background: var(--card-subtle-bg);
+  color: var(--foreground-body);
+}
+
+.insight-lifecycle-status[data-tone='working'] {
+  background: rgba(var(--team-dna-neutral-rgb), 0.09);
+}
+
+.insight-lifecycle-status[data-tone='notice'] {
+  background: rgba(var(--team-dna-focus-rgb), 0.07);
+}
+
+.insight-lifecycle-status[data-tone='warning'] {
+  background: rgba(var(--team-dna-ink-rgb), 0.045);
+}
+
+.insight-lifecycle-status span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--foreground-heading);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 1.35px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.insight-lifecycle-status p {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.insight-lifecycle-status button {
+  flex: 0 0 auto;
+  height: 34px;
+  padding: 0 14px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 999px;
+  background: var(--page-background);
+  color: var(--team-dna-focus);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.insight-lifecycle-status button:hover {
+  background: rgba(var(--team-dna-focus-rgb), 0.08);
+}
+
+.insight-waiting-state {
+  padding: 58px 52px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 8px;
+  background: var(--card-subtle-bg);
+}
+
+.insight-waiting-kicker {
+  margin: 0 0 14px;
+  color: var(--team-dna-focus);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+}
+
+.insight-waiting-state h2 {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 36px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: var(--heading-display-tracking);
+  line-height: 1.1;
+}
+
+.insight-waiting-state p:last-child {
+  margin: 18px 0 0;
+  color: var(--foreground-body);
+  font-size: 16px;
+  line-height: 1.65;
 }
 
 .insight-summary {

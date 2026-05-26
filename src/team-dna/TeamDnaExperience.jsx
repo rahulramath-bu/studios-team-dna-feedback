@@ -87,6 +87,9 @@ export function TeamDnaExperience({
   onEditTeam,
   onTeamChange,
   onGrowChatPrompt,
+  generationStatusByTargetId,
+  onGenerationTargetChange,
+  onInsightLifecycleAction,
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
@@ -196,7 +199,26 @@ export function TeamDnaExperience({
     onEditTeam?.(teamId);
   };
 
-  const insight = getInsightForSelection(dataset, selectedIds);
+  const insight = getInsightForSelection(
+    dataset,
+    selectedIds,
+    generationStatusByTargetId
+  );
+  const generationLifecycle = insight.generationLifecycle;
+  const generationTarget = generationLifecycle?.target;
+
+  useEffect(() => {
+    onGenerationTargetChange?.(generationTarget ?? null);
+  }, [
+    generationTarget?.id,
+    generationTarget?.scope,
+    generationTarget?.completedCount,
+    generationTarget?.totalCount,
+    generationTarget?.canGenerateTeam,
+    generationTarget?.canGenerateTeamEarly,
+    onGenerationTargetChange,
+  ]);
+
   const questionScope =
     selectedIds.length === 2 ? 'duo' : selectedIds.length === 1 ? 'person' : 'team';
   const handleGrowChatPromptSubmit = ({ message, scope, submittedAt }) => {
@@ -248,6 +270,7 @@ export function TeamDnaExperience({
         isHidden={isIntroGateActive}
         preserveScroll={preserveInsightScroll}
         onSelectMember={handleSelectMember}
+        onLifecycleAction={onInsightLifecycleAction}
       />
       <TeamDnaChatInputBridge
         scope={questionScope}
