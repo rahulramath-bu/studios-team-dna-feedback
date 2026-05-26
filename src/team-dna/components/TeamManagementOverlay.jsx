@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 
 function getEmployeeName(employee) {
@@ -15,6 +15,16 @@ function looksLikeEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
+function getInitials(value) {
+  return String(value)
+    .trim()
+    .split(/\s+/)
+    .map((part) => part[0])
+    .join('')
+    .slice(0, 2)
+    .toUpperCase();
+}
+
 const EMPTY_TEAM_RECORD = {
   id: null,
   name: '',
@@ -29,26 +39,51 @@ const EMPTY_TEAM_RECORD = {
  * What: minimal add/edit surface for creating a team, selecting employees from
  * the organization directory, and staging manual email invites.
  * How: edits the temporary `mockTeamRecords` shape only; it does not send real
- * invites, persist data, or own Team DNA result fields.
- * Port: replace the visual shell with the monolith sheet/modal pattern and
- * wire Save to real Team/TeamMembership mutations. Keep employee search fed by
- * the organization employee directory and keep DNA results outside this form.
+ * invites, persist data, or own Team DNA result fields. Its shell mirrors the
+ * monolith right-side Sheet pattern: viewport-fixed, above the app shell, a
+ * dimmed non-blurred backdrop, backdrop-click close, backdrop fade, and a
+ * transform-only right slide for the panel.
+ * Port: replace this hand-rolled shell with
+ * `@betterup/component-library/src/components/ui/sheet` using `<Sheet>` and
+ * `<SheetContent side="right">`, similar to Partner configuration's
+ * `OutcomeFormModal`. Wire Save to real Team/TeamMembership mutations. Keep
+ * employee search fed by the organization employee directory and keep DNA
+ * results outside this form.
  */
 export function TeamManagementOverlay({
   mode = 'create',
   organizationEmployees,
+  teamDnaResultsByEmployeeId = {},
   teamRecord,
-  topOffset = 0,
   onCancel,
   onSave,
 }) {
   const sourceRecord = teamRecord ?? EMPTY_TEAM_RECORD;
+  const [isClosing, setIsClosing] = useState(false);
   const [teamName, setTeamName] = useState(sourceRecord.name);
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState(
     sourceRecord.memberEmployeeIds
   );
   const [invitedEmails, setInvitedEmails] = useState(sourceRecord.invitedEmails);
+  const [isAddingTeammate, setIsAddingTeammate] = useState(false);
+  const [isAddCardWaiting, setIsAddCardWaiting] = useState(false);
+  const [recentlyAddedMemberKey, setRecentlyAddedMemberKey] = useState(null);
+  const [bodyScrollState, setBodyScrollState] = useState({
+    canScrollDown: false,
+    canScrollUp: false,
+  });
+  const [searchScrollState, setSearchScrollState] = useState({
+    canScrollDown: false,
+    canScrollUp: false,
+  });
+  const [activeSearchIndex, setActiveSearchIndex] = useState(0);
   const [query, setQuery] = useState('');
+  const bodyRef = useRef(null);
+  const addCardRef = useRef(null);
+  const searchResultsRef = useRef(null);
+  const searchInputRef = useRef(null);
+  const addCardTimerRef = useRef(null);
+  const recentlyAddedTimerRef = useRef(null);
   const normalizedQuery = query.trim().toLowerCase();
   const selectedEmployeeIdSet = useMemo(
     () => new Set(selectedEmployeeIds),
@@ -59,41 +94,183 @@ export function TeamManagementOverlay({
     [invitedEmails]
   );
   const filteredEmployees = useMemo(() => {
-    if (!normalizedQuery) return organizationEmployees;
+    if (!normalizedQuery) return [];
 
-    return organizationEmployees.filter((employee) => {
-      const name = getEmployeeName(employee).toLowerCase();
-      return (
-        name.includes(normalizedQuery) ||
-        employee.email?.toLowerCase().includes(normalizedQuery) ||
-        employee.title?.toLowerCase().includes(normalizedQuery)
-      );
-    });
-  }, [normalizedQuery, organizationEmployees]);
+    return organizationEmployees
+      .filter((employee) => {
+        const name = getEmployeeName(employee).toLowerCase();
+        const matchesQuery =
+          name.includes(normalizedQuery) ||
+          employee.email?.toLowerCase().includes(normalizedQuery) ||
+          employee.title?.toLowerCase().includes(normalizedQuery);
+
+        return !selectedEmployeeIdSet.has(employee.id) && matchesQuery;
+      })
+      .slice(0, 6);
+  }, [normalizedQuery, organizationEmployees, selectedEmployeeIdSet]);
   const selectedEmployees = selectedEmployeeIds
     .map((employeeId) =>
       organizationEmployees.find((employee) => employee.id === employeeId)
     )
     .filter(Boolean);
+  const teamMemberCount = selectedEmployees.length + invitedEmails.length;
+  const pendingEmployeeCount = selectedEmployees.filter(
+    (employee) =>
+      teamDnaResultsByEmployeeId[employee.id]?.assessmentComplete !== true
+  ).length;
+  const pendingCount = pendingEmployeeCount + invitedEmails.length;
   const canInviteQuery =
     looksLikeEmail(query) &&
     !organizationEmployees.some(
       (employee) => employee.email?.toLowerCase() === normalizedQuery
     ) &&
     !invitedEmailSet.has(normalizedQuery);
+  const searchResults = useMemo(() => {
+    const employeeResults = filteredEmployees.map((employee) => ({
+      type: 'employee',
+      employee,
+      key: `employee:${employee.id}`,
+    }));
+
+    if (!canInviteQuery) return employeeResults;
+
+    return [
+      ...employeeResults,
+      {
+        type: 'email',
+        email: normalizeEmail(query),
+        key: `email:${normalizeEmail(query)}`,
+      },
+    ];
+  }, [canInviteQuery, filteredEmployees, query]);
   const title = mode === 'edit' ? 'Edit team' : 'Add team';
+  const saveLabel =
+    pendingCount > 0
+      ? `Save and invite ${pendingCount} pending`
+      : 'Save team';
+  const activeSearchResult = searchResults[activeSearchIndex] ?? null;
 
   useEffect(() => {
     setTeamName(sourceRecord.name);
     setSelectedEmployeeIds(sourceRecord.memberEmployeeIds);
     setInvitedEmails(sourceRecord.invitedEmails);
+    setIsAddingTeammate(false);
+    setIsAddCardWaiting(false);
+    setRecentlyAddedMemberKey(null);
     setQuery('');
   }, [sourceRecord]);
+
+  useEffect(() => {
+    if (isAddingTeammate) {
+      window.requestAnimationFrame(() => {
+        searchInputRef.current?.focus({ preventScroll: true });
+        addCardRef.current?.scrollIntoView({
+          block: 'start',
+          behavior: 'smooth',
+        });
+      });
+    }
+  }, [isAddingTeammate]);
+
+  const updateBodyScrollState = () => {
+    const body = bodyRef.current;
+    if (!body) return;
+
+    setBodyScrollState({
+      canScrollDown: body.scrollTop + body.clientHeight < body.scrollHeight - 2,
+      canScrollUp: body.scrollTop > 2,
+    });
+  };
+
+  const updateSearchScrollState = () => {
+    const scroller = searchResultsRef.current;
+    if (!scroller) {
+      setSearchScrollState({ canScrollDown: false, canScrollUp: false });
+      return;
+    }
+
+    setSearchScrollState({
+      canScrollDown:
+        scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 2,
+      canScrollUp: scroller.scrollTop > 2,
+    });
+  };
+
+  useEffect(() => {
+    window.requestAnimationFrame(updateBodyScrollState);
+    window.requestAnimationFrame(updateSearchScrollState);
+  }, [
+    isAddingTeammate,
+    isAddCardWaiting,
+    query,
+    searchResults.length,
+    selectedEmployeeIds,
+    invitedEmails,
+  ]);
+
+  useEffect(() => {
+    setActiveSearchIndex(0);
+  }, [normalizedQuery]);
+
+  useEffect(() => {
+    if (activeSearchIndex <= Math.max(searchResults.length - 1, 0)) return;
+    setActiveSearchIndex(Math.max(searchResults.length - 1, 0));
+  }, [activeSearchIndex, searchResults.length]);
+
+  const prepareAddedCardAnimation = (memberKey) => {
+    window.clearTimeout(addCardTimerRef.current);
+    window.clearTimeout(recentlyAddedTimerRef.current);
+    setRecentlyAddedMemberKey(memberKey);
+    setIsAddCardWaiting(true);
+    addCardTimerRef.current = window.setTimeout(() => {
+      setIsAddCardWaiting(false);
+      setIsAddingTeammate(true);
+    }, 420);
+    recentlyAddedTimerRef.current = window.setTimeout(() => {
+      setRecentlyAddedMemberKey(null);
+    }, 720);
+  };
 
   const addEmployee = (employeeId) => {
     setSelectedEmployeeIds((current) =>
       current.includes(employeeId) ? current : [...current, employeeId]
     );
+    prepareAddedCardAnimation(`employee:${employeeId}`);
+    setIsAddingTeammate(false);
+    setQuery('');
+  };
+
+  const addActiveSearchResult = () => {
+    if (activeSearchResult?.type === 'employee') {
+      addEmployee(activeSearchResult.employee.id);
+      return;
+    }
+
+    if (activeSearchResult?.type === 'email') {
+      addInvite(activeSearchResult.email);
+    }
+  };
+
+  const handleSearchKeyDown = (event) => {
+    if (event.key === 'ArrowDown' && searchResults.length > 0) {
+      event.preventDefault();
+      setActiveSearchIndex((current) => (current + 1) % searchResults.length);
+      return;
+    }
+
+    if (event.key === 'ArrowUp' && searchResults.length > 0) {
+      event.preventDefault();
+      setActiveSearchIndex(
+        (current) => (current - 1 + searchResults.length) % searchResults.length
+      );
+      return;
+    }
+
+    if (event.key !== 'Enter') return;
+    if (!activeSearchResult) return;
+
+    event.preventDefault();
+    addActiveSearchResult();
   };
 
   const removeEmployee = (employeeId) => {
@@ -109,6 +286,8 @@ export function TeamManagementOverlay({
         ? current
         : [...current, normalizedEmail]
     );
+    prepareAddedCardAnimation(`invite:${normalizedEmail}`);
+    setIsAddingTeammate(false);
     setQuery('');
   };
 
@@ -120,19 +299,79 @@ export function TeamManagementOverlay({
   };
 
   const saveTeam = () => {
-    onSave?.({
-      id: sourceRecord.id,
-      name: teamName,
-      memberEmployeeIds: selectedEmployeeIds,
-      invitedEmails,
-      sample: sourceRecord.sample,
-    });
+    if (isClosing) return;
+    setIsClosing(true);
+    window.setTimeout(() => {
+      onSave?.({
+        id: sourceRecord.id,
+        name: teamName,
+        memberEmployeeIds: selectedEmployeeIds,
+        invitedEmails,
+        sample: sourceRecord.sample,
+      });
+    }, 260);
   };
+
+  const closeTeamManagement = () => {
+    if (isClosing) return;
+    setIsClosing(true);
+    window.setTimeout(() => {
+      onCancel?.();
+    }, 260);
+  };
+
+  const closeFromBackdrop = (event) => {
+    if (event.target === event.currentTarget) {
+      closeTeamManagement();
+    }
+  };
+
+  const closeAddTeammate = () => {
+    setIsAddingTeammate(false);
+    setQuery('');
+  };
+
+  useEffect(() => {
+    const closeOnEscape = (event) => {
+      if (event.key === 'Escape') {
+        if (isAddingTeammate) {
+          closeAddTeammate();
+        } else {
+          closeTeamManagement();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', closeOnEscape);
+    return () => document.removeEventListener('keydown', closeOnEscape);
+  });
+
+  useEffect(() => {
+    if (!isAddingTeammate) return undefined;
+
+    const closeOnOutsidePointer = (event) => {
+      if (!addCardRef.current?.contains(event.target)) {
+        closeAddTeammate();
+      }
+    };
+
+    document.addEventListener('pointerdown', closeOnOutsidePointer);
+    return () =>
+      document.removeEventListener('pointerdown', closeOnOutsidePointer);
+  }, [isAddingTeammate]);
+
+  useEffect(() => {
+    return () => {
+      window.clearTimeout(addCardTimerRef.current);
+      window.clearTimeout(recentlyAddedTimerRef.current);
+    };
+  }, []);
 
   return (
     <div
       className="team-management-overlay"
-      style={{ '--team-management-top': `${topOffset}px` }}
+      data-state={isClosing ? 'closed' : 'open'}
+      onMouseDown={closeFromBackdrop}
       role="dialog"
       aria-modal="true"
       aria-labelledby="team-management-title"
@@ -146,143 +385,224 @@ export function TeamManagementOverlay({
           <button
             type="button"
             className="team-management-icon-button"
-            onClick={onCancel}
+            onClick={closeTeamManagement}
             aria-label="Close team management"
           >
             <BetterUpIcon name="X" size={18} strokeWidth={2} />
           </button>
         </header>
 
-        <label className="team-management-field">
-          <span>Team name</span>
-          <input
-            value={teamName}
-            onChange={(event) => setTeamName(event.target.value)}
-            placeholder="Name this team"
-          />
-        </label>
+        <div
+          ref={bodyRef}
+          className="team-management-body"
+          data-can-scroll-down={bodyScrollState.canScrollDown || undefined}
+          data-can-scroll-up={bodyScrollState.canScrollUp || undefined}
+          onScroll={updateBodyScrollState}
+        >
+          <label className="team-management-field">
+            <span>Team name</span>
+            <input
+              value={teamName}
+              onChange={(event) => setTeamName(event.target.value)}
+              placeholder="Name this team"
+            />
+          </label>
 
-        <div className="team-management-grid">
-          <section className="team-management-section">
-            <label className="team-management-field">
-              <span>Add people</span>
-              <input
-                value={query}
-                onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search by name or email"
-              />
-            </label>
-            <div className="team-management-list" aria-label="Organization employees">
-              {canInviteQuery && (
-                <button
-                  type="button"
-                  className="team-management-row"
-                  onClick={() => addInvite(query)}
-                >
-                  <span className="team-management-avatar" aria-hidden="true">
-                    +
-                  </span>
-                  <span className="team-management-row-copy">
-                    <strong>{normalizeEmail(query)}</strong>
-                    <small>Invite by email</small>
-                  </span>
-                  <span className="team-management-add-label">Add</span>
-                </button>
-              )}
-              {filteredEmployees.map((employee) => {
-                const isSelected = selectedEmployeeIdSet.has(employee.id);
+          <section className="team-management-section team-management-section--members">
+            <div className="team-management-selected-heading">
+              <span>Team members</span>
+            </div>
+            <div
+              className="team-management-member-grid"
+              aria-label="Selected team members"
+            >
+              {selectedEmployees.map((employee) => {
+                const hasTeamDna =
+                  teamDnaResultsByEmployeeId[employee.id]?.assessmentComplete === true;
 
                 return (
-                  <button
+                  <div
                     key={employee.id}
-                    type="button"
-                    className="team-management-row"
-                    data-selected={isSelected || undefined}
-                    onClick={() =>
-                      isSelected ? removeEmployee(employee.id) : addEmployee(employee.id)
+                    className="team-management-card team-management-member-card"
+                    data-recently-added={
+                      recentlyAddedMemberKey === `employee:${employee.id}` ||
+                      undefined
                     }
                   >
+                    <button
+                      type="button"
+                      className="team-management-remove-icon"
+                      onClick={() => removeEmployee(employee.id)}
+                      aria-label={`Remove ${getEmployeeName(employee)}`}
+                    >
+                      <BetterUpIcon name="X" size={14} strokeWidth={2} />
+                    </button>
                     <span className="team-management-avatar" aria-hidden="true">
                       {employee.avatar ? (
                         <img src={employee.avatar} alt="" />
                       ) : (
-                        getEmployeeName(employee)
-                          .split(' ')
-                          .map((part) => part[0])
-                          .join('')
-                          .slice(0, 2)
+                        getInitials(getEmployeeName(employee))
                       )}
                     </span>
                     <span className="team-management-row-copy">
                       <strong>{getEmployeeName(employee)}</strong>
                       <small>{employee.title || employee.email}</small>
                     </span>
-                    <span className="team-management-add-label">
-                      {isSelected ? 'Added' : 'Add'}
+                    <span
+                      className="team-management-status-pill"
+                      data-status={hasTeamDna ? 'ready' : 'pending'}
+                    >
+                      {hasTeamDna ? 'Ready' : 'Pending'}
                     </span>
-                  </button>
+                  </div>
                 );
               })}
-            </div>
-          </section>
+              {invitedEmails.map((email) => (
+                <div
+                  key={email}
+                  className="team-management-card team-management-member-card"
+                  data-recently-added={
+                    recentlyAddedMemberKey === `invite:${normalizeEmail(email)}` ||
+                    undefined
+                  }
+                >
+                  <button
+                    type="button"
+                    className="team-management-remove-icon"
+                    onClick={() => removeInvite(email)}
+                    aria-label={`Remove ${email}`}
+                  >
+                    <BetterUpIcon name="X" size={14} strokeWidth={2} />
+                  </button>
+                  <span className="team-management-avatar" aria-hidden="true">
+                    {getInitials(email)}
+                  </span>
+                  <span className="team-management-row-copy">
+                    <strong>{email}</strong>
+                    <small>Manual email invite</small>
+                  </span>
+                  <span
+                    className="team-management-status-pill"
+                    data-status="pending"
+                  >
+                    Pending
+                  </span>
+                </div>
+              ))}
+              {!isAddCardWaiting && (
+                <div
+                  ref={addCardRef}
+                  className="team-management-card team-management-add-card"
+                  data-expanded={isAddingTeammate || undefined}
+                  data-revealed={teamMemberCount > 0 || undefined}
+                >
+                  <button
+                    type="button"
+                    className="team-management-add-card-trigger"
+                    onClick={() => setIsAddingTeammate(true)}
+                    aria-expanded={isAddingTeammate}
+                  >
+                    <span className="team-management-add-card-icon">
+                      <BetterUpIcon
+                        className="team-management-add-card-icon-glyph team-management-add-card-icon-plus"
+                        name="Plus"
+                        size={18}
+                        strokeWidth={2}
+                      />
+                      <BetterUpIcon
+                        className="team-management-add-card-icon-glyph team-management-add-card-icon-search"
+                        name="Search"
+                        size={17}
+                        strokeWidth={2}
+                      />
+                    </span>
+                    <span>Add teammate</span>
+                  </button>
+                  <div className="team-management-add-card-body">
+                    <div className="team-management-add-card-body-inner">
+                      <label className="team-management-field">
+                        <span className="team-management-sr-label">
+                          Search teammates
+                        </span>
+                        <input
+                          ref={searchInputRef}
+                          value={query}
+                          onChange={(event) => setQuery(event.target.value)}
+                          onKeyDown={handleSearchKeyDown}
+                          placeholder="Search by name or email"
+                        />
+                      </label>
+                      {normalizedQuery && searchResults.length > 0 && (
+                        <div
+                          ref={searchResultsRef}
+                          className="team-management-search-results"
+                          data-can-scroll-down={
+                            searchScrollState.canScrollDown || undefined
+                          }
+                          data-can-scroll-up={
+                            searchScrollState.canScrollUp || undefined
+                          }
+                          aria-label="Organization employees"
+                          onScroll={updateSearchScrollState}
+                        >
+                          {searchResults.map((result, index) => {
+                            if (result.type === 'email') {
+                              return (
+                                <button
+                                  key={result.key}
+                                  type="button"
+                                  className="team-management-row"
+                                  data-active={index === activeSearchIndex || undefined}
+                                  onClick={() => addInvite(result.email)}
+                                >
+                                  <span className="team-management-avatar" aria-hidden="true">
+                                    +
+                                  </span>
+                                  <span className="team-management-row-copy">
+                                    <strong>{result.email}</strong>
+                                    <small>Add by email</small>
+                                  </span>
+                                  <span className="team-management-add-label">Add</span>
+                                </button>
+                              );
+                            }
 
-          <section className="team-management-section">
-            <div className="team-management-selected-heading">
-              <span>Team members</span>
-              <strong>{selectedEmployees.length + invitedEmails.length}</strong>
-            </div>
-            <div className="team-management-list" aria-label="Selected team members">
-              {selectedEmployees.length === 0 && invitedEmails.length === 0 ? (
-                <p className="team-management-empty">No people added yet.</p>
-              ) : (
-                <>
-                  {selectedEmployees.map((employee) => (
-                    <div key={employee.id} className="team-management-row">
-                      <span className="team-management-avatar" aria-hidden="true">
-                        {employee.avatar ? (
-                          <img src={employee.avatar} alt="" />
-                        ) : (
-                          getEmployeeName(employee)
-                            .split(' ')
-                            .map((part) => part[0])
-                            .join('')
-                            .slice(0, 2)
-                        )}
-                      </span>
-                      <span className="team-management-row-copy">
-                        <strong>{getEmployeeName(employee)}</strong>
-                        <small>{employee.email}</small>
-                      </span>
-                      <button
-                        type="button"
-                        className="team-management-remove-button"
-                        onClick={() => removeEmployee(employee.id)}
-                        aria-label={`Remove ${getEmployeeName(employee)}`}
-                      >
-                        Remove
-                      </button>
+                            const { employee } = result;
+                            return (
+                              <button
+                                key={result.key}
+                                type="button"
+                                className="team-management-row"
+                                data-active={index === activeSearchIndex || undefined}
+                                onClick={() => addEmployee(employee.id)}
+                              >
+                                <span className="team-management-avatar" aria-hidden="true">
+                                  {employee.avatar ? (
+                                    <img src={employee.avatar} alt="" />
+                                  ) : (
+                                    getInitials(getEmployeeName(employee))
+                                  )}
+                                </span>
+                                <span className="team-management-row-copy">
+                                  <strong>{getEmployeeName(employee)}</strong>
+                                  <small>{employee.title || employee.email}</small>
+                                </span>
+                                <span className="team-management-add-label">
+                                  Add
+                                </span>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      )}
+                      {normalizedQuery && searchResults.length === 0 && (
+                        <p className="team-management-search-empty">
+                          No matching employees found.
+                        </p>
+                      )}
                     </div>
-                  ))}
-                  {invitedEmails.map((email) => (
-                    <div key={email} className="team-management-row">
-                      <span className="team-management-avatar" aria-hidden="true">
-                        @
-                      </span>
-                      <span className="team-management-row-copy">
-                        <strong>{email}</strong>
-                        <small>Pending invite</small>
-                      </span>
-                      <button
-                        type="button"
-                        className="team-management-remove-button"
-                        onClick={() => removeInvite(email)}
-                        aria-label={`Remove ${email}`}
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </>
+                  </div>
+                </div>
               )}
             </div>
           </section>
@@ -292,7 +612,7 @@ export function TeamManagementOverlay({
           <button
             type="button"
             className="team-management-secondary"
-            onClick={onCancel}
+            onClick={closeTeamManagement}
           >
             Cancel
           </button>
@@ -301,7 +621,7 @@ export function TeamManagementOverlay({
             className="team-management-primary"
             onClick={saveTeam}
           >
-            Save team
+            {saveLabel}
           </button>
         </footer>
       </div>

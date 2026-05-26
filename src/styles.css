@@ -589,28 +589,46 @@ button {
 
 .team-management-overlay {
   position: fixed;
-  inset: var(--team-management-top, 0px) 0 0;
+  inset: 0;
   z-index: 140;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 32px;
-  background: rgba(var(--team-dna-canvas-rgb), 0.96);
+  justify-content: flex-end;
+  background: transparent;
   color: var(--team-dna-ink);
 }
 
+.team-management-overlay[data-state='closed'] {
+  pointer-events: none;
+}
+
+.team-management-overlay::before {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  content: '';
+  animation: team-management-backdrop-in 500ms ease both;
+}
+
+.team-management-overlay[data-state='closed']::before {
+  animation: team-management-backdrop-out 260ms ease both;
+}
+
 .team-management-panel {
-  width: min(1040px, 100%);
-  max-height: min(760px, calc(100vh - var(--team-management-top, 0px) - 64px));
+  position: relative;
+  z-index: 1;
+  width: min(620px, calc(100vw - 48px));
+  height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 32px;
-  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.1);
-  border-radius: 24px;
-  background: rgba(var(--white-rgb), 0.78);
-  box-shadow: 0 24px 80px rgba(var(--team-dna-ink-rgb), 0.14);
+  border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  background: var(--white);
+  box-shadow: -20px 0 56px rgba(var(--team-dna-ink-rgb), 0.18);
   overflow: hidden;
+  animation: team-management-sheet-in 500ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.team-management-overlay[data-state='closed'] .team-management-panel {
+  animation: team-management-sheet-out 260ms ease-in both;
 }
 
 .team-management-header,
@@ -635,41 +653,106 @@ button {
   text-transform: uppercase;
 }
 
+.team-management-header {
+  flex: 0 0 auto;
+  padding: 24px 32px;
+}
+
+.team-management-eyebrow {
+  display: none;
+}
+
 .team-management-header h2 {
-  margin: 6px 0 0;
-  color: var(--foreground-heading);
-  font-family: var(--heading-display-font);
-  font-size: clamp(34px, 4vw, 52px);
-  font-weight: 400;
+  margin: 0;
+  color: var(--team-dna-ink);
+  font-family: var(--body-font);
+  font-size: 22px;
+  font-weight: 500;
   letter-spacing: 0;
-  line-height: 1.02;
+  line-height: 1.2;
 }
 
 .team-management-icon-button {
-  width: 44px;
-  height: 44px;
+  width: 36px;
+  height: 36px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.1);
-  border-radius: 999px;
-  background: rgba(var(--team-dna-canvas-rgb), 0.7);
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
   color: var(--team-dna-ink);
   cursor: pointer;
 }
 
-.team-management-grid {
+.team-management-body {
+  position: relative;
   min-height: 0;
-  display: grid;
-  grid-template-columns: minmax(0, 1.1fr) minmax(300px, 0.9fr);
+  display: flex;
+  flex: 1;
+  flex-direction: column;
   gap: 24px;
+  overflow-y: auto;
+  padding: 8px 32px 32px;
+  scroll-behavior: smooth;
+}
+
+.team-management-body[data-can-scroll-down] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 92px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 92px),
+    transparent 100%
+  );
+}
+
+.team-management-body[data-can-scroll-up] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 92px,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 92px,
+    #000 100%
+  );
+}
+
+.team-management-body[data-can-scroll-up][data-can-scroll-down] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 92px,
+    #000 calc(100% - 92px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 92px,
+    #000 calc(100% - 92px),
+    transparent 100%
+  );
 }
 
 .team-management-section {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
+}
+
+.team-management-section--members {
+  flex: 0 0 auto;
 }
 
 .team-management-field {
@@ -682,10 +765,10 @@ button {
   min-height: 48px;
   padding: 12px 14px;
   border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
-  border-radius: 14px;
-  background: rgba(var(--white-rgb), 0.72);
+  border-radius: 8px;
+  background: var(--white);
   color: var(--team-dna-ink);
-  font-size: 17px;
+  font-size: 16px;
   line-height: 1.2;
   outline: none;
 }
@@ -695,29 +778,86 @@ button {
   box-shadow: 0 0 0 3px rgba(var(--team-dna-primary-rgb), 0.12);
 }
 
-.team-management-list {
-  min-height: 0;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  gap: 8px;
+.team-management-member-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 10px;
+  padding-bottom: min(52vh, 440px);
+}
+
+.team-management-search-results {
+  display: grid;
+  gap: 0;
+  max-height: 260px;
   overflow: auto;
-  padding-right: 4px;
+  padding-right: 0;
+}
+
+.team-management-search-results[data-can-scroll-down] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 34px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    #000 0,
+    #000 calc(100% - 34px),
+    transparent 100%
+  );
+}
+
+.team-management-search-results[data-can-scroll-up] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 34px,
+    #000 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 34px,
+    #000 100%
+  );
+}
+
+.team-management-search-results[data-can-scroll-up][data-can-scroll-down] {
+  -webkit-mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 34px,
+    #000 calc(100% - 34px),
+    transparent 100%
+  );
+  mask-image: linear-gradient(
+    to bottom,
+    transparent 0,
+    #000 34px,
+    #000 calc(100% - 34px),
+    transparent 100%
+  );
 }
 
 .team-management-row {
   width: 100%;
   min-height: 64px;
   display: grid;
-  grid-template-columns: 44px minmax(0, 1fr) auto;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 14px;
+  gap: 12px;
   padding: 10px 12px;
-  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
-  border-radius: 16px;
-  background: rgba(var(--white-rgb), 0.5);
+  border: 0;
+  border-bottom: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+  border-radius: 8px;
+  background: transparent;
   color: var(--team-dna-ink);
   text-align: left;
+}
+
+.team-management-search-results .team-management-row:last-of-type {
+  border-bottom: 0;
 }
 
 button.team-management-row {
@@ -725,7 +865,12 @@ button.team-management-row {
 }
 
 .team-management-row[data-selected] {
-  border-color: rgba(var(--team-dna-primary-rgb), 0.24);
+  background: rgba(var(--team-dna-primary-rgb), 0.04);
+}
+
+.team-management-row:hover,
+.team-management-row[data-active] {
+  border-bottom-color: transparent;
   background: rgba(var(--team-dna-primary-rgb), 0.06);
 }
 
@@ -737,10 +882,190 @@ button.team-management-row {
   justify-content: center;
   overflow: hidden;
   border-radius: 999px;
-  background: rgba(var(--team-dna-ink-rgb), 0.08);
+  background: rgba(var(--team-dna-ink-rgb), 0.09);
   color: var(--team-dna-ink);
   font-size: 13px;
   font-weight: 600;
+}
+
+.team-management-row .team-management-avatar {
+  width: 38px;
+  height: 38px;
+}
+
+.team-management-card {
+  position: relative;
+  min-height: 82px;
+  padding: 14px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.1);
+  border-radius: 8px;
+  background: var(--white);
+  transition:
+    min-height 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 420ms ease,
+    border-color 420ms ease,
+    box-shadow 420ms ease;
+}
+
+.team-management-member-card {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 12px;
+  padding-right: 48px;
+}
+
+.team-management-member-card {
+  box-shadow: 0 8px 24px rgba(var(--team-dna-ink-rgb), 0.04);
+}
+
+.team-management-member-card[data-recently-added] {
+  animation: team-management-member-added 760ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+.team-management-member-card .team-management-row-copy {
+  width: 100%;
+}
+
+.team-management-add-card {
+  display: grid;
+  grid-template-rows: auto 0fr;
+  align-items: stretch;
+  justify-content: stretch;
+  border-style: dashed;
+  background: rgba(var(--team-dna-canvas-rgb), 0.38);
+  scroll-margin-block-start: 110px;
+  scroll-margin-block-end: 52vh;
+  transition:
+    grid-template-rows 320ms cubic-bezier(0.22, 1, 0.36, 1),
+    min-height 280ms cubic-bezier(0.22, 1, 0.36, 1),
+    background-color 180ms ease,
+    border-color 180ms ease;
+}
+
+.team-management-add-card[data-revealed] {
+  animation: team-management-add-card-reveal 940ms cubic-bezier(0.22, 1, 0.36, 1)
+    both;
+}
+
+.team-management-add-card[data-expanded] {
+  min-height: 144px;
+  grid-template-rows: auto 1fr;
+}
+
+.team-management-add-card-trigger {
+  width: 100%;
+  min-height: 52px;
+  display: inline-flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+  justify-content: flex-start;
+  border: 0;
+  background: transparent;
+  color: rgba(var(--team-dna-ink-rgb), 0.72);
+  cursor: pointer;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.team-management-add-card-trigger[aria-expanded='true'] {
+  cursor: default;
+}
+
+.team-management-add-card-icon {
+  position: relative;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.16);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primary);
+  transition: border-color 180ms ease;
+}
+
+.team-management-add-card[data-expanded] .team-management-add-card-icon {
+  border-color: transparent;
+}
+
+.team-management-add-card-icon-glyph {
+  position: absolute;
+  inset: 50% auto auto 50%;
+  transform: translate(-50%, -50%) scale(1);
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.team-management-add-card-icon-search {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.82);
+}
+
+.team-management-add-card[data-expanded] .team-management-add-card-icon-plus {
+  opacity: 0;
+  transform: translate(-50%, -50%) scale(0.82);
+}
+
+.team-management-add-card[data-expanded] .team-management-add-card-icon-search {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
+
+.team-management-add-card-body {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.team-management-add-card-body-inner {
+  display: grid;
+  gap: 12px;
+  padding-top: 10px;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 180ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.team-management-add-card[data-expanded] .team-management-add-card-body-inner {
+  opacity: 1;
+  transform: translateY(0);
+  transition-delay: 90ms;
+}
+
+.team-management-remove-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+  color: var(--team-dna-ink);
+  cursor: pointer;
+}
+
+.team-management-add-card-header .team-management-remove-icon {
+  position: static;
+  flex: 0 0 auto;
+}
+
+.team-management-sr-label {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
 }
 
 .team-management-avatar img {
@@ -756,6 +1081,10 @@ button.team-management-row {
   gap: 3px;
 }
 
+.team-management-member-card .team-management-row-copy {
+  padding-right: 22px;
+}
+
 .team-management-row-copy strong,
 .team-management-row-copy small {
   overflow: hidden;
@@ -764,14 +1093,14 @@ button.team-management-row {
 }
 
 .team-management-row-copy strong {
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
   line-height: 1.15;
 }
 
 .team-management-row-copy small {
   color: rgba(var(--team-dna-ink-rgb), 0.62);
-  font-size: 14px;
+  font-size: 13px;
   line-height: 1.25;
 }
 
@@ -782,6 +1111,10 @@ button.team-management-row {
   color: var(--primary);
   font-size: 14px;
   font-weight: 600;
+}
+
+.team-management-add-label {
+  justify-self: end;
 }
 
 .team-management-remove-button {
@@ -800,15 +1133,56 @@ button.team-management-row {
   font-size: 13px;
 }
 
+.team-management-status-pill {
+  display: inline-flex;
+  min-width: 74px;
+  min-height: 28px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 10px;
+  border-radius: 999px;
+  color: var(--team-dna-ink);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.8px;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.team-management-status-pill[data-status='ready'] {
+  background: rgba(0, 125, 77, 0.12);
+  color: var(--green-aa);
+}
+
+.team-management-status-pill[data-status='pending'] {
+  background: rgba(var(--team-dna-primary-rgb), 0.09);
+  color: var(--primary);
+}
+
 .team-management-empty {
+  grid-column: 1 / -1;
   margin: 0;
-  padding: 18px 2px;
+  padding: 2px 0;
   color: rgba(var(--team-dna-ink-rgb), 0.56);
   font-size: 15px;
 }
 
+.team-management-search-empty {
+  margin: 0;
+  color: rgba(var(--team-dna-ink-rgb), 0.52);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
 .team-management-footer {
-  padding-top: 2px;
+  flex: 0 0 auto;
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  padding: 24px 32px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.1);
+  background: var(--white);
 }
 
 .team-management-primary,
@@ -834,18 +1208,103 @@ button.team-management-row {
 }
 
 .team-management-icon-button:hover,
-.team-management-row:hover,
+.team-management-add-card-trigger:hover,
 .team-management-primary:hover,
 .team-management-secondary:hover,
-.team-management-remove-button:hover {
+.team-management-remove-button:hover,
+.team-management-remove-icon:hover {
   transform: translateY(-1px);
+}
+
+@keyframes team-management-backdrop-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes team-management-backdrop-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes team-management-sheet-in {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes team-management-sheet-out {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes team-management-member-added {
+  0% {
+    border-color: rgba(var(--team-dna-ink-rgb), 0.1);
+    background: rgba(var(--team-dna-canvas-rgb), 0.38);
+    box-shadow: 0 0 0 rgba(var(--team-dna-ink-rgb), 0);
+    opacity: 0;
+    transform: translateY(-8px) scale(0.985);
+  }
+  28% {
+    border-color: rgba(var(--team-dna-ink-rgb), 0.1);
+    background: rgba(var(--team-dna-canvas-rgb), 0.38);
+    box-shadow: 0 0 0 rgba(var(--team-dna-ink-rgb), 0);
+    opacity: 1;
+    transform: translateY(0) scale(1.01);
+  }
+  100% {
+    border-color: rgba(var(--team-dna-ink-rgb), 0.1);
+    background: var(--white);
+    box-shadow: 0 8px 24px rgba(var(--team-dna-ink-rgb), 0.04);
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes team-management-add-card-reveal {
+  from {
+    opacity: 0;
+    transform: translateY(-18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .team-management-overlay::before,
+  .team-management-overlay[data-state='closed']::before,
+  .team-management-panel,
+  .team-management-overlay[data-state='closed'] .team-management-panel,
+  .team-management-member-card[data-recently-added],
+  .team-management-add-card[data-revealed] {
+    animation-duration: 1ms;
+  }
 }
 
 .team-management-icon-button:focus-visible,
 .team-management-row:focus-visible,
+.team-management-add-card-trigger:focus-visible,
 .team-management-primary:focus-visible,
 .team-management-secondary:focus-visible,
-.team-management-remove-button:focus-visible {
+.team-management-remove-button:focus-visible,
+.team-management-remove-icon:focus-visible {
   outline: 2px solid var(--team-dna-focus);
   outline-offset: 3px;
 }

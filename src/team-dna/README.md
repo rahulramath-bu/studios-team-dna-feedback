@@ -174,6 +174,12 @@ Some fields are blank arrays or `null` in the prototype because Team DNA does
 not need them yet. They stay present so the fixture is recognizable to an
 engineer comparing it against BetterUp's existing directory model.
 
+Engineering direction: the real monolith path should use the existing
+organization user search service, which can search people within the same
+organization by name and does not require email-only lookup. In this prototype,
+`mockOrganizationEmployees` represents the returned organization-search
+results. Manual email entry remains only as a fallback invite path.
+
 `mockTeamRecords` is intentionally smaller:
 
 ```js
@@ -340,13 +346,44 @@ does not currently own a face-cluster selection pattern, duo line geometry, or
 radial Big Five bloom. Those pieces should use design-system tokens, but they
 do not need to become generic primitives.
 
+### Team management sheet
+
+The prototype's add/edit team surface intentionally follows the monolith
+right-side Sheet pattern, not a centered modal:
+
+- Monolith reference:
+  `@betterup/component-library/src/components/ui/sheet`
+- Closest form reference:
+  `partner/pages/configuration/priorities/components/OutcomeFormModal`
+- Viewport behavior:
+  `SheetOverlay` is `fixed inset-0`, so it appears above the app shell/nav.
+- Motion:
+  the dimmed backdrop fades; the right panel slides in/out from the right.
+- Backdrop:
+  black dim at about 50% opacity, no blur.
+- Dismissal:
+  normal modal sheets can close from the X, Escape, or the dimmed backdrop.
+
+`TeamManagementOverlay.jsx` hand-rolls that shell only because this repo is a
+standalone prototype. During the monolith port, replace the visual shell with
+`<Sheet>` and `<SheetContent side="right">`, then keep the team-record data
+seam and save behavior wired to the real Team/TeamMembership API.
+
+The inside of the sheet is intentionally roster-first. Teammates render as
+cards, and the final card is always the "add teammate" card. Expanding that
+same card reveals the company-directory search and email fallback in-place.
+After a person or email is added, the card collapses back to its add state and
+the new teammate appears as a normal teammate card. That keeps the focus on
+the selected team while still mapping to the real organization user-search
+service when the user wants to add someone.
+
 ## Important Files
 
 | File | Purpose |
 | --- | --- |
 | `src/team-dna/TeamDnaExperience.jsx` | Main feature panel. Mount this inside the monolith route. |
 | `src/team-dna/TeamDnaPage.jsx` | Standalone local harness. Do not port as the final route. |
-| `src/team-dna/components/TeamManagementOverlay.jsx` | Minimal prototype add/edit team overlay. Keep the data flow; replace the visual shell with monolith patterns. |
+| `src/team-dna/components/TeamManagementOverlay.jsx` | Minimal prototype add/edit team overlay. Mirrors the monolith right Sheet behavior locally; replace the shell with component-library `Sheet` / `SheetContent side="right"` during port. |
 | `src/team-dna/data/teamDnaAdapter.js` | Replaceable data seam and selection resolver. |
 | `src/team-dna/data/teamDnaViewModel.d.ts` | Type-only frontend view-model contract for the monolith port. |
 | `src/team-dna/data/teamDnaMock.js` | Demo team data. Do not ship these people, avatars, or scores. |
@@ -636,7 +673,8 @@ Do not port these as production code:
 - `mockTeamRecords` as the final backend team contract
 - `mockTeamDnaResultsByEmployeeId` as real assessment storage
 - `teamDnaGeneratedInsights.mock.js` as frontend AI logic
-- `TeamManagementOverlay` as the final production overlay design
+- `TeamManagementOverlay` as the final production overlay design; use the
+  monolith component-library Sheet shell instead
 - `TeamDnaChatInputBridge` as a new input primitive
 - `BetterUpIcon`
 

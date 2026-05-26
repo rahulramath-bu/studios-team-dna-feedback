@@ -374,8 +374,8 @@ export function TeamDnaPage() {
         <TeamManagementOverlay
           mode={teamManagementOverlay.mode}
           organizationEmployees={organizationEmployees}
+          teamDnaResultsByEmployeeId={teamDnaResultsByEmployeeId}
           teamRecord={overlayTeamRecord}
-          topOffset={devState.showMonolithShell ? 70 : 0}
           onCancel={closeTeamManagement}
           onSave={saveTeamRecord}
         />
