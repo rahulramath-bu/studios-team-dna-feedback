@@ -449,7 +449,7 @@ waiting     = not_ready, no responsible read yet
 generating  = pending, fallback visible while AI works
 ready       = generated copy visible
 failed      = fallback visible because AI failed
-stale       = old generated copy visible with refresh prompt
+stale       = old generated copy visible; team reads may show refresh
 ```
 
 The debug panel intentionally does not expose separate event-shooter buttons.
@@ -700,7 +700,7 @@ All three paths must produce the same `TeamDnaInsight` shape.
 
 There is no live AI generation in this prototype. The debug harness simulates
 the backend status map through `teamDnaGenerationLifecycle.mock.js` so the UI
-can still show waiting, pending, failed, stale, and ready states.
+can still exercise waiting, pending, failed, stale, and ready states.
 
 For the real monolith, prefer the Team Pulse pattern:
 
