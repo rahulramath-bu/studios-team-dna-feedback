@@ -91,7 +91,7 @@ export const TeamFace = forwardRef(function TeamFace(
   const hoverLabel = isSelected
     ? 'Deselect'
     : isBlocked
-      ? 'Needs Team DNA first'
+      ? 'Assessment incomplete'
       : member.name;
   const showHoverLabel = hovered || isBlocked;
   const dimmedOpacity = isPreviewObscured ? 0.1 : 0.26;

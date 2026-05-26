@@ -250,6 +250,14 @@ export function TeamDnaPage() {
     setTeamManagementOverlay(null);
   };
 
+  const handleTeamManagementAction = (action) => {
+    // Prototype-only action seam. In the monolith, replace this with real
+    // reminder mutations, analytics, and product feedback.
+    if (import.meta.env.DEV) {
+      console.info('[Team DNA team management action]', action);
+    }
+  };
+
   const saveTeamRecord = (draftTeamRecord) => {
     const teamId = draftTeamRecord.id ?? makeTeamRecordId(draftTeamRecord.name);
     const nextTeamRecord = normalizeTeamRecord({
@@ -379,6 +387,7 @@ export function TeamDnaPage() {
           teamRecord={overlayTeamRecord}
           onCancel={closeTeamManagement}
           onSave={saveTeamRecord}
+          onTeamManagementAction={handleTeamManagementAction}
         />
       )}
       <TeamDnaDevPanel

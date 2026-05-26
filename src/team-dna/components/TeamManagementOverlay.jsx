@@ -75,6 +75,7 @@ export function TeamManagementOverlay({
   teamRecord,
   onCancel,
   onSave,
+  onTeamManagementAction,
 }) {
   const sourceRecord = teamRecord ?? EMPTY_TEAM_RECORD;
   const [isClosing, setIsClosing] = useState(false);
@@ -87,6 +88,7 @@ export function TeamManagementOverlay({
   const [isAddCardWaiting, setIsAddCardWaiting] = useState(false);
   const [recentlyAddedMemberKey, setRecentlyAddedMemberKey] = useState(null);
   const [notifyNewTeammates, setNotifyNewTeammates] = useState(true);
+  const [remindedMemberKeys, setRemindedMemberKeys] = useState(() => new Set());
   const [bodyScrollState, setBodyScrollState] = useState({
     canScrollDown: false,
     canScrollUp: false,
@@ -186,6 +188,7 @@ export function TeamManagementOverlay({
     setIsAddCardWaiting(false);
     setRecentlyAddedMemberKey(null);
     setNotifyNewTeammates(true);
+    setRemindedMemberKeys(new Set());
     setQuery('');
   }, [sourceRecord]);
 
@@ -327,6 +330,44 @@ export function TeamManagementOverlay({
     );
   };
 
+  /**
+   * What: prototype action seam for user-triggered team management side effects.
+   * How: emits structured intent while keeping the local prototype optimistic.
+   * Port: wire this callback to real mutations/events for assessment reminders,
+   * team saves, analytics, and toast feedback.
+   */
+  const emitTeamManagementAction = (type, payload) => {
+    onTeamManagementAction?.({
+      type,
+      payload,
+      timestamp: new Date().toISOString(),
+    });
+  };
+
+  const remindEmployee = (employee) => {
+    const memberKey = `employee:${employee.id}`;
+
+    setRemindedMemberKeys((current) => new Set(current).add(memberKey));
+    emitTeamManagementAction('assessmentReminderRequested', {
+      source: 'organizationEmployee',
+      employeeId: employee.id,
+      email: employee.email,
+      name: getEmployeeName(employee),
+    });
+  };
+
+  const remindInvite = (email) => {
+    const normalizedEmail = normalizeEmail(email);
+    const memberKey = `invite:${normalizedEmail}`;
+
+    setRemindedMemberKeys((current) => new Set(current).add(memberKey));
+    emitTeamManagementAction('assessmentReminderRequested', {
+      source: 'manualInvite',
+      email: normalizedEmail,
+      name: normalizedEmail,
+    });
+  };
+
   const saveTeam = () => {
     if (isClosing) return;
     setIsClosing(true);
@@ -453,6 +494,9 @@ export function TeamManagementOverlay({
                   {selectedEmployees.map((employee) => {
                     const hasTeamDna =
                       teamDnaResultsByEmployeeId[employee.id]?.assessmentComplete === true;
+                    const reminderSent = remindedMemberKeys.has(
+                      `employee:${employee.id}`
+                    );
 
                     return (
                       <motion.div
@@ -480,32 +524,27 @@ export function TeamManagementOverlay({
                             <small>{employee.title || employee.email}</small>
                           ) : (
                             <small className="team-management-inline-pending">
-                              Pending
+                              Assessment pending...
                             </small>
                           )}
                         </span>
-                        <span className="team-management-row-actions">
-                          {hasTeamDna ? (
-                            <span
-                              className="team-management-status-pill"
-                              data-status="ready"
-                              aria-label="Assessment complete"
-                              title="Assessment complete"
-                            >
-                              <BetterUpIcon name="Check" size={14} strokeWidth={2.2} />
-                            </span>
-                          ) : (
+                        {!hasTeamDna && (
+                          <span className="team-management-row-actions">
                             <button
                               type="button"
                               className="team-management-remind-button"
                               aria-label={`Remind ${getEmployeeName(employee)} to complete assessment`}
                               title="Send assessment reminder"
-                              onClick={(event) => event.stopPropagation()}
+                              data-sent={reminderSent || undefined}
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                remindEmployee(employee);
+                              }}
                             >
-                              Remind
+                              {reminderSent ? 'Reminder sent!' : 'Remind'}
                             </button>
-                          )}
-                        </span>
+                          </span>
+                        )}
                         <button
                           type="button"
                           className="team-management-remove-icon"
@@ -517,48 +556,59 @@ export function TeamManagementOverlay({
                       </motion.div>
                     );
                   })}
-                  {invitedEmails.map((email) => (
-                    <motion.div
-                      key={email}
-                      className="team-management-card team-management-member-card"
-                      data-recently-added={
-                        recentlyAddedMemberKey === `invite:${normalizeEmail(email)}` ||
-                        undefined
-                      }
-                      {...MEMBER_CARD_MOTION}
-                    >
-                      <span className="team-management-member-avatar-wrap">
-                        <span className="team-management-avatar" aria-hidden="true">
-                          {getInitials(email)}
+                  {invitedEmails.map((email) => {
+                    const normalizedEmail = normalizeEmail(email);
+                    const reminderSent = remindedMemberKeys.has(
+                      `invite:${normalizedEmail}`
+                    );
+
+                    return (
+                      <motion.div
+                        key={email}
+                        className="team-management-card team-management-member-card"
+                        data-recently-added={
+                          recentlyAddedMemberKey === `invite:${normalizedEmail}` ||
+                          undefined
+                        }
+                        {...MEMBER_CARD_MOTION}
+                      >
+                        <span className="team-management-member-avatar-wrap">
+                          <span className="team-management-avatar" aria-hidden="true">
+                            {getInitials(email)}
+                          </span>
                         </span>
-                      </span>
-                      <span className="team-management-row-copy">
-                        <strong>{email}</strong>
-                        <small className="team-management-inline-pending">
-                          Pending
-                        </small>
-                      </span>
-                      <span className="team-management-row-actions">
+                        <span className="team-management-row-copy">
+                          <strong>{email}</strong>
+                          <small className="team-management-inline-pending">
+                            Assessment pending...
+                          </small>
+                        </span>
+                        <span className="team-management-row-actions">
+                          <button
+                            type="button"
+                            className="team-management-remind-button"
+                            aria-label={`Remind ${email} to complete assessment`}
+                            title="Send assessment reminder"
+                            data-sent={reminderSent || undefined}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              remindInvite(email);
+                            }}
+                          >
+                            {reminderSent ? 'Reminder sent!' : 'Remind'}
+                          </button>
+                        </span>
                         <button
                           type="button"
-                          className="team-management-remind-button"
-                          aria-label={`Remind ${email} to complete assessment`}
-                          title="Send assessment reminder"
-                          onClick={(event) => event.stopPropagation()}
+                          className="team-management-remove-icon"
+                          onClick={() => removeInvite(email)}
+                          aria-label={`Remove ${email}`}
                         >
-                          Remind
+                          <BetterUpIcon name="Trash" size={15} strokeWidth={1.8} />
                         </button>
-                      </span>
-                      <button
-                        type="button"
-                        className="team-management-remove-icon"
-                        onClick={() => removeInvite(email)}
-                        aria-label={`Remove ${email}`}
-                      >
-                        <BetterUpIcon name="Trash" size={15} strokeWidth={1.8} />
-                      </button>
-                    </motion.div>
-                  ))}
+                      </motion.div>
+                    );
+                  })}
                   {!isAddCardWaiting && (
                     <motion.div
                       key="team-management-add-card"

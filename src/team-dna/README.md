@@ -234,6 +234,19 @@ Team DNA members with no avatar and `assessmentComplete: false`, which is why
 they show the same `PENDING` treatment as an employee who has not completed
 their assessment.
 
+Assessment reminder actions are intentionally separated from team saves.
+`TeamManagementOverlay` emits `onTeamManagementAction({
+type: 'assessmentReminderRequested', ... })` when a manager clicks `Remind`;
+the prototype only changes the local button text to `Reminder sent!`. During
+the monolith port, wire that callback to the real assessment-reminder mutation,
+analytics event, toast/feedback surface, and any resend throttling rules. Do
+not treat the local "sent" UI as durable state.
+
+The save payload also includes a prototype-only `notificationPreference` object
+for the footer checkbox (`Notify new teammates`). That is an intent seam, not a
+final backend field. Engineering should replace it with whatever request shape
+the real Team/TeamMembership and assessment-reminder APIs require.
+
 The empty state is triggered only by data:
 
 ```txt

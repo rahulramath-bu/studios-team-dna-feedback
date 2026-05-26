@@ -191,9 +191,11 @@ button {
   --monolith-nav-height: 70px;
   --monolith-shell-chrome: var(--monolith-nav-height);
 
+  height: 100vh;
   min-height: 100vh;
   background: var(--page-background);
   color: var(--team-dna-ink);
+  overflow: hidden;
 }
 
 .monolith-primary-nav {
@@ -563,12 +565,17 @@ button {
   min-height: 0;
   max-height: min(320px, calc(100vh - var(--team-context-top, 18px) - 96px));
   overflow: auto;
+  scrollbar-width: none;
   padding: 0 5px;
   border: 0;
   border-radius: 0 0 12px 12px;
   background: transparent;
   box-shadow: none;
   color: var(--popover-foreground);
+}
+
+.team-context-menu::-webkit-scrollbar {
+  display: none;
 }
 
 .team-context-menu-shell[data-open] .team-context-menu {
@@ -1376,44 +1383,9 @@ button.team-management-row {
   font-size: 13px;
 }
 
-.team-management-status-pill {
-  display: inline-flex;
-  min-width: 74px;
-  min-height: 28px;
-  align-items: center;
-  justify-content: center;
-  padding: 0 10px;
-  border-radius: 999px;
-  color: var(--team-dna-ink);
-  font-family: var(--label-font);
-  font-size: 10px;
-  font-weight: var(--label-weight);
-  letter-spacing: 0.8px;
-  line-height: 1;
-  text-transform: uppercase;
-  user-select: none;
-  transition:
-    opacity 140ms ease,
-    transform 140ms ease;
-}
-
-.team-management-status-pill[data-status='ready'] {
-  min-width: 28px;
-  padding: 0;
-  background: transparent;
-  color: var(--green-aa);
-}
-
-.team-management-status-pill[data-status='pending'] {
-  min-width: 56px;
-  background: transparent;
-  color: var(--primary);
-  cursor: pointer;
-}
-
 .team-management-remind-button {
   width: fit-content;
-  min-width: 0;
+  min-width: 54px;
   justify-self: end;
   padding: 0;
   border: 1px solid transparent;
@@ -1434,6 +1406,11 @@ button.team-management-row {
     transform 140ms ease;
 }
 
+.team-management-remind-button[data-sent] {
+  color: rgba(var(--team-dna-ink-rgb), 0.58);
+  cursor: default;
+}
+
 .team-management-row-actions {
   grid-column: 3;
   grid-row: 1;
@@ -1446,7 +1423,6 @@ button.team-management-row {
   justify-self: end;
 }
 
-.team-management-row-actions .team-management-status-pill,
 .team-management-row-actions .team-management-remind-button {
   transition:
     background-color 250ms ease,
@@ -2518,10 +2494,6 @@ button.team-management-row {
 .duo-connection-line-preview {
   stroke-dasharray: 1 10;
   stroke-width: 4px;
-}
-
-.team-face-button[data-unavailable] {
-  cursor: not-allowed;
 }
 
 .team-face-button:focus-visible {
