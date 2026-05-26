@@ -195,6 +195,7 @@ export function TeamDnaPage() {
       Object.values(teamRecords).map(({ teamRecord }) => ({
         id: teamRecord.id,
         name: teamRecord.name,
+        memberCount: teamRecord.memberEmployeeIds.length + teamRecord.invitedEmails.length,
         sample: teamRecord.sample,
       })),
     [teamRecords]
@@ -236,13 +237,13 @@ export function TeamDnaPage() {
     setTeamManagementOverlay({ mode: 'create' });
   };
 
-  const openEditTeam = () => {
-    if (!activeTeamId) {
+  const openEditTeam = (teamId = activeTeamId) => {
+    if (!teamId) {
       openCreateTeam();
       return;
     }
 
-    setTeamManagementOverlay({ mode: 'edit', teamId: activeTeamId });
+    setTeamManagementOverlay({ mode: 'edit', teamId });
   };
 
   const closeTeamManagement = () => {

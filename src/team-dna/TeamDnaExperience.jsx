@@ -7,7 +7,7 @@ import { TeamContextSwitcher } from './components/TeamContextSwitcher.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
-const INTRO_CHROME_REVEAL_MS = 4300;
+const INTRO_CHROME_REVEAL_MS = 1200;
 
 /**
  * Team DNA feature panel.
@@ -134,9 +134,9 @@ export function TeamDnaExperience({
     setSelectedIds([]);
   };
 
-  const handleEditTeam = () => {
+  const handleEditTeam = (teamId) => {
     setSelectedIds([]);
-    onEditTeam?.();
+    onEditTeam?.(teamId);
   };
 
   const insight = getInsightForSelection(dataset, selectedIds);
