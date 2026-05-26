@@ -72,14 +72,13 @@ export function TeamDnaDevPanel({
   const selectedGenerationStatus =
     devState.generationStatusByTargetId?.[activeGenerationTarget?.id];
   const generationDescription =
-    GENERATION_STATUS_DESCRIPTIONS[selectedGenerationStatus] ?? {
-      title: activeGenerationTarget
-        ? 'Choose a lifecycle state'
-        : 'Select a team, person, or duo first',
-      body: activeGenerationTarget
-        ? 'Click one state to simulate the backend generation lifecycle for this target.'
-        : 'Add or select a Team DNA target so the lifecycle controls know what read they are changing.',
-    };
+    GENERATION_STATUS_DESCRIPTIONS[selectedGenerationStatus] ??
+    (activeGenerationTarget
+      ? {
+          title: 'Choose a lifecycle state',
+          body: 'Click one state to simulate the backend generation lifecycle for this target.',
+        }
+      : null);
 
   return (
     <>
@@ -184,7 +183,7 @@ export function TeamDnaDevPanel({
               )}
 
               <DevSection
-                title="Insight generation"
+                title="AI lifecycle"
                 meta={activeGenerationTarget?.id ?? 'none'}
               >
                 <div className="team-dna-dev-chip-row">
@@ -214,10 +213,12 @@ export function TeamDnaDevPanel({
                     );
                   })}
                 </div>
-                <div className="team-dna-dev-status-copy">
-                  <h4>{generationDescription.title}</h4>
-                  <p>{generationDescription.body}</p>
-                </div>
+                {generationDescription && (
+                  <div className="team-dna-dev-status-copy">
+                    <h4>{generationDescription.title}</h4>
+                    <p>{generationDescription.body}</p>
+                  </div>
+                )}
               </DevSection>
             </div>
           </motion.aside>
