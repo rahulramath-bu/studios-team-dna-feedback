@@ -2752,7 +2752,7 @@ button.team-management-row {
   right: 0;
   bottom: 0;
   z-index: 9999;
-  width: 330px;
+  width: 380px;
   overflow: hidden;
   border-radius: 8px 0 0 8px;
   color: rgba(var(--white-rgb), 0.62);
@@ -2875,10 +2875,6 @@ button.team-management-row {
   display: grid;
   gap: 7px;
   min-width: 0;
-  padding: 12px 13px;
-  border: 1px solid rgba(var(--white-rgb), 0.08);
-  border-radius: 4px;
-  background: rgba(var(--white-rgb), 0.035);
   font-family: 'Söhne Mono', monospace;
 }
 
