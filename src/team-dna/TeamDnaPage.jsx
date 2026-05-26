@@ -161,7 +161,6 @@ export function TeamDnaPage() {
   });
   const [teamManagementOverlay, setTeamManagementOverlay] = useState(null);
   const [activeGenerationTarget, setActiveGenerationTarget] = useState(null);
-  const [showLayoutOutlines, setShowLayoutOutlines] = useState(false);
   const [emptyDevState, setEmptyDevState] = useState(() =>
     createInitialDevState(EMPTY_TEAM_DATASET.members)
   );
@@ -431,15 +430,12 @@ export function TeamDnaPage() {
         <main className="team-dna-page" aria-label="Team DNA">
           {isTrueEmptyState ? (
             <TeamDnaEmptyState
-              showLayoutOutlines={showLayoutOutlines}
               onAddTeam={openCreateTeam}
               onTrySample={trySampleTeam}
             />
           ) : (
             <TeamDnaExperience
               dataset={scenarioDataset}
-              showLayoutOutlines={showLayoutOutlines}
-              preserveInsightScroll={devState.preserveInsightScroll}
               generationStatusByTargetId={generationStatusByTargetId}
               teamOptions={teamOptions}
               selectedTeamId={activeTeamId}
@@ -474,19 +470,16 @@ export function TeamDnaPage() {
         onSetTeamSize={setActiveTeamSize}
         onToggleMemberAvatar={toggleMemberAvatar}
         onToggleMemberAssessment={toggleMemberAssessment}
-        showLayoutOutlines={showLayoutOutlines}
-        setShowLayoutOutlines={setShowLayoutOutlines}
         setDevState={updateActiveDevState}
       />
     </>
   );
 }
 
-function TeamDnaEmptyState({ showLayoutOutlines, onAddTeam, onTrySample }) {
+function TeamDnaEmptyState({ onAddTeam, onTrySample }) {
   return (
     <section
       className="team-dna-empty-state"
-      data-layout-debug={showLayoutOutlines || undefined}
       aria-label="Team DNA empty state"
     >
       <div className="team-dna-empty-copy">

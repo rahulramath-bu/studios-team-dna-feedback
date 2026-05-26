@@ -13,7 +13,6 @@ export function createInitialDevState(members) {
   return {
     isOpen: false,
     showMonolithShell: true,
-    preserveInsightScroll: false,
     generationStatusByTargetId: {},
     lastGenerationEvent: null,
   };

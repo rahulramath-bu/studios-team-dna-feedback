@@ -2898,6 +2898,15 @@ button.team-management-row {
   white-space: nowrap;
 }
 
+.team-dna-dev-note {
+  margin: 9px 0 0;
+  color: rgba(var(--white-rgb), 0.28);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 7px;
+  letter-spacing: 0.35px;
+  line-height: 1.45;
+}
+
 .team-dna-dev-action-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

@@ -23,8 +23,6 @@ export function TeamDnaDevPanel({
   onToggleMemberAssessment,
   onToggleMemberAvatar,
   setDevState,
-  showLayoutOutlines,
-  setShowLayoutOutlines,
 }) {
   useEffect(() => {
     const handleKeyDown = (event) => {
@@ -121,29 +119,14 @@ export function TeamDnaDevPanel({
                 />
               </DevSection>
 
-              <DevSection title="Behavior">
-                <DevToggle
-                  label="Layout outlines"
-                  value={showLayoutOutlines}
-                  onChange={() => setShowLayoutOutlines((current) => !current)}
-                />
-                <DevToggle
-                  label="Keep insight scroll"
-                  value={devState.preserveInsightScroll}
-                  onChange={() =>
-                    setDevState((current) => ({
-                      ...current,
-                      preserveInsightScroll: !current.preserveInsightScroll,
-                    }))
-                  }
-                />
-              </DevSection>
-
               <DevSection title="AI lifecycle">
                 <div className="team-dna-dev-target">
                   <span>Target</span>
                   <strong>{activeGenerationTarget?.id ?? 'none'}</strong>
                 </div>
+                <p className="team-dna-dev-note">
+                  ready/stale use generated copy; pending/failed show fallback.
+                </p>
                 <div className="team-dna-dev-chip-row">
                   {TEAM_DNA_GENERATION_STATUSES.map((status) => {
                     const isActive =
