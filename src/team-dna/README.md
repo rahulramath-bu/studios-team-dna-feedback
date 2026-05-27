@@ -12,6 +12,17 @@ selection model, and porting boundaries are built like a real feature slice.
 The goal is that a BetterUp engineer can replace the fixture adapter with real
 monolith data and keep the same UI mechanism.
 
+While this prototype is designed to be as portable as possible, it is unlikely
+to be a perfect copy-paste production patch. The goal is to make the monolith
+port much easier than rebuilding from a static design file: the main UI,
+interaction model, data seams, fallback behavior, lifecycle states, and porting
+boundaries are already shaped in code.
+
+Engineers should still expect some integration work around routing, API hooks,
+permissions, analytics, loading/error states, design-system primitives, and real
+mutations. Treat this as a feature slice built for a cleaner surgery, not as
+final monolith code.
+
 ## Contents
 
 - [What This Is](#what-this-is)
@@ -232,8 +243,8 @@ members, it uses the same canonical empty state as any other empty team.
 Manual email entries are stored as `invitedEmails` on the team record. No real
 invite is sent in this prototype. The mapper turns those emails into pending
 Team DNA members with no avatar and `assessmentComplete: false`, which is why
-they show the same `PENDING` treatment as an employee who has not completed
-their assessment.
+they show the same incomplete-assessment treatment as an employee who has not
+completed their assessment.
 
 Assessment reminder actions are intentionally separated from team saves.
 `TeamManagementOverlay` emits `onTeamManagementAction({
@@ -291,7 +302,7 @@ whether those records came from the mock file or a real API.
 
 ### Fallback behavior
 
-If generated insight data is missing, stale, disabled, or not available yet,
+If generated insight data is missing, disabled, failed, or not available yet,
 the app can still render from Big Five scores:
 
 - `teamDnaPairInsights.js` builds deterministic team/person/duo copy.
@@ -300,6 +311,10 @@ the app can still render from Big Five scores:
   pair read language.
 
 That fallback layer is not throwaway. It is the explainable floor.
+
+If generated insight data is stale, keep the old generated insight visible and
+offer a refresh path where appropriate. Stale does not mean fallback must
+replace the generated copy immediately.
 
 ### AI should own
 
@@ -543,6 +558,30 @@ does not currently own a face-cluster selection pattern, duo line geometry, or
 radial Big Five bloom. Those pieces should use design-system tokens, but they
 do not need to become generic primitives.
 
+### Team context switcher
+
+The team context switcher is manager/admin-only in this prototype. It is fixed
+near the top right of the Team DNA surface and portals to `document.body` so it
+stays visually attached to the viewport while the result page scrolls.
+
+The closed state shows:
+
+- `Team`
+- the current team name
+- a chevron
+- a separate edit button aligned to the same height
+
+The open state keeps the current team in the trigger, lists the other available
+teams with an initial tile and member count, and ends with an `Add team` row.
+The edit button edits only the currently viewed team; it is not repeated on
+every row.
+
+During the monolith port, replace `teamOptions` with the real universal team
+context source. Keep the component's basic contract: selected team id, switch
+callback, edit-current-team callback, and add-team callback. If product later
+allows non-managers to switch between teams they belong to, split "can switch
+teams" from "can manage teams" instead of reusing one broad permission flag.
+
 ### Team management sheet
 
 The prototype's add/edit team surface intentionally follows the monolith
@@ -590,15 +629,19 @@ service when the user wants to add someone.
 | `src/team-dna/data/teamDnaPairInsights.js` | Deterministic fallback insight generation. |
 | `src/team-dna/data/teamDnaWatchOuts.js` | Deterministic fallback watch-outs. |
 | `src/team-dna/data/bigFiveTraits.js` | Trait order, labels, endpoint names, colors, and fallback spectrum copy. |
-| `src/team-dna/components/TeamFaceField.jsx` | Face cluster, editing affordance, selection behavior, and team/person/duo headline area. |
+| `src/team-dna/data/teamDnaIds.js` | Stable team/person/duo id helpers, including order-insensitive pair ids. |
+| `src/team-dna/components/TeamContextSwitcher.jsx` | Manager/admin team switcher, current-team edit button, and add-team entry point. |
+| `src/team-dna/components/TeamFaceField.jsx` | Face cluster, selection behavior, duo preview/selection line ownership, and team/person/duo headline area. |
 | `src/team-dna/components/TeamFace.jsx` | One person's interactive face button. |
 | `src/team-dna/components/DuoConnection.jsx` | Measured line between selected/previewed people. |
 | `src/team-dna/components/InsightPanel.jsx` | Right-side scroll panel and insight page transition. |
 | `src/team-dna/components/InfoBlock.jsx` | Card renderer switch for bloom, spectrum, watch-out, and guidance cards. |
 | `src/team-dna/components/BigFiveBloom.jsx` | Radial Big Five shape for team/person/duo. |
 | `src/team-dna/components/BigFiveSpectrumList.jsx` | Spectrum carousel and show-all view. |
+| `src/team-dna/components/TeamDnaEmptyPreview.jsx` | Animated empty-state preview. Local demo content; not required for the production route. |
 | `src/team-dna/components/TeamDnaChatInputBridge.jsx` | Local bridge that mimics monolith ChatInputSection/InputBox. Replace during port. |
 | `src/team-dna/components/BetterUpIcon.jsx` | Local icon bridge shaped like the monolith icon API. Replace during port. |
+| `src/team-dna/hooks/useTeamDnaPressable.js` | Tiny local press feedback hook for face buttons. Keep local unless a shared BetterUp primitive already covers it. |
 | `src/team-dna/dev/*` | Debug shell and local controls. Do not port. |
 | `src/styles.css` | Standalone CSS with monolith token fallbacks plus Team DNA-specific geometry. |
 
@@ -615,6 +658,9 @@ Run the prototype:
 ```bash
 npm run dev
 ```
+
+Open `/results` for this Surface 2 handoff. The root route `/` is a tiny
+prototype hub, and `/assessment` is only the parked Surface 1 placeholder.
 
 Build:
 
@@ -914,6 +960,12 @@ During porting, replace `100vh` assumptions with the real Team tab panel height.
 Usually this means a flex child or `calc(100vh - nav/subtab chrome)` depending
 on the final shell.
 
+The current result page intentionally uses document-level scrolling: the left
+people pane is fixed, the team switcher and AI ask box portal to the viewport,
+and the right insight content creates the page scroll. If the monolith route
+needs a nested scroll container instead, remap the scroll owner deliberately so
+the body and right pane do not both show competing scrollbars.
+
 The standalone CSS uses `:has()` for the spectrum show-all restyle. If the
 monolith browser support matrix or CSS pipeline makes that uncomfortable, use
 an explicit data attribute instead:
@@ -926,15 +978,20 @@ That is a porting detail, not product behavior.
 
 ### 11. What to port
 
-Port the feature code:
+Port the reusable feature code:
 
 - `TeamDnaExperience`
-- components under `src/team-dna/components`
+- portable components under `src/team-dna/components`, especially
+  `TeamContextSwitcher`, `TeamFaceField`, `TeamFace`, `DuoConnection`,
+  `InsightPanel`, `InfoBlock`, and the visualization/card components
 - hooks under `src/team-dna/hooks`
 - deterministic data helpers under `src/team-dna/data`
 - `teamDnaViewModel.d.ts` as the type contract
 - the team-management mapper concept from `teamManagementMock.js`
 - the Team DNA CSS rules, converted to monolith styling conventions
+
+Use the next section to exclude prototype-only bridges and shells from that
+broad component list.
 
 ### 12. What not to port
 
@@ -987,10 +1044,17 @@ Before calling a monolith port done:
 - Sample Team is inserted through the same team-record path as real teams.
 - Empty state appears when there is no selected team or the selected team maps
   to zero members.
+- Non-manager empty state keeps the same headline/body but removes setup/demo
+  CTAs.
+- Team context switcher opens from the current team, switches to other teams,
+  shows member counts, opens add team, and edits only the viewed team.
 - Team, person, duo, incomplete-assessment, missing-avatar, empty-team, and
   large-team states all render.
 - Manager/admin access gates team management controls, generate-anyway, stale
   refresh, and non-manager empty-state CTAs.
+- Team summary waits below 3 completed assessments, allows generate-anyway at
+  3+ incomplete responses for managers/admins, and shows stale refresh only
+  when old generated team insight exists.
 - Pair lookup is order-insensitive.
 - `[]`, `[memberId]`, and `[memberId, memberId]` selection states work.
 - Generated insight data and deterministic fallback use the same UI path.

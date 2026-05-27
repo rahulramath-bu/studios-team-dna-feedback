@@ -256,9 +256,8 @@ function getEntityTitleStyle(title) {
 /**
  * Left-side team face field.
  *
- * What: renders the selectable team cluster, team-name editor, add/remove
- * controls, hover preview line, selected duo line, and selected-pair nudge
- * behavior.
+ * What: renders the selectable team cluster, hover preview line, selected duo
+ * line, selected-pair nudge behavior, and team/person/duo context heading.
  * How: keeps stable button hitboxes while inner visual layers scale; stores DOM
  * refs for each face so DuoConnection and nudge math can measure real positions
  * instead of assuming a specific grid.
