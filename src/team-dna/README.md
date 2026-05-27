@@ -306,6 +306,8 @@ If generated insight data is missing, disabled, failed, or not available yet,
 the app can still render from Big Five scores:
 
 - `teamDnaPairInsights.js` builds deterministic team/person/duo copy.
+- `teamDnaFallbackRoles.js` maps the two strongest person signals into one
+  deterministic fallback role title.
 - `teamDnaWatchOuts.js` builds deterministic watch-outs.
 - `bigFiveTraits.js` owns trait labels, spectrum endpoints, and fallback
   pair read language.
@@ -493,6 +495,40 @@ introductory empty-state headline/body, but replace setup/demo CTAs with a short
 note that after a manager or admin adds them to a team, their team summary will
 appear there.
 
+### Viewer identity and profile editing seam
+
+Manager/admin access is not the same thing as viewer identity.
+
+The standalone debug panel uses:
+
+```txt
+viewerMemberId
+```
+
+to simulate which Team DNA member is the signed-in user. In the monolith, this
+should come from the authenticated member/session mapped to the current Team DNA
+member record.
+
+Profile editing should be gated by ownership, not by team management access:
+
+```txt
+current insight is a person page
+and selected person id === viewerMemberId
+-> viewer can edit their own profile copy
+```
+
+For this prototype, editing is intentionally limited to profile-facing copy:
+
+- Main overview.
+- How to work with me.
+- Where I shine.
+
+It does not edit Big Five scores, Big Five reads, team summaries, duo reads, or
+watch-outs. In production, save these edits as backend-authored overrides or
+approved generated-profile edits, then feed them back through the same
+`TeamDnaInsight` view model. Do not special-case edited copy inside visual
+components.
+
 ### Prototype simulation
 
 `src/team-dna/data/teamDnaGenerationLifecycle.mock.js` is the local backend
@@ -626,6 +662,7 @@ service when the user wants to add someone.
 | `src/team-dna/data/teamManagementMock.js` | Organization employee, temporary team record, Team DNA result fixtures, and the mapper between them. |
 | `src/team-dna/data/teamDnaGeneratedInsights.mock.js` | Mock backend-generated insight records. Do not port as frontend AI logic. |
 | `src/team-dna/data/teamDnaGenerationLifecycle.mock.js` | Mock backend generation statuses for team/person/duo AI lifecycle states. Do not port as production logic. |
+| `src/team-dna/data/teamDnaFallbackRoles.js` | Scott-inspired deterministic person-role matrix for fallback titles. |
 | `src/team-dna/data/teamDnaPairInsights.js` | Deterministic fallback insight generation. |
 | `src/team-dna/data/teamDnaWatchOuts.js` | Deterministic fallback watch-outs. |
 | `src/team-dna/data/bigFiveTraits.js` | Trait order, labels, endpoint names, colors, and fallback spectrum copy. |

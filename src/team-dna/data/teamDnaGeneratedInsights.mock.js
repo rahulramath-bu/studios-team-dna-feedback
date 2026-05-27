@@ -839,10 +839,7 @@ function getScoreBand(member, trait) {
 }
 
 function getPersonSpectrumReads(member) {
-  const pronouns = getPronouns(member);
-  const subject = pronouns.subject;
-  const possessive = pronouns.possessive;
-  const capitalPossessive = capitalize(possessive);
+  const subject = getFirstName(member);
   const openness = getScoreBand(member, 'openness');
   const conscientiousness = getScoreBand(member, 'conscientiousness');
   const extraversion = getScoreBand(member, 'extraversion');
@@ -852,34 +849,34 @@ function getPersonSpectrumReads(member) {
   return {
     openness:
       openness === 'high'
-        ? `With ideas, ${subject} tends to push past the obvious answer and look for the more alive frame.`
+        ? `${capitalize(subject)} is **inventive**, often pushing past the obvious answer toward a more alive frame.`
         : openness === 'low'
-          ? `With ideas, ${subject} tends to trust what has already been proven before opening a new frame.`
-          : `With ideas, ${subject} tends to test new angles against what will actually hold.`,
+          ? `${capitalize(subject)} is **practical**, often testing new ideas against what is already proven and usable.`
+          : `${capitalize(subject)} is **practical / inventive**, testing new angles against what will actually hold.`,
     conscientiousness:
       conscientiousness === 'high'
-        ? `With plans, ${subject} tends to turn intent into owners, standards, and next steps.`
+        ? `${capitalize(subject)} is **structured**, turning intent into owners, standards, and next steps.`
         : conscientiousness === 'low'
-          ? `With plans, ${subject} tends to keep the path loose until the work has a shape worth landing.`
-          : `With plans, ${subject} tends to use enough structure to move without making the work stiff.`,
+          ? `${capitalize(subject)} is **flexible**, keeping the path loose until the work has a shape worth landing.`
+          : `${capitalize(subject)} is **flexible / structured**, using enough structure to move without making the work stiff.`,
     extraversion:
       extraversion === 'high'
-        ? `${capitalPossessive} energy tends to move outward, making momentum easier for the room to feel.`
+        ? `${capitalize(subject)} is **expressive**, making momentum and social energy easier for the room to feel.`
         : extraversion === 'low'
-          ? `${capitalPossessive} energy tends to build quietly before it turns into a visible contribution.`
-          : `${capitalPossessive} energy tends to move between quiet processing and active participation.`,
+          ? `${capitalize(subject)} is **reflective**, building energy quietly before it becomes visible contribution.`
+          : `${capitalize(subject)} is **reflective / expressive**, moving between quiet processing and active participation.`,
     agreeableness:
       agreeableness === 'high'
-        ? `With people, ${subject} tends to protect trust, tone, and the room around the work.`
+        ? `${capitalize(subject)} is **cooperative**, protecting trust, tone, and the room around the work.`
         : agreeableness === 'low'
-          ? `With people, ${subject} tends to protect the direct read, even when the room gets less comfortable.`
-          : `With people, ${subject} tends to balance directness with care for how the message lands.`,
+          ? `${capitalize(subject)} is **skeptical**, questioning assumptions even when the room gets less comfortable.`
+          : `${capitalize(subject)} is **skeptical / cooperative**, pairing useful challenge with care for how it lands.`,
     neuroticism:
       neuroticism === 'high'
-        ? `Under pressure, ${subject} tends to notice the risk signal early and look for what needs protection.`
+        ? `${capitalize(subject)} is **vigilant**, noticing risk signals early and looking for what needs protection.`
         : neuroticism === 'low'
-          ? `Under pressure, ${subject} tends to stay steady and help the room keep moving.`
-          : `Under pressure, ${subject} tends to read the signal, name it, and move toward one next step.`,
+          ? `${capitalize(subject)} is **steady**, helping the room stay regulated and keep perspective under pressure.`
+          : `${capitalize(subject)} is **steady / vigilant**, reading pressure without letting it run the room.`,
   };
 }
 
@@ -972,11 +969,11 @@ function makePairInsight(first, second) {
       { text: pairSynthesis.summary },
     ],
     spectrumReads: {
-      openness: `With ideas, ${higherOpenness} stretches the frame while ${lowerOpenness} tests what can hold.`,
-      conscientiousness: `With plans, ${higherStructure} wants the path clear while ${lowerStructure} keeps room to move.`,
-      extraversion: `The energy works best when ${higherEnergy} can speak it out and ${lowerEnergy} gets a quieter first pass.`,
-      agreeableness: `With people, ${moreDirect} protects the direct read while ${warmer} helps it land with care.`,
-      neuroticism: `Under pressure, ${moreVigilant} catches the early signal while ${steadier} helps decide what needs action.`,
+      openness: `${higherOpenness} is more **inventive** here, stretching the frame while ${lowerOpenness} keeps the idea more practical.`,
+      conscientiousness: `${higherStructure} is more **structured** here, wanting the path clear while ${lowerStructure} keeps more flexibility.`,
+      extraversion: `${higherEnergy} is more **expressive** here, while ${lowerEnergy} brings a more reflective first pass.`,
+      agreeableness: `${warmer} is more **cooperative** here, while ${moreDirect} brings a more skeptical test of the idea.`,
+      neuroticism: `${moreVigilant} is more **vigilant** here, catching the early signal while ${steadier} brings steadier perspective.`,
     },
     watchOut: makeWatchOut([
       {
@@ -1037,11 +1034,11 @@ export function makeMockTeamDnaGeneratedInsights({ team, members }) {
         },
       ],
       spectrumReads: {
-        openness: 'With ideas, this team tends to open many possible paths before choosing which one deserves a real test.',
-        conscientiousness: 'With plans, this team works best when “done” is named early and handoffs are made explicit.',
-        extraversion: 'The energy is mixed, so the team works best when quiet reads are invited before decisions close.',
-        agreeableness: 'With people, this team works best when directness and warmth both get a visible role.',
-        neuroticism: 'Under pressure, this team works best when risk signals are sorted before they spread.',
+        openness: 'This team is **inventive**, opening many possible paths before choosing which one deserves a real test.',
+        conscientiousness: 'This team is **structured**, but works best when “done” is named early and handoffs are made explicit.',
+        extraversion: 'This team is **reflective / expressive**, so quiet reads should be invited before decisions close.',
+        agreeableness: 'This team is **skeptical / cooperative**, so challenge and trust both need a visible role.',
+        neuroticism: 'This team is **vigilant**, and works best when risk signals are sorted before they spread.',
       },
       watchOut: makeWatchOut([
         {

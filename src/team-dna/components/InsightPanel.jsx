@@ -28,8 +28,10 @@ export function InsightPanel({
   isHidden,
   preserveScroll = false,
   canManageTeam = true,
+  currentViewerMemberId,
   onSelectMember,
   onLifecycleAction,
+  onProfileCopySave,
 }) {
   const scrollRef = useRef(null);
   const resetScrollAfterExit = () => {
@@ -61,8 +63,10 @@ export function InsightPanel({
                   key={insight.id}
                   insight={insight}
                   canManageTeam={canManageTeam}
+                  currentViewerMemberId={currentViewerMemberId}
                   onSelectMember={onSelectMember}
                   onLifecycleAction={onLifecycleAction}
+                  onProfileCopySave={onProfileCopySave}
                 />
               </AnimatePresence>
             </div>
@@ -76,8 +80,10 @@ export function InsightPanel({
 function InsightPage({
   insight,
   canManageTeam,
+  currentViewerMemberId,
   onSelectMember,
   onLifecycleAction,
+  onProfileCopySave,
 }) {
   return (
     <motion.article
@@ -100,8 +106,10 @@ function InsightPage({
       <InsightPageContent
         insight={insight}
         canManageTeam={canManageTeam}
+        currentViewerMemberId={currentViewerMemberId}
         onSelectMember={onSelectMember}
         onLifecycleAction={onLifecycleAction}
+        onProfileCopySave={onProfileCopySave}
       />
     </motion.article>
   );
@@ -110,10 +118,24 @@ function InsightPage({
 function InsightPageContent({
   insight,
   canManageTeam,
+  currentViewerMemberId,
   onSelectMember,
   onLifecycleAction,
+  onProfileCopySave,
 }) {
   const lifecycle = insight.generationLifecycle;
+  const editableMemberId =
+    lifecycle?.target?.scope === 'person'
+      ? lifecycle.target.memberIds?.[0]
+      : null;
+  const canEditOwnProfile =
+    !canManageTeam &&
+    editableMemberId &&
+    editableMemberId === currentViewerMemberId;
+  const imageCard = insight.cards.find((card) => card.kind === 'archetypeImage');
+  const supportingCards = insight.cards.filter(
+    (card) => card.kind !== 'archetypeImage'
+  );
   const isHardNotReady =
     lifecycle?.status === 'not_ready' && !lifecycle?.target?.canGenerateTeam;
 
@@ -132,17 +154,70 @@ function InsightPageContent({
       ) : null}
       {isHardNotReady ? null : (
         <>
-          <section className="insight-primary-read">
-            <div className="insight-heading-group">
-              <InsightHeading insight={insight} />
+          <section
+            className={[
+              'insight-primary-read',
+              imageCard ? 'insight-primary-read--with-image' : '',
+            ]
+              .filter(Boolean)
+              .join(' ')}
+          >
+            {imageCard ? (
+              <InfoBlock
+                card={imageCard}
+                onSelectMember={onSelectMember}
+              />
+            ) : null}
+            <div className="insight-primary-copy">
+              <div className="insight-heading-group">
+                <InsightHeading insight={insight} />
+              </div>
+              <InsightSummary insight={insight} />
+              {canEditOwnProfile ? (
+                <ProfileCopyEditor
+                  insight={insight}
+                  memberId={editableMemberId}
+                  onProfileCopySave={onProfileCopySave}
+                />
+              ) : null}
             </div>
-            <InsightSummary insight={insight} />
           </section>
-          <InsightBlocks insight={insight} onSelectMember={onSelectMember} />
+          <InsightBlocks
+            cards={
+              canEditOwnProfile
+                ? getSelfProfileCardLabels(supportingCards)
+                : supportingCards
+            }
+            onSelectMember={onSelectMember}
+          />
         </>
       )}
     </>
   );
+}
+
+function getSelfProfileCardLabels(cards) {
+  return cards.map((card) => {
+    if (card.kind !== 'guidance') {
+      return card;
+    }
+
+    if (card.id.endsWith('-work-with')) {
+      return {
+        ...card,
+        label: 'How to work with me',
+      };
+    }
+
+    if (card.id.endsWith('-where-shines')) {
+      return {
+        ...card,
+        label: 'Where I shine',
+      };
+    }
+
+    return card;
+  });
 }
 
 function getLifecycleCopy(lifecycle, canManageTeam) {
@@ -326,10 +401,135 @@ function InsightSummary({ insight }) {
   );
 }
 
-function InsightBlocks({ insight, onSelectMember }) {
+function getSummaryText(insight) {
+  return insight.summary.map((segment) => segment.text).join('');
+}
+
+function getGuidanceSectionsByCardSuffix(insight, suffix) {
+  return (
+    insight.cards
+      .find((card) => card.kind === 'guidance' && card.id.endsWith(suffix))
+      ?.data?.guidance?.sections?.map((section) => section.body) ?? []
+  );
+}
+
+function getProfileCopyDraft(insight) {
+  return {
+    overview: getSummaryText(insight),
+    workWithSections: getGuidanceSectionsByCardSuffix(insight, '-work-with'),
+    whereShines:
+      getGuidanceSectionsByCardSuffix(insight, '-where-shines')[0] ?? '',
+  };
+}
+
+function ProfileCopyEditor({ insight, memberId, onProfileCopySave }) {
+  const [isEditing, setIsEditing] = React.useState(false);
+  const [draft, setDraft] = React.useState(() => getProfileCopyDraft(insight));
+
+  React.useEffect(() => {
+    setIsEditing(false);
+    setDraft(getProfileCopyDraft(insight));
+  }, [insight.id]);
+
+  const updateDraft = (field, value) => {
+    setDraft((current) => ({
+      ...current,
+      [field]: value,
+    }));
+  };
+
+  const updateWorkWith = (index, value) => {
+    setDraft((current) => {
+      const workWithSections = [...current.workWithSections];
+      workWithSections[index] = value;
+
+      return {
+        ...current,
+        workWithSections,
+      };
+    });
+  };
+
+  const handleSave = () => {
+    onProfileCopySave?.({
+      memberId,
+      overview: draft.overview.trim(),
+      workWithSections: draft.workWithSections
+        .map((section) => section.trim())
+        .filter(Boolean),
+      whereShines: draft.whereShines.trim(),
+    });
+    setIsEditing(false);
+  };
+
+  const handleCancel = () => {
+    setDraft(getProfileCopyDraft(insight));
+    setIsEditing(false);
+  };
+
+  if (!isEditing) {
+    return (
+      <button
+        className="profile-copy-edit-trigger"
+        type="button"
+        onClick={() => setIsEditing(true)}
+      >
+        Edit your profile copy
+      </button>
+    );
+  }
+
+  return (
+    <section className="profile-copy-editor" aria-label="Edit profile copy">
+      <label>
+        <span>Main overview</span>
+        <textarea
+          value={draft.overview}
+          onChange={(event) => updateDraft('overview', event.target.value)}
+        />
+      </label>
+
+      <div className="profile-copy-editor-group">
+        <p>How to work with me</p>
+        {draft.workWithSections.map((section, index) => (
+          <label key={`work-with-${index}`}>
+            <span>{`Note ${index + 1}`}</span>
+            <textarea
+              value={section}
+              onChange={(event) => updateWorkWith(index, event.target.value)}
+            />
+          </label>
+        ))}
+      </div>
+
+      <label>
+        <span>Where I shine</span>
+        <textarea
+          value={draft.whereShines}
+          onChange={(event) => updateDraft('whereShines', event.target.value)}
+        />
+      </label>
+
+      <div className="profile-copy-editor-actions">
+        <button type="button" onClick={handleCancel}>
+          Cancel
+        </button>
+        <button type="button" onClick={handleSave}>
+          Save
+        </button>
+      </div>
+    </section>
+  );
+}
+
+function InsightBlocks({ cards, onSelectMember }) {
+  if (!cards.length) {
+    return null;
+  }
+
   return (
     <div className="info-block-stack" aria-label="Future insight blocks">
-      {insight.cards.map((card) => (
+      {cards.map((card) => (
         <InfoBlock
           key={card.id}
           card={card}

@@ -37,6 +37,77 @@ function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
 }
 
+function getGuidanceCardSections(card) {
+  return card?.data?.guidance?.sections ?? [];
+}
+
+function getPersonCardBySuffix(insight, suffix) {
+  return insight?.cards?.find((card) => card.id.endsWith(suffix));
+}
+
+function applyProfileCopyEdits(dataset, profileCopyEditsByMemberId) {
+  const entries = Object.entries(profileCopyEditsByMemberId);
+
+  if (entries.length === 0) {
+    return dataset;
+  }
+
+  const people = { ...(dataset.insights.people ?? {}) };
+
+  entries.forEach(([memberId, edit]) => {
+    const baseInsight = people[memberId];
+
+    if (!baseInsight) return;
+
+    const nextCards = (baseInsight.cards ?? []).map((card) => {
+      if (card.id.endsWith('-work-with') && edit.workWithSections?.length) {
+        return {
+          ...card,
+          label: 'How to work with me',
+          data: {
+            guidance: {
+              sections: edit.workWithSections.map((body) => ({ body })),
+            },
+          },
+        };
+      }
+
+      if (card.id.endsWith('-where-shines') && edit.whereShines) {
+        return {
+          ...card,
+          label: 'Where I shine',
+          data: {
+            guidance: {
+              sections: [{ body: edit.whereShines }],
+            },
+          },
+        };
+      }
+
+      return card;
+    });
+
+    people[memberId] = {
+      ...baseInsight,
+      source: 'override',
+      summary: edit.overview ? [{ text: edit.overview }] : baseInsight.summary,
+      cards: nextCards,
+      meta: {
+        ...(baseInsight.meta ?? {}),
+        profileCopyEditedByViewer: true,
+      },
+    };
+  });
+
+  return {
+    ...dataset,
+    insights: {
+      ...dataset.insights,
+      people,
+    },
+  };
+}
+
 function makeTeamRecordId(name) {
   const slug = name
     .trim()
@@ -161,6 +232,9 @@ export function TeamDnaPage() {
   });
   const [teamManagementOverlay, setTeamManagementOverlay] = useState(null);
   const [activeGenerationTarget, setActiveGenerationTarget] = useState(null);
+  const [profileCopyEditsByMemberId, setProfileCopyEditsByMemberId] = useState(
+    {}
+  );
   const [emptyDevState, setEmptyDevState] = useState(() =>
     createInitialDevState(EMPTY_TEAM_DATASET.members)
   );
@@ -168,12 +242,19 @@ export function TeamDnaPage() {
   const activeDataset = useMemo(() => {
     if (!activeRecord) return null;
 
-    return getDatasetForTeamRecord(
+    const baseDataset = getDatasetForTeamRecord(
       activeRecord.teamRecord,
       organizationEmployees,
       teamDnaResultsByEmployeeId
     );
-  }, [activeRecord, organizationEmployees, teamDnaResultsByEmployeeId]);
+
+    return applyProfileCopyEdits(baseDataset, profileCopyEditsByMemberId);
+  }, [
+    activeRecord,
+    organizationEmployees,
+    teamDnaResultsByEmployeeId,
+    profileCopyEditsByMemberId,
+  ]);
   const visibleRecord = activeRecord
     ? {
         dataset: activeDataset,
@@ -191,6 +272,10 @@ export function TeamDnaPage() {
   const editableTeamDna = visibleRecord.dataset;
   const devState = visibleRecord.devState;
   const canManageTeam = devState.canManageTeam !== false;
+  const currentViewerMemberId =
+    editableTeamDna.members.some((member) => member.id === devState.viewerMemberId)
+      ? devState.viewerMemberId
+      : editableTeamDna.members[0]?.id ?? null;
   const generationStatusByTargetId = devState.generationStatusByTargetId ?? {};
   const scenarioDataset = editableTeamDna;
   const teamOptions = useMemo(
@@ -330,6 +415,22 @@ export function TeamDnaPage() {
             : 'pending';
 
     setGenerationStatusForTarget(action.target, nextStatus, action.type);
+  };
+
+  const handleProfileCopySave = ({
+    memberId,
+    overview,
+    workWithSections,
+    whereShines,
+  }) => {
+    setProfileCopyEditsByMemberId((current) => ({
+      ...current,
+      [memberId]: {
+        overview,
+        workWithSections,
+        whereShines,
+      },
+    }));
   };
 
   const saveTeamRecord = (draftTeamRecord) => {
@@ -531,6 +632,7 @@ export function TeamDnaPage() {
           {isTrueEmptyState ? (
             <TeamDnaEmptyState
               canManageTeam={canManageTeam}
+              currentViewerMemberId={currentViewerMemberId}
               onAddTeam={openCreateTeam}
               onTrySample={trySampleTeam}
             />
@@ -548,6 +650,7 @@ export function TeamDnaPage() {
               onGrowChatPrompt={handleGrowChatPrompt}
               onGenerationTargetChange={setActiveGenerationTarget}
               onInsightLifecycleAction={handleInsightLifecycleAction}
+              onProfileCopySave={handleProfileCopySave}
             />
           )}
         </main>

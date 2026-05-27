@@ -2,6 +2,7 @@ import { teamDnaDataset } from './teamDnaMock.js';
 import { BIG_FIVE_TRAITS } from './bigFiveTraits.js';
 import { makePairId } from './teamDnaIds.js';
 import { getWatchOutForSubjects } from './teamDnaWatchOuts.js';
+import { getArchetypeImageForMember } from './teamDnaArchetypeImages.js';
 import {
   buildPairInsight,
   buildPersonInsight,
@@ -55,17 +56,7 @@ function withEntityHeading(insight, entityEyebrow, entityTitle) {
 }
 
 function getSpectrumLabel(selectedMembers) {
-  if (selectedMembers.length === 0) {
-    return 'How this team works';
-  }
-
-  if (selectedMembers.length === 1) {
-    return `How ${selectedMembers[0].name.split(' ')[0]} works`;
-  }
-
-  return `How ${selectedMembers
-    .map((member) => member.name.split(' ')[0])
-    .join(' and ')} work`;
+  return 'Big Five';
 }
 
 function getCardsForSelection(dataset, selectedIds, insight = {}) {
@@ -80,23 +71,27 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
     insight.watchOut ?? getWatchOutForSubjects(subjects);
   const spectrumReads = insight.spectrumReads;
   const insightCards = insight.cards ?? [];
+  const archetypeImage =
+    selectedMembers.length === 1
+      ? getArchetypeImageForMember(selectedMembers[0])
+      : selectedMembers.length === 2
+        ? {
+            images: selectedMembers
+              .map((member) => getArchetypeImageForMember(member))
+              .filter(Boolean),
+          }
+      : null;
 
   const coreCards = [
-    hasSelectedSubjects
+    archetypeImage?.imageUrl || archetypeImage?.images?.length
       ? {
-          id: `${scopeId}-bloom`,
-          kind: 'bigFiveBloom',
-          label: 'Big Five shape',
+          id: `${scopeId}-archetype-image`,
+          kind: 'archetypeImage',
+          label: archetypeImage.title ?? 'Role imagery',
           showLabel: false,
-          data: { subjects, traits: BIG_FIVE_TRAITS },
+          data: { image: archetypeImage },
         }
-      : {
-          id: 'team-bloom',
-          kind: 'bigFiveBloom',
-          label: 'Team Big Five shape',
-          showLabel: false,
-          data: { subjects, traits: BIG_FIVE_TRAITS },
-        },
+      : null,
     hasSelectedSubjects
       ? {
           id: `${scopeId}-spectrum`,
@@ -120,7 +115,7 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
     },
   ];
 
-  return [...coreCards.filter((card) => card.kind), ...insightCards];
+  return [...coreCards.filter(Boolean), ...insightCards];
 }
 
 function withSelectionCards(dataset, selectedIds, insight) {

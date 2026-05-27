@@ -3,6 +3,7 @@ import { BigFiveBloom } from './BigFiveBloom.jsx';
 import { BigFiveSpectrumList } from './BigFiveSpectrumList.jsx';
 import { WatchOutCard } from './WatchOutCard.jsx';
 import { GuidanceCard } from './GuidanceCard.jsx';
+import { ArchetypeImageCard } from './ArchetypeImageCard.jsx';
 
 const ICON_PATHS = {
   Eye: (
@@ -69,6 +70,7 @@ export function InfoBlock({ card, className = '', onSelectMember }) {
       ? 'info-block--editorial'
       : '',
     card.kind === 'bigFiveSpectrumList' ? 'info-block--spectrum' : '',
+    card.kind === 'archetypeImage' ? 'info-block--archetype-image' : '',
     className,
   ]
     .filter(Boolean)
@@ -132,6 +134,10 @@ function InfoBlockBody({ card, onSelectMember }) {
         reads={card.data?.reads}
       />
     );
+  }
+
+  if (card.kind === 'archetypeImage') {
+    return <ArchetypeImageCard image={card.data?.image} />;
   }
 
   if (card.kind === 'watchOut') {

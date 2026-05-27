@@ -75,6 +75,8 @@ function buildGrowChatPromptPayload({ dataset, insight, message, scope, selected
  * the route-level overlay so roster mutations stay outside the face field.
  * `canManageTeam` is the prototype permission seam for manager/admin-only
  * controls such as team switching/editing and lifecycle generation actions.
+ * `currentViewerMemberId` is the auth/session seam for person-owned actions
+ * such as editing your own profile copy.
  * Port: this is the main component to mount inside the monolith Team DNA tab.
  * Keep routing, gates, API hooks, analytics, shell tabs, and the real
  * role/permission lookup outside of it.
@@ -87,6 +89,7 @@ export function TeamDnaExperience({
   selectedTeamId,
   teamSwitcherTopOffset,
   canManageTeam = true,
+  currentViewerMemberId,
   onAddTeam,
   onEditTeam,
   onTeamChange,
@@ -94,6 +97,7 @@ export function TeamDnaExperience({
   generationStatusByTargetId,
   onGenerationTargetChange,
   onInsightLifecycleAction,
+  onProfileCopySave,
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
@@ -284,8 +288,10 @@ export function TeamDnaExperience({
         isHidden={isIntroGateActive}
         preserveScroll={preserveInsightScroll}
         canManageTeam={canManageTeam}
+        currentViewerMemberId={currentViewerMemberId}
         onSelectMember={handleSelectMember}
         onLifecycleAction={onInsightLifecycleAction}
+        onProfileCopySave={onProfileCopySave}
       />
       <TeamDnaChatInputBridge
         scope={questionScope}

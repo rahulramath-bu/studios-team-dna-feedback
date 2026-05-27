@@ -78,6 +78,29 @@ export type TeamDnaBigFiveSpectrumCard = {
   };
 };
 
+export type TeamDnaArchetypeImageCard = {
+  id: string;
+  kind: 'archetypeImage';
+  label: string;
+  showLabel?: boolean;
+  data: {
+    image: {
+      key?: string;
+      slug?: string;
+      title?: string;
+      imageUrl?: string;
+      alt?: string;
+      images?: Array<{
+        key: string;
+        slug: string;
+        title: string;
+        imageUrl: string;
+        alt?: string;
+      }>;
+    };
+  };
+};
+
 export type TeamDnaWatchOutItem = {
   traitKey: string;
   type?: 'deterministic' | 'ai' | 'override';
@@ -118,6 +141,7 @@ export type TeamDnaGuidanceCard = {
 export type TeamDnaInsightCard =
   | TeamDnaBigFiveBloomCard
   | TeamDnaBigFiveSpectrumCard
+  | TeamDnaArchetypeImageCard
   | TeamDnaWatchOutCard
   | TeamDnaGuidanceCard;
 

@@ -37,9 +37,10 @@ const GENERATION_STATUS_DESCRIPTIONS = {
  * Dev-only scenario harness.
  *
  * What: hidden debug bar for stress-testing Team DNA states while designing.
- * How: toggles with backslash. Access, team size, avatar availability,
- * assessment completion, and generated-insight lifecycle controls call back
- * into canonical TeamDnaPage data so they match the real porting contract.
+ * How: toggles with backslash. Access, viewer identity, team size, avatar
+ * availability, assessment completion, and generated-insight lifecycle controls
+ * call back into canonical TeamDnaPage data so they match the real porting
+ * contract.
  * Port: do not port this. The monolith should get these states from real data,
  * permissions, feature flags, and route context.
  */
@@ -69,6 +70,7 @@ export function TeamDnaDevPanel({
     onSetTeamSize?.(teamSize);
   };
   const teamSize = baseMembers.length;
+  const viewerMemberId = devState.viewerMemberId ?? baseMembers[0]?.id ?? null;
   const selectedGenerationStatus =
     devState.generationStatusByTargetId?.[activeGenerationTarget?.id] ??
     activeGenerationTarget?.status;
@@ -154,10 +156,46 @@ export function TeamDnaDevPanel({
                     setDevState((current) => ({
                       ...current,
                       canManageTeam: current.canManageTeam === false,
+                      viewerMemberId:
+                        current.viewerMemberId ?? baseMembers[0]?.id ?? null,
                     }))
                   }
                 />
               </DevSection>
+
+              {devState.canManageTeam === false && baseMembers.length > 0 && (
+                <DevSection title="Viewer" meta="signed-in member">
+                  <div className="team-dna-dev-chip-row">
+                    {baseMembers.map((member) => {
+                      const isActive = viewerMemberId === member.id;
+
+                      return (
+                        <button
+                          key={member.id}
+                          type="button"
+                          className="team-dna-dev-chip"
+                          data-active={isActive || undefined}
+                          onClick={() =>
+                            setDevState((current) => ({
+                              ...current,
+                              viewerMemberId: member.id,
+                            }))
+                          }
+                        >
+                          {member.name.split(' ')[0]}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="team-dna-dev-status-copy">
+                    <h4>Own profile editing</h4>
+                    <p>
+                      Simulates the logged-in member. Only this person can edit
+                      their own profile copy when manager/admin is off.
+                    </p>
+                  </div>
+                </DevSection>
+              )}
 
               {baseMembers.length > 0 && (
                 <DevSection title="Member states">

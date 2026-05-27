@@ -114,31 +114,21 @@ function getSpectrumReadText(trait, subjects, reads) {
   return copy.middleAligned ?? 'Together, we meet near the middle.';
 }
 
-function renderDuoReadText(text, keyword) {
-  const matchIndex = text.toLowerCase().indexOf(keyword.toLowerCase());
+function renderSpectrumReadText(text) {
+  return text.split(/(\*\*[^*]+\*\*)/).map((part, index) => {
+    if (part.startsWith('**') && part.endsWith('**')) {
+      return <strong key={`strong-${index}`}>{part.slice(2, -2)}</strong>;
+    }
 
-  if (matchIndex === -1) {
-    return text;
-  }
-
-  const before = text.slice(0, matchIndex);
-  const match = text.slice(matchIndex, matchIndex + keyword.length);
-  const after = text.slice(matchIndex + keyword.length);
-
-  return (
-    <>
-      {before}
-      <span className="big-five-spectrum-keyword">{match}</span>
-      {after}
-    </>
-  );
+    return part;
+  });
 }
 
 function renderSpectrumHead(trait, subjects, reads) {
   const duoRead = getSpectrumReadText(trait, subjects, reads);
 
   if (duoRead) {
-    return renderDuoReadText(duoRead, trait.duoKeyword ?? trait.shortLabel);
+    return renderSpectrumReadText(duoRead);
   }
 
   return getPromptText(trait, subjects.length);
@@ -466,7 +456,9 @@ export function BigFiveSpectrumList({
                 onClick={() => handleStepClick(index)}
                 onMouseDown={(event) => event.preventDefault()}
                 type="button"
-              />
+              >
+                {index + 1}
+              </button>
             );
           })}
         </div>

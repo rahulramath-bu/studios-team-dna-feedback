@@ -1,10 +1,13 @@
+import { getCombinedFallbackRoleTitle } from './teamDnaFallbackRoles.js';
+
 /**
  * Deterministic Team DNA insight helpers.
  *
  * What: turns Big Five scores into human-readable team, person, and duo
  * superpower language.
- * How: compares strongest traits, shared signals, and complements, then returns
- * the same TeamDnaInsight shape used by the panel.
+ * How: compares strongest traits, combined fallback role signals, shared
+ * signals, and complements, then returns the same TeamDnaInsight shape used by
+ * the panel.
  * Port: this is the default deterministic insight layer. Backend-authored or
  * AI-assisted copy can override it explicitly, but engineers should be able to
  * plug in real scores and get a complete readable page without hand-writing
@@ -13,6 +16,11 @@
 const TRAIT_LANGUAGE = {
   openness: {
     label: 'ideas',
+    poleLabel: {
+      high: 'inventive',
+      middle: 'practical / inventive',
+      low: 'practical',
+    },
     personTitle: {
       high: 'The Possibility Opener',
       middle: 'The Perspective Shifter',
@@ -24,11 +32,21 @@ const TRAIT_LANGUAGE = {
     highLine: 'opens up new ways to see the work',
     middleLine: 'moves between new ideas and familiar constraints',
     lowLine: 'keeps the work connected to what is already real',
+    readLine: {
+      high: 'bringing the team more options, reframes, and possible paths.',
+      middle: 'helping the team test new ideas against what can actually hold.',
+      low: 'helping the team stay close to what is proven, usable, and real.',
+    },
     sharedTitle: 'The Explorers',
     contrastTitle: 'The Range Finders',
   },
   conscientiousness: {
     label: 'approach',
+    poleLabel: {
+      high: 'structured',
+      middle: 'flexible / structured',
+      low: 'flexible',
+    },
     personTitle: {
       high: 'The Momentum Builder',
       middle: 'The Calibrator',
@@ -40,11 +58,21 @@ const TRAIT_LANGUAGE = {
     highLine: 'turns intent into sequence, standards, and next steps',
     middleLine: 'can shift between planning and adjusting',
     lowLine: 'keeps the work loose enough to change when the path changes',
+    readLine: {
+      high: 'giving the team clearer owners, standards, and next steps.',
+      middle: 'helping the team move with enough structure without getting stiff.',
+      low: 'helping the team adapt when the original plan stops fitting the work.',
+    },
     sharedTitle: 'The Builders',
     contrastTitle: 'The Launch Crew',
   },
   extraversion: {
     label: 'energy',
+    poleLabel: {
+      high: 'expressive',
+      middle: 'reflective / expressive',
+      low: 'reflective',
+    },
     personTitle: {
       high: 'The Activator',
       middle: 'The Presence Setter',
@@ -56,27 +84,47 @@ const TRAIT_LANGUAGE = {
     highLine: 'adds visible energy and momentum to the room',
     middleLine: 'can choose when to energize and when to make room',
     lowLine: 'creates space for quieter thinking before the team moves',
+    readLine: {
+      high: 'making momentum, verbal processing, and social energy easier to feel.',
+      middle: 'moving between quiet processing and active participation.',
+      low: 'bringing depth, listening, and quieter synthesis before the team moves.',
+    },
     sharedTitle: 'The Signal Boosters',
     contrastTitle: 'The Rhythm Makers',
   },
   agreeableness: {
     label: 'stance with people',
+    poleLabel: {
+      high: 'cooperative',
+      middle: 'skeptical / cooperative',
+      low: 'skeptical',
+    },
     personTitle: {
       high: 'The Warm Connector',
       middle: 'The Honest Ally',
       low: 'The Useful Challenger',
     },
-    highGift: 'warmth',
+    highGift: 'cooperation',
     middleGift: 'discernment',
-    lowGift: 'directness',
-    highLine: 'keeps people connected when decisions get tense',
+    lowGift: 'skepticism',
+    highLine: 'keeps people connected and cooperating when decisions get tense',
     middleLine: 'balances care for people with willingness to name what needs naming',
-    lowLine: 'brings useful challenge before the team over-agrees',
+    lowLine: 'questions assumptions before the team over-agrees',
+    readLine: {
+      high: 'helping the team preserve trust, inclusion, and workable relationships.',
+      middle: 'helping the team balance honest challenge with care for how it lands.',
+      low: 'helping the team question assumptions, sharpen tradeoffs, and avoid false agreement.',
+    },
     sharedTitle: 'The Trust Builders',
     contrastTitle: 'The Honest Allies',
   },
   neuroticism: {
     label: 'pressure',
+    poleLabel: {
+      high: 'vigilant',
+      middle: 'steady / vigilant',
+      low: 'steady',
+    },
     personTitle: {
       high: 'The Sentinel',
       middle: 'The Pressure Sensor',
@@ -88,6 +136,11 @@ const TRAIT_LANGUAGE = {
     highLine: 'notices risk and emotional static before it becomes loud',
     middleLine: 'can notice pressure without letting it run the room',
     lowLine: 'keeps the room steady when pressure rises',
+    readLine: {
+      high: 'catching risk signals early and noticing what may need protection.',
+      middle: 'reading pressure without letting it run the room.',
+      low: 'helping the team stay regulated and keep perspective under pressure.',
+    },
     sharedTitle: 'The Weather Readers',
     contrastTitle: 'The Stabilizers',
   },
@@ -190,7 +243,13 @@ function getStrongestSharedTrait(first, second) {
   }).sort((a, b) => b.sharedDistance - a.sharedDistance)[0];
 }
 
-function getPersonTitle(primary) {
+function getPersonTitle(primary, secondary) {
+  const combinedRoleTitle = getCombinedFallbackRoleTitle(primary, secondary);
+
+  if (combinedRoleTitle) {
+    return combinedRoleTitle;
+  }
+
   const title = TRAIT_LANGUAGE[primary.trait].personTitle;
   return title[primary.direction] ?? title.middle;
 }
@@ -228,6 +287,34 @@ function buildPersonSummary(member, primary, secondary) {
       text: `${firstName} changes the team by bringing ${getTraitGift(primary.trait, primary.direction)} into the work first. ${firstName} ${getTraitLine(primary.trait, primary.direction)}, then supports that pattern with ${getTraitGift(secondary.trait, secondary.direction)}. The result is that ${pronouns.possessive} presence helps the team feel both more capable and more aware of what the moment is asking for.`,
     },
   ];
+}
+
+function getTraitRead(trait, direction, subject) {
+  const language = TRAIT_LANGUAGE[trait];
+  const poleLabel = language.poleLabel?.[direction] ?? language.label;
+  const readLine = language.readLine?.[direction] ?? getTraitLine(trait, direction);
+
+  return `${subject} is **${poleLabel}**, ${readLine}`;
+}
+
+function getPersonSpectrumReads(member) {
+  const firstName = getFirstName(member);
+
+  return Object.fromEntries(
+    TRAIT_KEYS.map((trait) => {
+      const direction = getTraitDirection(member?.bigFive?.[trait] ?? 50);
+      return [trait, getTraitRead(trait, direction, firstName)];
+    })
+  );
+}
+
+function getTeamSpectrumReads(teamName, traitAverages) {
+  return Object.fromEntries(
+    traitAverages.map((stats) => [
+      stats.trait,
+      getTraitRead(stats.trait, stats.direction, teamName),
+    ])
+  );
 }
 
 function mergeResolvedInsight(generatedInsight, authoredInsight) {
@@ -299,6 +386,7 @@ export function buildTeamInsight({ team, members, cards, authoredInsight }) {
         text: `${teamName} is shaped most by ${getTraitGift(primary.trait, primary.direction)}. As a group, the team ${getTraitLine(primary.trait, primary.direction)}, which gives the work a clear center of gravity. The biggest range is around ${widestLanguage.label}, so this is the place where naming expectations out loud will save the most translation cost.`,
       },
     ],
+    spectrumReads: getTeamSpectrumReads(teamName, traitAverages),
     cards,
   };
 
@@ -312,8 +400,9 @@ export function buildPersonInsight({ member, cards, authoredInsight }) {
   const generatedInsight = {
     id: `person-${member?.id ?? 'unknown'}-generated`,
     eyebrow: member?.name ?? 'Team member',
-    title: getPersonTitle(primary),
+    title: getPersonTitle(primary, secondary),
     summary: buildPersonSummary(member, primary, secondary),
+    spectrumReads: getPersonSpectrumReads(member),
     cards,
   };
 

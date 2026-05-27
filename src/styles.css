@@ -3307,6 +3307,116 @@ button.team-management-row {
   font-weight: 700;
 }
 
+.profile-copy-edit-trigger {
+  height: 36px;
+  margin-top: 28px;
+  padding: 0 16px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.16);
+  border-radius: 999px;
+  background: rgba(var(--white-rgb), 0.34);
+  color: var(--foreground-heading);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.profile-copy-edit-trigger:hover,
+.profile-copy-edit-trigger:focus-visible {
+  border-color: rgba(var(--team-dna-ink-rgb), 0.28);
+  background: rgba(var(--white-rgb), 0.54);
+}
+
+.profile-copy-editor {
+  display: grid;
+  gap: 18px;
+  margin-top: 30px;
+  padding-top: 28px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+}
+
+.profile-copy-editor label,
+.profile-copy-editor-group {
+  display: grid;
+  gap: 8px;
+}
+
+.profile-copy-editor span,
+.profile-copy-editor-group > p {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.profile-copy-editor textarea {
+  width: 100%;
+  min-height: 96px;
+  padding: 14px 15px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.16);
+  border-radius: 10px;
+  background: rgba(var(--white-rgb), 0.48);
+  color: var(--foreground-body);
+  font: inherit;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.profile-copy-editor textarea:focus {
+  border-color: rgba(var(--team-dna-focus-rgb), 0.52);
+  outline: 2px solid rgba(var(--team-dna-focus-rgb), 0.12);
+}
+
+.profile-copy-editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.profile-copy-editor-actions button {
+  height: 36px;
+  padding: 0 16px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.16);
+  border-radius: 999px;
+  background: rgba(var(--white-rgb), 0.36);
+  color: var(--foreground-heading);
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.profile-copy-editor-actions button:last-child {
+  border-color: transparent;
+  background: var(--foreground-heading);
+  color: var(--page-background);
+}
+
+.insight-primary-read--with-image {
+  overflow: hidden;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 18px;
+  background: rgb(var(--team-dna-canvas-rgb));
+  box-shadow: 0 0 28px rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+.insight-primary-read--with-image .info-block--archetype-image {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  margin-bottom: -92px;
+}
+
+.insight-primary-copy {
+  position: relative;
+  z-index: 3;
+  padding: 128px 58px 60px;
+}
+
+.insight-primary-read:not(.insight-primary-read--with-image) .insight-primary-copy {
+  padding: 0;
+}
+
 .info-block-stack {
   display: grid;
   gap: 56px;
@@ -3345,6 +3455,130 @@ button.team-management-row {
 
 .info-block--spectrum {
   padding-bottom: 82px;
+}
+
+.info-block--archetype-image {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 18px;
+}
+
+.archetype-image-card {
+  display: block;
+  width: 100%;
+  margin: 0;
+  aspect-ratio: 1.55;
+  background: rgb(var(--team-dna-canvas-rgb));
+}
+
+.archetype-image-card-window {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.archetype-image-card-window::after {
+  position: absolute;
+  right: 0;
+  bottom: -1px;
+  left: 0;
+  z-index: 2;
+  height: 62%;
+  background: linear-gradient(
+    to bottom,
+    rgba(var(--team-dna-canvas-rgb), 0) 0%,
+    rgba(var(--team-dna-canvas-rgb), 0.72) 46%,
+    rgb(var(--team-dna-canvas-rgb)) 76%,
+    rgb(var(--team-dna-canvas-rgb)) 100%
+  );
+  content: "";
+  pointer-events: none;
+}
+
+.archetype-image-card-image {
+  position: absolute;
+  inset: -24%;
+  display: block;
+  width: 148%;
+  height: 148%;
+  object-fit: cover;
+  animation: archetype-image-drift 18s ease-in-out infinite alternate;
+  transform: scale(1.08) translate3d(-4%, -3%, 0);
+  transform-origin: center;
+  will-change: opacity, transform;
+}
+
+.archetype-image-card--duo .archetype-image-card-image {
+  animation:
+    archetype-image-drift 24s ease-in-out infinite alternate,
+    archetype-image-crossfade 20s ease-in-out infinite;
+}
+
+.archetype-image-card--duo .archetype-image-card-image[data-layer="1"] {
+  animation:
+    archetype-image-drift-alt 24s ease-in-out infinite alternate,
+    archetype-image-crossfade-alt 20s ease-in-out infinite;
+}
+
+@keyframes archetype-image-drift {
+  0% {
+    transform: scale(1.08) translate3d(-7%, -5%, 0);
+  }
+
+  48% {
+    transform: scale(1.13) translate3d(5%, -7%, 0);
+  }
+
+  100% {
+    transform: scale(1.1) translate3d(7%, 5%, 0);
+  }
+}
+
+@keyframes archetype-image-drift-alt {
+  0% {
+    transform: scale(1.1) translate3d(7%, 5%, 0);
+  }
+
+  52% {
+    transform: scale(1.13) translate3d(-5%, 7%, 0);
+  }
+
+  100% {
+    transform: scale(1.08) translate3d(-7%, -5%, 0);
+  }
+}
+
+@keyframes archetype-image-crossfade {
+  0%,
+  42% {
+    opacity: 1;
+  }
+
+  50%,
+  92% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
+  }
+}
+
+@keyframes archetype-image-crossfade-alt {
+  0%,
+  42% {
+    opacity: 0;
+  }
+
+  50%,
+  92% {
+    opacity: 1;
+  }
+
+  100% {
+    opacity: 0;
+  }
 }
 
 .info-block--spectrum > .big-five-spectrum-list {
@@ -3623,16 +3857,22 @@ button.team-management-row {
 
 .big-five-spectrum-step {
   position: relative;
-  display: block;
-  width: 7px;
-  height: 7px;
+  display: grid;
+  width: 22px;
+  height: 22px;
+  place-items: center;
   overflow: hidden;
   padding: 0;
-  border: 0;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.18);
   border-radius: 999px;
-  background: rgba(var(--team-dna-ink-rgb), 0.25);
+  background: rgba(var(--team-dna-surface-rgb), 0.78);
+  color: rgba(var(--team-dna-copy-rgb), 0.62);
   cursor: pointer;
-  transition: background-color 220ms ease, opacity 220ms ease, transform 220ms ease;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+  transition: background-color 220ms ease, border-color 220ms ease, color 220ms ease, opacity 220ms ease, transform 220ms ease;
 }
 
 .big-five-spectrum-step:focus-visible {
@@ -3641,9 +3881,11 @@ button.team-management-row {
 }
 
 .big-five-spectrum-step[data-active="true"] {
-  background: var(--team-dna-interactive-ink);
+  background: rgba(var(--team-dna-ink-rgb), 0.1);
+  border-color: rgba(var(--team-dna-ink-rgb), 0.28);
+  color: var(--team-dna-ink);
   opacity: 1;
-  transform: scale(1.18);
+  transform: scale(1.05);
 }
 
 .big-five-spectrum-stage {
@@ -3677,11 +3919,6 @@ button.team-management-row {
   font-weight: 400;
   line-height: 1.65;
   text-wrap: balance;
-}
-
-.big-five-spectrum-keyword {
-  color: var(--team-dna-interactive-ink);
-  font-weight: 720;
 }
 
 .big-five-spectrum-track {
