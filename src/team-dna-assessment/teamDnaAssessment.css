@@ -1451,11 +1451,11 @@
 .tdna-review--single .insight-self-review-line {
   width: 100%;
   max-width: 100%;
-  margin: 0 0 24px;
+  margin: 0 0 18px;
   color: rgba(var(--team-dna-ink-rgb), 0.68);
   font-family: var(--heading-display-font);
-  font-size: clamp(38px, 4.4vw, 58px);
-  font-style: italic;
+  font-size: clamp(24px, 2.6vw, 34px);
+  font-style: normal;
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1;
