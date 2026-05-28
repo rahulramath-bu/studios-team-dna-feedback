@@ -32,6 +32,15 @@ const NEUTRAL_BIG_FIVE = {
   neuroticism: 50,
 };
 const FAKE_ASSESSMENT_REMINDER_LATENCY_MS = 650;
+const DEMO_INVITED_EMAIL = 'new.teammate@betterup.co';
+
+const DEMO_SETUP_TEAM_RECORD = {
+  id: null,
+  name: 'Product team',
+  memberEmployeeIds: ['sergio', 'justin'],
+  invitedEmails: [DEMO_INVITED_EMAIL],
+  sample: false,
+};
 
 function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
@@ -276,19 +285,34 @@ function readTeamDnaDemoConfig() {
 
 function getInitialTeamRecordsForDemo(demoConfig) {
   if (!demoConfig.enabled) return mockTeamRecords;
-  if (demoConfig.mode === 'empty') return [];
+  if (
+    ['empty', 'add-team', 'add-team-search', 'add-team-selected'].includes(
+      demoConfig.mode
+    )
+  ) {
+    return [];
+  }
 
   return [sampleTeamRecord];
 }
 
+function getCompletedMemberIdsForDemo(demoConfig) {
+  if (demoConfig.mode === 'waiting') {
+    return new Set(sampleTeamRecord.memberEmployeeIds.slice(0, 2));
+  }
+
+  if (['mixed-roster', 'reminder-sent', 'enough-to-generate'].includes(demoConfig.mode)) {
+    return new Set(sampleTeamRecord.memberEmployeeIds.slice(0, 3));
+  }
+
+  return null;
+}
+
 function getInitialTeamDnaResultsForDemo(demoConfig) {
   const results = cloneState(mockTeamDnaResultsByEmployeeId);
+  const completedMemberIds = getCompletedMemberIdsForDemo(demoConfig);
 
-  if (demoConfig.enabled && demoConfig.mode === 'waiting') {
-    const completedMemberIds = new Set(
-      sampleTeamRecord.memberEmployeeIds.slice(0, 2)
-    );
-
+  if (demoConfig.enabled && completedMemberIds) {
     sampleTeamRecord.memberEmployeeIds.forEach((memberId) => {
       if (!results[memberId]) return;
 
@@ -319,6 +343,68 @@ function applyDemoRecordState(recordState, demoConfig) {
   };
 }
 
+function getInitialTeamManagementOverlayForDemo(demoConfig) {
+  if (!demoConfig.enabled) return null;
+
+  if (demoConfig.mode === 'add-team') {
+    return {
+      mode: 'create',
+      teamRecord: {
+        id: null,
+        name: 'Product team',
+        memberEmployeeIds: [],
+        invitedEmails: [],
+        sample: false,
+      },
+    };
+  }
+
+  if (demoConfig.mode === 'add-team-search') {
+    return {
+      mode: 'create',
+      teamRecord: {
+        id: null,
+        name: 'Product team',
+        memberEmployeeIds: [],
+        invitedEmails: [],
+        sample: false,
+      },
+      initialDemoState: {
+        isAddingTeammate: true,
+        query: 'sergio',
+      },
+    };
+  }
+
+  if (demoConfig.mode === 'add-team-selected') {
+    return {
+      mode: 'create',
+      teamRecord: DEMO_SETUP_TEAM_RECORD,
+    };
+  }
+
+  if (demoConfig.mode === 'mixed-roster') {
+    return {
+      mode: 'edit',
+      teamId: sampleTeamRecord.id,
+    };
+  }
+
+  if (demoConfig.mode === 'reminder-sent') {
+    return {
+      mode: 'edit',
+      teamId: sampleTeamRecord.id,
+      initialDemoState: {
+        reminderStatuses: {
+          [`employee:${sampleTeamRecord.memberEmployeeIds[3]}`]: 'sent',
+        },
+      },
+    };
+  }
+
+  return null;
+}
+
 /**
  * Standalone prototype page.
  *
@@ -338,6 +424,10 @@ export function TeamDnaPage() {
   );
   const initialTeamDnaResults = useMemo(
     () => getInitialTeamDnaResultsForDemo(demoConfig),
+    [demoConfig.enabled, demoConfig.mode]
+  );
+  const initialTeamManagementOverlay = useMemo(
+    () => getInitialTeamManagementOverlayForDemo(demoConfig),
     [demoConfig.enabled, demoConfig.mode]
   );
   const [organizationEmployees, setOrganizationEmployees] = useState(() =>
@@ -364,7 +454,11 @@ export function TeamDnaPage() {
   );
   const [activeTeamId, setActiveTeamId] = useState(() => {
     if (demoConfig.enabled) {
-      return demoConfig.mode === 'empty' ? null : sampleTeamRecord.id;
+      return ['empty', 'add-team', 'add-team-search', 'add-team-selected'].includes(
+        demoConfig.mode
+      )
+        ? null
+        : sampleTeamRecord.id;
     }
 
     const firstRealTeam = mockTeamRecords.find(
@@ -373,7 +467,9 @@ export function TeamDnaPage() {
 
     return firstRealTeam?.id ?? null;
   });
-  const [teamManagementOverlay, setTeamManagementOverlay] = useState(null);
+  const [teamManagementOverlay, setTeamManagementOverlay] = useState(
+    () => initialTeamManagementOverlay
+  );
   const [activeGenerationTarget, setActiveGenerationTarget] = useState(null);
   const [profileCopyEditsByMemberId, setProfileCopyEditsByMemberId] = useState(
     {}
@@ -438,7 +534,7 @@ export function TeamDnaPage() {
   const overlayTeamRecord =
     teamManagementOverlay?.mode === 'edit' && teamManagementOverlay.teamId
       ? teamRecords[teamManagementOverlay.teamId]?.teamRecord
-      : null;
+      : teamManagementOverlay?.teamRecord ?? null;
 
   const updateActiveRecord = (updater) => {
     setTeamRecords((current) => {
@@ -836,6 +932,7 @@ export function TeamDnaPage() {
       {teamManagementOverlay && (
         <TeamManagementOverlay
           mode={teamManagementOverlay.mode}
+          initialDemoState={teamManagementOverlay.initialDemoState}
           organizationEmployees={organizationEmployees}
           teamDnaResultsByEmployeeId={teamDnaResultsByEmployeeId}
           teamRecord={overlayTeamRecord}

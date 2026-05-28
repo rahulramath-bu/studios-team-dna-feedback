@@ -71,6 +71,7 @@ const ADD_CARD_LAYOUT_TRANSITION = {
 export function TeamManagementOverlay({
   mode = 'create',
   organizationEmployees,
+  initialDemoState,
   teamDnaResultsByEmployeeId = {},
   teamRecord,
   onCancel,
@@ -185,13 +186,13 @@ export function TeamManagementOverlay({
     setTeamName(sourceRecord.name);
     setSelectedEmployeeIds(sourceRecord.memberEmployeeIds);
     setInvitedEmails(sourceRecord.invitedEmails);
-    setIsAddingTeammate(false);
+    setIsAddingTeammate(Boolean(initialDemoState?.isAddingTeammate));
     setIsAddCardWaiting(false);
     setRecentlyAddedMemberKey(null);
     setNotifyNewTeammates(true);
-    setReminderStatusesByMemberKey({});
-    setQuery('');
-  }, [sourceRecord]);
+    setReminderStatusesByMemberKey(initialDemoState?.reminderStatuses ?? {});
+    setQuery(initialDemoState?.query ?? '');
+  }, [initialDemoState, sourceRecord]);
 
   useEffect(() => {
     if (isAddingTeammate) {

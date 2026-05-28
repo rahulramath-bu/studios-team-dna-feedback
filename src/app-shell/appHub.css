@@ -86,12 +86,20 @@
   line-height: 1.45;
 }
 
-.team-dna-hub-demo-link {
+.team-dna-hub-secondary-actions {
+  display: flex;
+  flex-wrap: wrap;
   justify-self: center;
+  justify-content: center;
+  gap: 16px;
   margin-top: 58px;
+}
+
+.team-dna-hub-demo-link {
   padding: 15px 24px 14px;
   border: 1px solid rgba(206, 0, 88, 0.48);
   border-radius: 999px;
+  background: transparent;
   color: #ce0058;
   font-family: 'Söhne Mono', monospace;
   font-size: 11px;
@@ -100,6 +108,7 @@
   line-height: 1;
   text-decoration: none;
   text-transform: uppercase;
+  cursor: pointer;
   transition:
     border-color 160ms ease,
     box-shadow 160ms ease,
@@ -128,6 +137,41 @@
   backdrop-filter: blur(14px);
 }
 
+.team-dna-hub-overlay-close {
+  position: fixed;
+  top: 26px;
+  right: 26px;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  min-height: 0;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(255, 250, 244, 0.34);
+  border-radius: 999px;
+  background: rgba(255, 250, 244, 0.04);
+  color: #fffaf4;
+  font-family: 'Söhne', sans-serif;
+  font-size: 28px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.team-dna-hub-overlay-close:hover,
+.team-dna-hub-overlay-close:focus-visible {
+  border-color: #fffaf4;
+  background: #fffaf4;
+  color: #000;
+  outline: none;
+  transform: translateY(-1px);
+}
+
 .team-dna-hub-demo-intro-copy {
   display: grid;
   justify-items: center;
@@ -144,6 +188,7 @@
   font-weight: 300;
   letter-spacing: 0;
   line-height: 1.06;
+  text-wrap: balance;
 }
 
 .team-dna-hub-demo-intro p {
@@ -153,6 +198,21 @@
   font-size: 18px;
   font-weight: 300;
   line-height: 1.78;
+  text-wrap: balance;
+}
+
+.team-dna-hub-engineer-copy {
+  max-width: 720px;
+  gap: 24px;
+}
+
+.team-dna-hub-engineer-copy h2 {
+  max-width: 660px;
+  font-size: clamp(34px, 4.3vw, 58px);
+}
+
+.team-dna-hub-engineer-copy p {
+  max-width: 680px;
 }
 
 .team-dna-hub-demo-intro-actions {
@@ -163,7 +223,7 @@
   margin-top: 10px;
 }
 
-.team-dna-hub-demo-intro button {
+.team-dna-hub-demo-intro-actions button {
   margin-top: 18px;
   padding: 16px 26px 15px;
   border: 1px solid rgba(255, 250, 244, 0.42);
@@ -184,12 +244,41 @@
     transform 160ms ease;
 }
 
+.team-dna-hub-engineer-cta {
+  margin-top: 8px;
+  padding: 16px 26px 15px;
+  border: 1px solid rgba(255, 250, 244, 0.42);
+  border-radius: 999px;
+  color: #fffaf4;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 1.1px;
+  line-height: 1;
+  text-decoration: none;
+  text-transform: uppercase;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    transform 160ms ease;
+}
+
+.team-dna-hub-engineer-cta:hover,
+.team-dna-hub-engineer-cta:focus-visible {
+  border-color: #fffaf4;
+  background: #fffaf4;
+  color: #000;
+  outline: none;
+  transform: translateY(-1px);
+}
+
 .team-dna-hub-demo-intro-actions button {
   margin-top: 0;
 }
 
-.team-dna-hub-demo-intro button:hover,
-.team-dna-hub-demo-intro button:focus-visible {
+.team-dna-hub-demo-intro-actions button:hover,
+.team-dna-hub-demo-intro-actions button:focus-visible {
   border-color: #fffaf4;
   background: #fffaf4;
   color: #000;

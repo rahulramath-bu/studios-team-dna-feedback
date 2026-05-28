@@ -87,6 +87,7 @@ function SurfaceLink({ eyebrow, title, body, href, icon, onNavigate }) {
 
 function PrototypeHub({ onNavigate }) {
   const [showDemoIntro, setShowDemoIntro] = useState(false);
+  const [showEngineerIntro, setShowEngineerIntro] = useState(false);
 
   return (
     <main className="team-dna-hub" aria-label="Team DNA prototype hub">
@@ -109,16 +110,25 @@ function PrototypeHub({ onNavigate }) {
             onNavigate={onNavigate}
           />
         </div>
-        <a
-          className="team-dna-hub-demo-link"
-          href={DEMO_FLOW_PATH}
-          onClick={(event) => {
-            event.preventDefault();
-            setShowDemoIntro(true);
-          }}
-        >
-          Demo The Flow
-        </a>
+        <div className="team-dna-hub-secondary-actions">
+          <a
+            className="team-dna-hub-demo-link"
+            href={DEMO_FLOW_PATH}
+            onClick={(event) => {
+              event.preventDefault();
+              setShowDemoIntro(true);
+            }}
+          >
+            Demo The Flow
+          </a>
+          <button
+            type="button"
+            className="team-dna-hub-demo-link"
+            onClick={() => setShowEngineerIntro(true)}
+          >
+            Hey There Engineers
+          </button>
+        </div>
       </section>
 
       {showDemoIntro && (
@@ -126,6 +136,14 @@ function PrototypeHub({ onNavigate }) {
           className="team-dna-hub-demo-intro"
           aria-label="Prototype framing"
         >
+          <button
+            type="button"
+            className="team-dna-hub-overlay-close"
+            onClick={() => setShowDemoIntro(false)}
+            aria-label="Close demo intro"
+          >
+            ×
+          </button>
           <div className="team-dna-hub-demo-intro-copy">
             <h2>A concept prototype</h2>
             <p>
@@ -147,6 +165,51 @@ function PrototypeHub({ onNavigate }) {
                 Start manager journey
               </button>
             </div>
+          </div>
+        </section>
+      )}
+
+      {showEngineerIntro && (
+        <section
+          className="team-dna-hub-demo-intro"
+          aria-label="Engineering start here"
+        >
+          <button
+            type="button"
+            className="team-dna-hub-overlay-close"
+            onClick={() => setShowEngineerIntro(false)}
+            aria-label="Close engineering note"
+          >
+            ×
+          </button>
+          <div className="team-dna-hub-demo-intro-copy team-dna-hub-engineer-copy">
+            <h2>I hope this makes your life easier</h2>
+            <p>
+              This prototype was built to be portable at the seams, but it is
+              not a perfect drop-in. Expect the real work to be stitching the
+              assessment, Team DNA data, AI generation, profile photo, and
+              design-system seams into the monolith.
+            </p>
+            <p>
+              It is also not fully complete yet. There is still design-system
+              mapping and porting-guide cleanup to do, especially around what
+              should become a real shared component versus what is prototype
+              styling.
+            </p>
+            <p>
+              The README is the map. Please have Claude, Codex, or your agent
+              of choice read it and cross-reference it with the code before
+              implementation. It explains what should port cleanly, what is
+              prototype-only, and where the remaining seams are.
+            </p>
+            <a
+              className="team-dna-hub-engineer-cta"
+              href="https://github.com/betterup/studios-team-dna"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Open GitHub README
+            </a>
           </div>
         </section>
       )}
