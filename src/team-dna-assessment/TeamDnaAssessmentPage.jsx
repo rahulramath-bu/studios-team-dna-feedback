@@ -40,6 +40,7 @@ const SOUNDS = {
   click: '/sounds/click.wav',
   loadingComplete: '/sounds/loading-complete.wav',
 };
+const DEMO_AVATAR_URL = '/team-dna/avatars/demo-indian-woman.png';
 
 const QUESTION_FADE = {
   initial: { opacity: 0, y: 10 },
@@ -126,7 +127,7 @@ function readStoredDraft() {
   if (typeof window === 'undefined') return null;
   if (!window.localStorage) return null;
   const params = new URLSearchParams(window.location.search);
-  if (params.has('fresh') || params.has('welcome')) return null;
+  if (params.has('fresh') || params.has('welcome') || params.has('demo')) return null;
 
   try {
     return JSON.parse(
@@ -135,6 +136,54 @@ function readStoredDraft() {
   } catch {
     return null;
   }
+}
+
+function getAssessmentDemoMode() {
+  if (typeof window === 'undefined') return '';
+  return new URLSearchParams(window.location.search).get('demo') ?? '';
+}
+
+function getAssessmentDemoQuestionIndex(total) {
+  if (typeof window === 'undefined') return 0;
+  const params = new URLSearchParams(window.location.search);
+  const requestedIndex = Number(params.get('q'));
+
+  if (!Number.isFinite(requestedIndex)) return 0;
+  return Math.max(0, Math.min(total - 1, requestedIndex));
+}
+
+function buildDemoResponses(steps) {
+  const values = {};
+
+  steps.forEach((step, index) => {
+    if (step.kind === 'workingStyle') {
+      values[step.id] = index % 2 === 0 ? 68 : 38;
+      return;
+    }
+
+    if (step.kind === 'imageChoice') {
+      values[step.id] = step.item.options[index % step.item.options.length]?.id;
+      return;
+    }
+
+    if (step.kind === 'interstitial') {
+      values[step.id] = true;
+      return;
+    }
+
+    values[step.id] = [5, 4, 2, 3, 4][index % 5];
+  });
+
+  return values;
+}
+
+function buildDemoResponsesBeforeStep(steps, activeIndex) {
+  return Object.fromEntries(
+    Object.entries(buildDemoResponses(steps)).filter(([stepId]) => {
+      const stepIndex = steps.findIndex((step) => step.id === stepId);
+      return stepIndex >= 0 && stepIndex < activeIndex;
+    })
+  );
 }
 
 function writeStoredDraft(draft) {
@@ -221,18 +270,66 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
   const confirmPressTargetRef = useRef(null);
   const skipNextPersistRef = useRef(false);
   const assessmentSteps = useMemo(() => buildAssessmentSteps(), []);
+  const demoMode = useMemo(getAssessmentDemoMode, []);
+  const isDemoMode = Boolean(demoMode);
+  const demoResponses = useMemo(
+    () => buildDemoResponses(assessmentSteps),
+    [assessmentSteps]
+  );
+  const demoVisibleResponses = useMemo(
+    () =>
+      demoMode === 'questions'
+        ? buildDemoResponsesBeforeStep(
+            assessmentSteps,
+            getAssessmentDemoQuestionIndex(assessmentSteps.length)
+          )
+        : demoMode === 'review'
+          ? demoResponses
+          : {},
+    [assessmentSteps, demoMode, demoResponses]
+  );
+  const demoProfile = useMemo(() => {
+    if (demoMode !== 'review') return null;
+
+    return generateTeamDnaProfile({
+      bigFive: scoreBigFive(demoResponses),
+      workingStyle: scoreWorkingStyle(demoResponses),
+      name: 'You',
+      avatarDataUrl: DEMO_AVATAR_URL,
+    });
+  }, [demoMode, demoResponses]);
   const storedDraft = useMemo(readStoredDraft, []);
   const [flowStep, setFlowStep] = useState(
-    storedDraft?.profile ? FLOW_STEPS.REVIEW : FLOW_STEPS.WELCOME
+    () => {
+      if (demoMode === 'questions') return FLOW_STEPS.QUESTIONS;
+      if (demoMode === 'avatar') return FLOW_STEPS.AVATAR;
+      if (demoMode === 'processing') return FLOW_STEPS.PROCESSING;
+      if (demoMode === 'review') return FLOW_STEPS.REVIEW;
+      return storedDraft?.profile ? FLOW_STEPS.REVIEW : FLOW_STEPS.WELCOME;
+    }
   );
-  const [questionIndex, setQuestionIndex] = useState(0);
-  const [responses, setResponses] = useState(() => storedDraft?.responses ?? {});
+  const [questionIndex, setQuestionIndex] = useState(
+    () =>
+      demoMode === 'questions'
+        ? getAssessmentDemoQuestionIndex(assessmentSteps.length)
+        : 0
+  );
+  const [responses, setResponses] = useState(
+    () => (isDemoMode ? demoVisibleResponses : storedDraft?.responses ?? {})
+  );
   const [avatarDataUrl, setAvatarDataUrl] = useState(
-    () => storedDraft?.avatarDataUrl ?? ''
+    () =>
+      demoMode === 'avatar' || demoMode === 'review'
+        ? DEMO_AVATAR_URL
+        : storedDraft?.avatarDataUrl ?? ''
   );
-  const [profile, setProfile] = useState(() => storedDraft?.profile ?? null);
-  const [profileReady, setProfileReady] = useState(false);
-  const [profileCopy, setProfileCopy] = useState(() => storedDraft?.profile?.copy ?? {});
+  const [profile, setProfile] = useState(
+    () => demoProfile ?? storedDraft?.profile ?? null
+  );
+  const [profileReady, setProfileReady] = useState(() => demoMode === 'processing');
+  const [profileCopy, setProfileCopy] = useState(
+    () => demoProfile?.copy ?? storedDraft?.profile?.copy ?? {}
+  );
   const seenInterstitialIdsRef = useRef(new Set());
   const [privacy, setPrivacy] = useState(() => ({
     profileVisibility:
@@ -387,6 +484,8 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
   }, []);
 
   useEffect(() => {
+    if (isDemoMode) return;
+
     if (skipNextPersistRef.current) {
       skipNextPersistRef.current = false;
       return;
@@ -409,7 +508,7 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
       privacy,
       updatedAt: new Date().toISOString(),
     });
-  }, [avatarDataUrl, privacy, profile, profileCopy, responses]);
+  }, [avatarDataUrl, isDemoMode, privacy, profile, profileCopy, responses]);
 
   const resetStoredAssessment = () => {
     skipNextPersistRef.current = true;
@@ -593,21 +692,25 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
         )}
       </AnimatePresence>
 
-      <button
-        type="button"
-        className="team-dna-dev-tab"
-        onClick={() => setDebugOpen((current) => !current)}
-        aria-pressed={debugOpen}
-      >
-        Debug <span>\</span>
-      </button>
+      {!isDemoMode && (
+        <>
+          <button
+            type="button"
+            className="team-dna-dev-tab"
+            onClick={() => setDebugOpen((current) => !current)}
+            aria-pressed={debugOpen}
+          >
+            Debug <span>\</span>
+          </button>
 
-      <DebugPanel
-        isOpen={debugOpen}
-        payload={debugPayload}
-        onClose={() => setDebugOpen(false)}
-        onReset={resetStoredAssessment}
-      />
+          <DebugPanel
+            isOpen={debugOpen}
+            payload={debugPayload}
+            onClose={() => setDebugOpen(false)}
+            onReset={resetStoredAssessment}
+          />
+        </>
+      )}
     </main>
   );
 }
@@ -922,6 +1025,37 @@ function InterstitialBreak({ item, previousScoredAnswer, onNext, onSeen }) {
 }
 
 function ImageChoiceBreak({ item, selectedValue, onSelect }) {
+  const [imagesReady, setImagesReady] = useState(false);
+
+  useEffect(() => {
+    let isCancelled = false;
+    const imageUrls = item.options.map((option) => option.imageUrl).filter(Boolean);
+
+    Promise.all(
+      imageUrls.map(
+        (url) =>
+          new Promise((resolve) => {
+            const image = new Image();
+            image.onload = resolve;
+            image.onerror = resolve;
+            image.src = url;
+
+            if (image.decode) {
+              image.decode().then(resolve).catch(resolve);
+            }
+          })
+      )
+    ).then(() => {
+      if (!isCancelled) {
+        setImagesReady(true);
+      }
+    });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [item.options]);
+
   return (
     <motion.section className="tdna-question-shell tdna-image-choice-shell" {...QUESTION_FADE}>
       <div className="tdna-question-card" data-kind="imageChoice">
@@ -934,17 +1068,30 @@ function ImageChoiceBreak({ item, selectedValue, onSelect }) {
         >
           {item.text}
         </motion.h2>
-        <div className="tdna-image-choice-grid" role="radiogroup" aria-label={item.text}>
-          {item.options.map((option, index) => (
-            <ImageChoiceOption
-              key={option.id}
-              index={index}
-              option={option}
-              selectedValue={selectedValue}
-              onSelect={onSelect}
-            />
-          ))}
-        </div>
+        <AnimatePresence mode="wait">
+          {imagesReady && (
+            <motion.div
+              key="image-choice-grid"
+              className="tdna-image-choice-grid"
+              role="radiogroup"
+              aria-label={item.text}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.18 }}
+            >
+              {item.options.map((option, index) => (
+                <ImageChoiceOption
+                  key={option.id}
+                  index={index}
+                  option={option}
+                  selectedValue={selectedValue}
+                  onSelect={onSelect}
+                />
+              ))}
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </motion.section>
   );

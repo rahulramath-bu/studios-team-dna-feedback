@@ -100,6 +100,8 @@ export function TeamDnaExperience({
   dataset,
   showLayoutOutlines = false,
   preserveInsightScroll = false,
+  initialSelectedIds = [],
+  startWithIntroReleased = false,
   teamOptions = [],
   selectedTeamId,
   teamSwitcherTopOffset,
@@ -117,13 +119,14 @@ export function TeamDnaExperience({
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
   const [hasReleasedIntroGate, setHasReleasedIntroGate] = useState(
-    () => Boolean(shouldReduceMotion)
+    () => Boolean(shouldReduceMotion || startWithIntroReleased)
   );
   const [isIntroChromeHidden, setIsIntroChromeHidden] = useState(
-    !shouldReduceMotion
+    !shouldReduceMotion && !startWithIntroReleased
   );
   const [blockedAttempt, setBlockedAttempt] = useState(null);
   const blockedTimeoutRef = useRef(null);
+  const initialSelectedIdsKey = initialSelectedIds.join(',');
   const selectableMemberIds = useMemo(
     () =>
       new Set(
@@ -140,6 +143,13 @@ export function TeamDnaExperience({
   const isIntroGateActive = !hasReleasedIntroGate && !shouldReduceMotion;
 
   useEffect(() => {
+    if (startWithIntroReleased) {
+      setHasReleasedIntroGate(true);
+      setIsIntroChromeHidden(false);
+    }
+  }, [startWithIntroReleased]);
+
+  useEffect(() => {
     setSelectedIds((current) => {
       const next = current.filter((id) => selectableMemberIds.has(id));
       return next.length === current.length ? current : next;
@@ -147,9 +157,18 @@ export function TeamDnaExperience({
   }, [selectableMemberIds, setSelectedIds]);
 
   useEffect(() => {
-    setSelectedIds([]);
+    const nextInitialSelectedIds = initialSelectedIds.filter((id) =>
+      selectableMemberIds.has(id)
+    );
+
+    setSelectedIds(nextInitialSelectedIds);
     setBlockedAttempt(null);
-  }, [dataset.team.id, setSelectedIds]);
+  }, [
+    dataset.team.id,
+    initialSelectedIdsKey,
+    selectableMemberIds,
+    setSelectedIds,
+  ]);
 
   useEffect(() => {
     if (shouldReduceMotion) {

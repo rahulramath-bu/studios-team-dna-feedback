@@ -253,6 +253,72 @@ function getResizedTeamRecord(teamRecord, teamSize, organizationEmployees) {
   });
 }
 
+function readTeamDnaDemoConfig() {
+  if (typeof window === 'undefined') {
+    return { enabled: false, selectedMemberIds: [] };
+  }
+
+  const params = new URLSearchParams(window.location.search);
+  const demoMode = params.get('demo') ?? '';
+  const selectedMemberIds =
+    params
+      .get('members')
+      ?.split(',')
+      .map((memberId) => memberId.trim())
+      .filter(Boolean) ?? [];
+
+  return {
+    enabled: Boolean(demoMode),
+    mode: demoMode,
+    selectedMemberIds,
+  };
+}
+
+function getInitialTeamRecordsForDemo(demoConfig) {
+  if (!demoConfig.enabled) return mockTeamRecords;
+  if (demoConfig.mode === 'empty') return [];
+
+  return [sampleTeamRecord];
+}
+
+function getInitialTeamDnaResultsForDemo(demoConfig) {
+  const results = cloneState(mockTeamDnaResultsByEmployeeId);
+
+  if (demoConfig.enabled && demoConfig.mode === 'waiting') {
+    const completedMemberIds = new Set(
+      sampleTeamRecord.memberEmployeeIds.slice(0, 2)
+    );
+
+    sampleTeamRecord.memberEmployeeIds.forEach((memberId) => {
+      if (!results[memberId]) return;
+
+      results[memberId] = {
+        ...results[memberId],
+        assessmentComplete: completedMemberIds.has(memberId),
+      };
+    });
+  }
+
+  return results;
+}
+
+function applyDemoRecordState(recordState, demoConfig) {
+  if (!demoConfig.enabled || demoConfig.mode !== 'generating') {
+    return recordState;
+  }
+
+  return {
+    ...recordState,
+    devState: {
+      ...recordState.devState,
+      generationStatusByTargetId: {
+        ...(recordState.devState.generationStatusByTargetId ?? {}),
+        [`team:${sampleTeamRecord.id}`]: 'pending',
+      },
+    },
+  };
+}
+
 /**
  * Standalone prototype page.
  *
@@ -265,25 +331,42 @@ function getResizedTeamRecord(teamRecord, teamSize, organizationEmployees) {
  * and the data mapper. The portable feature is TeamDnaExperience.
  */
 export function TeamDnaPage() {
+  const demoConfig = useMemo(readTeamDnaDemoConfig, []);
+  const initialTeamRecords = useMemo(
+    () => getInitialTeamRecordsForDemo(demoConfig),
+    [demoConfig.enabled, demoConfig.mode]
+  );
+  const initialTeamDnaResults = useMemo(
+    () => getInitialTeamDnaResultsForDemo(demoConfig),
+    [demoConfig.enabled, demoConfig.mode]
+  );
   const [organizationEmployees, setOrganizationEmployees] = useState(() =>
     cloneState(mockOrganizationEmployees)
   );
   const [teamDnaResultsByEmployeeId, setTeamDnaResultsByEmployeeId] = useState(
-    () => cloneState(mockTeamDnaResultsByEmployeeId)
+    () => initialTeamDnaResults
   );
   const [teamRecords, setTeamRecords] = useState(() =>
     Object.fromEntries(
-      mockTeamRecords.map((teamRecord) => [
-        teamRecord.id,
-        createTeamRecordState(
+      initialTeamRecords.map((teamRecord) => {
+        const recordState = createTeamRecordState(
           teamRecord,
           mockOrganizationEmployees,
-          mockTeamDnaResultsByEmployeeId
-        ),
-      ])
+          initialTeamDnaResults
+        );
+
+        return [
+          teamRecord.id,
+          applyDemoRecordState(recordState, demoConfig),
+        ];
+      })
     )
   );
   const [activeTeamId, setActiveTeamId] = useState(() => {
+    if (demoConfig.enabled) {
+      return demoConfig.mode === 'empty' ? null : sampleTeamRecord.id;
+    }
+
     const firstRealTeam = mockTeamRecords.find(
       (teamRecord) => !teamRecord.sample && teamRecord.memberEmployeeIds.length > 0
     );
@@ -732,6 +815,8 @@ export function TeamDnaPage() {
             <TeamDnaExperience
               dataset={scenarioDataset}
               generationStatusByTargetId={generationStatusByTargetId}
+              initialSelectedIds={demoConfig.selectedMemberIds}
+              startWithIntroReleased={demoConfig.enabled}
               teamOptions={teamOptions}
               selectedTeamId={activeTeamId}
               teamSwitcherTopOffset={devState.showMonolithShell ? 104 : 34}
@@ -759,18 +844,20 @@ export function TeamDnaPage() {
           onTeamManagementAction={handleTeamManagementAction}
         />
       )}
-      <TeamDnaDevPanel
-        baseMembers={editableTeamDna.members}
-        activeGenerationTarget={activeGenerationTarget}
-        devState={devState}
-        canResizeTeam={Boolean(activeRecord)}
-        onSetGenerationStatus={setGenerationScenarioForTarget}
-        onSetTeamSize={setActiveTeamSize}
-        onToggleMemberAvatar={toggleMemberAvatar}
-        onToggleMemberAssessment={toggleMemberAssessment}
-        onSetMemberPrivacy={setMemberPrivacy}
-        setDevState={updateActiveDevState}
-      />
+      {!demoConfig.enabled && (
+        <TeamDnaDevPanel
+          baseMembers={editableTeamDna.members}
+          activeGenerationTarget={activeGenerationTarget}
+          devState={devState}
+          canResizeTeam={Boolean(activeRecord)}
+          onSetGenerationStatus={setGenerationScenarioForTarget}
+          onSetTeamSize={setActiveTeamSize}
+          onToggleMemberAvatar={toggleMemberAvatar}
+          onToggleMemberAssessment={toggleMemberAssessment}
+          onSetMemberPrivacy={setMemberPrivacy}
+          setDevState={updateActiveDevState}
+        />
+      )}
     </>
   );
 }
