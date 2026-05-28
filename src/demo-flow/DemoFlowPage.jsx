@@ -22,6 +22,17 @@ function clampIndex(index, total) {
   return Math.max(0, Math.min(index, total - 1));
 }
 
+function addDemoOnlyViewMode(url, viewMode) {
+  if (viewMode !== 'wireframe') return url;
+
+  const [path, hash = ''] = url.split('#');
+  const [base, query = ''] = path.split('?');
+  const params = new URLSearchParams(query);
+  params.set('view', 'wireframe');
+
+  return `${base}?${params.toString()}${hash ? `#${hash}` : ''}`;
+}
+
 export function DemoFlowPage({ onNavigate }) {
   const journey = useMemo(() => getDemoFlowJourney(getDemoJourneyId()), []);
   const viewMode = useMemo(() => getDemoViewMode(), []);
@@ -29,6 +40,10 @@ export function DemoFlowPage({ onNavigate }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPinnedOpen, setIsPinnedOpen] = useState(false);
   const activeMoment = demoFlowMoments[activeIndex];
+  const activeSurfaceUrl = useMemo(
+    () => addDemoOnlyViewMode(activeMoment.surfaceUrl, viewMode),
+    [activeMoment.surfaceUrl, viewMode]
+  );
   const progress = useMemo(
     () => ((activeIndex + 1) / demoFlowMoments.length) * 100,
     [activeIndex]
@@ -52,7 +67,7 @@ export function DemoFlowPage({ onNavigate }) {
         <iframe
           key={activeMoment.id}
           className="team-dna-demo-flow-frame"
-          src={activeMoment.surfaceUrl}
+          src={activeSurfaceUrl}
           title={activeMoment.title}
         />
       </section>

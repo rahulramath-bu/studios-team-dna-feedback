@@ -34,6 +34,26 @@ function useRoute() {
   return { pathname, route: getRoute(pathname), navigate };
 }
 
+function useDemoOnlyWireframeFlag() {
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const isWireframe = params.get('view') === 'wireframe';
+
+    if (isWireframe) {
+      document.documentElement.setAttribute(
+        'data-demo-only-wireframe',
+        'true'
+      );
+    } else {
+      document.documentElement.removeAttribute('data-demo-only-wireframe');
+    }
+
+    return () => {
+      document.documentElement.removeAttribute('data-demo-only-wireframe');
+    };
+  });
+}
+
 function SurfaceIcon({ type }) {
   if (type === 'dna') {
     return (
@@ -161,29 +181,6 @@ function PrototypeHub({ onNavigate }) {
               As we walk through it, your feedback can directly shape what it
               becomes.
             </p>
-            <div
-              className="team-dna-hub-demo-view-toggle"
-              aria-label="Demo fidelity"
-            >
-              <button
-                type="button"
-                data-active={demoView === 'full' || undefined}
-                onClick={() => setDemoView('full')}
-              >
-                Full prototype
-              </button>
-              <button
-                type="button"
-                data-active={demoView === 'wireframe' || undefined}
-                onClick={() => setDemoView('wireframe')}
-              >
-                Wireframe view
-              </button>
-            </div>
-            <span className="team-dna-hub-demo-view-note">
-              Wireframe view removes visual polish so the conversation can stay
-              on flow and feature states.
-            </span>
             <div className="team-dna-hub-demo-intro-actions">
               <button
                 type="button"
@@ -196,6 +193,24 @@ function PrototypeHub({ onNavigate }) {
                 onClick={() => startDemoFlow('manager')}
               >
                 Start manager journey
+              </button>
+            </div>
+            <div className="team-dna-hub-demo-wireframe-row">
+              <span>Wireframe view</span>
+              <button
+                type="button"
+                className="team-dna-hub-demo-wireframe-switch"
+                role="switch"
+                aria-label="Wireframe view"
+                aria-checked={demoView === 'wireframe'}
+                data-active={demoView === 'wireframe' || undefined}
+                onClick={() =>
+                  setDemoView((current) =>
+                    current === 'wireframe' ? 'full' : 'wireframe'
+                  )
+                }
+              >
+                <i />
               </button>
             </div>
           </div>
@@ -253,6 +268,7 @@ function PrototypeHub({ onNavigate }) {
 export function App() {
   const { pathname, route, navigate } = useRoute();
   const routeKey = useMemo(() => `${route}:${pathname}`, [pathname, route]);
+  useDemoOnlyWireframeFlag();
 
   if (route === 'team-dna') {
     return <TeamDnaPage key={routeKey} />;

@@ -4,20 +4,25 @@
  * This is a presenter lens for /flow-demo, not product styling and not a
  * design-system recommendation. It intentionally lives in the demo-flow shell
  * so engineering agents do not confuse it with Surface 1 or Surface 2.
+ *
+ * The html[data-demo-only-wireframe] rules below are enabled only when a demo
+ * iframe receives ?view=wireframe. Keep this lens calm: flatten existing
+ * surfaces, simplify type, and remove decorative media without inventing boxes
+ * that the real UI does not already imply.
  */
 
 .team-dna-demo-flow[data-demo-only-view='wireframe'] {
-  background: #f7f7f7;
+  background: #fff;
 }
 
 .team-dna-demo-flow[data-demo-only-view='wireframe']
   .team-dna-demo-flow-stage {
-  background: #f7f7f7;
+  background: #fff;
 }
 
 .team-dna-demo-flow[data-demo-only-view='wireframe']
   .team-dna-demo-flow-frame {
-  filter: grayscale(1) contrast(0.88) brightness(1.04);
+  filter: none;
 }
 
 .team-dna-demo-flow[data-demo-only-view='wireframe']
@@ -27,28 +32,14 @@
   z-index: 1;
   pointer-events: none;
   content: '';
-  background:
-    linear-gradient(rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.14)),
-    repeating-linear-gradient(
-      0deg,
-      transparent 0,
-      transparent 23px,
-      rgba(0, 0, 0, 0.028) 24px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0,
-      transparent 23px,
-      rgba(0, 0, 0, 0.02) 24px
-    );
-  mix-blend-mode: normal;
+  display: none;
 }
 
 .team-dna-demo-flow[data-demo-only-view='wireframe']
   .team-dna-demo-flow-remote {
   border-color: rgba(0, 0, 0, 0.22);
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.12);
+  background: #fff;
+  box-shadow: none;
 }
 
 .team-dna-demo-flow[data-demo-only-view='wireframe']
@@ -64,7 +55,20 @@
 
 .team-dna-demo-flow[data-demo-only-view='wireframe']
   .team-dna-demo-flow-dot[data-phase] {
-  background: rgba(0, 0, 0, 0.22);
+  border-color: rgba(17, 17, 17, 0.5);
+  background: #ddd;
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-dot {
+  border: 1px solid rgba(17, 17, 17, 0.32);
+  background: #fff;
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-dot[data-active] {
+  border-color: #111;
+  background: #111;
 }
 
 .team-dna-demo-flow[data-demo-only-view='wireframe']
@@ -80,4 +84,367 @@
   .team-dna-demo-flow-actions
   button:hover:not(:disabled) {
   border-color: rgba(0, 0, 0, 0.32);
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-actions
+  button:disabled {
+  background: #fff !important;
+  border-color: rgba(17, 17, 17, 0.22) !important;
+  color: rgba(17, 17, 17, 0.32) !important;
+  opacity: 1;
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-primary:not(:disabled) {
+  background: #111 !important;
+  border-color: #111 !important;
+  color: #fff !important;
+}
+
+html[data-demo-only-wireframe='true'],
+html[data-demo-only-wireframe='true'] body,
+html[data-demo-only-wireframe='true'] #root {
+  --team-dna-canvas: #fff;
+  --team-dna-canvas-rgb: 255, 255, 255;
+  --team-dna-warm-white: #fff;
+  --team-dna-warm-white-rgb: 255, 255, 255;
+  --team-dna-ink: #111;
+  --team-dna-ink-rgb: 17, 17, 17;
+  --rubine: #111;
+  --team-dna-primary-rgb: 17, 17, 17;
+  --team-dna-focus-rgb: 17, 17, 17;
+  --team-dna-copy: #111;
+  --team-dna-copy-rgb: 17, 17, 17;
+  --background: #fff;
+  --page-background: #fff;
+  --foreground: #111;
+  --foreground-heading: #111;
+  --foreground-body: #111;
+  --card: #fff;
+  --card-subtle-bg: #fff;
+  --card-subtle-border: rgba(17, 17, 17, 0.24);
+  --border: rgba(17, 17, 17, 0.24);
+  --primary: #111;
+  --primary-hover: #111;
+  --team-aggregate: #666;
+  --team-aggregate-rgb: 102, 102, 102;
+  --team-dna-focus: #111;
+  --team-dna-interactive-ink: #111;
+  --duo-selection-accent: #111;
+  --heading-display-font: 'Söhne', Arial, sans-serif;
+  --heading-display-tracking: 0;
+  --label-font: 'Söhne', Arial, sans-serif;
+  --radius: 0.35rem;
+
+  background: #fff !important;
+  color: #111 !important;
+}
+
+html[data-demo-only-wireframe='true'] * {
+  box-shadow: none !important;
+  text-shadow: none !important;
+}
+
+html[data-demo-only-wireframe='true'] * {
+  font-family: 'Söhne', Arial, sans-serif !important;
+}
+
+html[data-demo-only-wireframe='true'] :where(h1, h2, h3, h4, h5, h6, strong) {
+  font-family: 'Söhne', Arial, sans-serif !important;
+  font-style: normal !important;
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    button,
+    a,
+    input,
+    textarea,
+    select,
+    [class*='button'],
+    [class*='Button'],
+    [class*='toggle'],
+    [class*='Toggle']
+  ) {
+  border-radius: 2px !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    .tdna-likert-option,
+    .tdna-image-choice-option,
+    .tdna-toggle,
+    .insight-primary-read--with-image,
+    .info-block,
+    .insight-lifecycle-status,
+    .insight-waiting-state,
+    .team-management-panel,
+    .team-management-member-card,
+    .team-management-add-card,
+    .team-management-row,
+    .team-management-search-results,
+    .team-context-menu,
+    .team-dna-ai-question-box,
+    .monolith-primary-nav
+  ) {
+  border-color: rgba(17, 17, 17, 0.34) !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    .team-dna-empty-preview,
+    .team-dna-empty-preview-stage,
+    .team-dna-empty-preview-field,
+    .team-dna-empty-preview-cursor,
+    .team-dna-empty-preview-insight-card,
+    .team-dna-empty-preview-star,
+    .duo-connection-layer,
+    .archetype-image-card-window::after,
+    .tdna-image-choice-media::after,
+    .team-dna-scroll-fade,
+    .team-dna-empty-preview::before,
+    .team-dna-empty-preview::after
+  ) {
+  display: none !important;
+}
+
+html[data-demo-only-wireframe='true'] .tdna-welcome-lines,
+html[data-demo-only-wireframe='true'] .tdna-line,
+html[data-demo-only-wireframe='true'] .tdna-plus,
+html[data-demo-only-wireframe='true'] .tdna-welcome-media,
+html[data-demo-only-wireframe='true'] .tdna-welcome-media-placeholder,
+html[data-demo-only-wireframe='true'] .tdna-hand-stage,
+html[data-demo-only-wireframe='true'] .tdna-halftone-hand {
+  display: none !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    button,
+    a,
+    input,
+    textarea,
+    select
+  ) {
+  background-image: none !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(button, a, input, textarea, select, [role='button']) {
+  background: #fff !important;
+  color: #111 !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(button, a, [role='button']):hover {
+  background: #eee !important;
+  border-color: rgba(17, 17, 17, 0.34) !important;
+  color: #111 !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    .team-dna-ai-question-submit[data-active],
+    .team-dna-empty-primary,
+    .team-management-primary,
+    .tdna-primary-action,
+    .tdna-capture-action,
+    .tdna-review-control-dock .tdna-primary-action,
+    .tdna-progress-fill,
+    .tdna-spectrum-thumb,
+    .tdna-toggle[data-active],
+    .tdna-review-toggle[data-active],
+    .team-dna-dev-chip[data-active],
+    .monolith-primary-badge,
+    [aria-selected='true'],
+    [aria-current='true']
+  ) {
+  background-color: #111 !important;
+  border-color: #111 !important;
+  color: #fff !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    .team-dna-ai-question-submit[data-active],
+    .team-dna-empty-primary,
+    .team-management-primary,
+    .tdna-primary-action,
+    .tdna-capture-action,
+    .tdna-review-control-dock .tdna-primary-action,
+    .tdna-toggle[data-active],
+    .tdna-review-toggle[data-active],
+    .team-dna-dev-chip[data-active],
+    [aria-selected='true'],
+    [aria-current='true']
+  ):hover {
+  background: #111 !important;
+  border-color: #111 !important;
+  color: #fff !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    .team-face-image,
+    .team-face-name-fallback,
+    .team-face-pending-pill,
+    .team-management-avatar,
+    .team-management-member-avatar-wrap,
+    .tdna-review-avatar,
+    .big-five-spectrum-avatar,
+    .tdna-welcome,
+    .tdna-question-stage,
+    .tdna-review,
+    .team-dna-empty-state,
+    .team-dna-empty-copy,
+    .team-dna-experience,
+    .team-dna-insight-pane,
+    .team-dna-insight-scroll,
+    .team-dna-insight-content
+  ) {
+  background-color: #fff !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(.team-face-image, .team-face-name-fallback) {
+  background-color: transparent !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    .team-face-button,
+    .team-face-button:hover,
+    .team-face-visual-layer,
+    .team-face-shake-layer,
+    .team-face-pulse-layer,
+    .team-dna-empty-preview-face-slot
+  ) {
+  background: transparent !important;
+  background-color: transparent !important;
+}
+
+html[data-demo-only-wireframe='true'] :where(img, video, canvas, svg) {
+  filter: grayscale(1) contrast(0.8) brightness(1.08) !important;
+}
+
+html[data-demo-only-wireframe='true'] :where(img, video, canvas) {
+  outline: 0 !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(.archetype-image-card-window, .tdna-image-choice-media) {
+  background: #fff !important;
+  background-image: none !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(.archetype-image-card-image, .tdna-image-choice-media img) {
+  display: none !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where(
+    .team-face-image,
+    .team-face-visual-layer,
+    .team-face-ring,
+    .team-face-pulse-layer,
+    .team-face-shake-layer,
+    .tdna-review-avatar,
+    .tdna-review-avatar img,
+    .team-management-avatar,
+    .big-five-spectrum-avatar,
+    .big-five-spectrum-avatar img,
+    .monolith-primary-badge,
+    .tdna-toggle i,
+    .tdna-toggle i::after
+  ) {
+  border-radius: 999px !important;
+}
+
+html[data-demo-only-wireframe='true'] .archetype-image-card-window::before,
+html[data-demo-only-wireframe='true'] .tdna-image-choice-media::before {
+  display: none !important;
+  content: none !important;
+}
+
+html[data-demo-only-wireframe='true'] .archetype-image-card-window,
+html[data-demo-only-wireframe='true'] .tdna-image-choice-media {
+  position: relative;
+}
+
+html[data-demo-only-wireframe='true'] .monolith-primary-logo img,
+html[data-demo-only-wireframe='true'] .monolith-primary-icon,
+html[data-demo-only-wireframe='true'] .monolith-primary-action-icon-wrap,
+html[data-demo-only-wireframe='true'] .monolith-primary-avatar-link {
+  display: none !important;
+}
+
+html[data-demo-only-wireframe='true'] .monolith-primary-logo::after {
+  color: #111;
+  font-family: 'Söhne', Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  content: 'BetterUp';
+}
+
+html[data-demo-only-wireframe='true'] .monolith-primary-nav {
+  background: #fff !important;
+}
+
+html[data-demo-only-wireframe='true'] .monolith-primary-links a,
+html[data-demo-only-wireframe='true'] .monolith-primary-actions a {
+  border-color: transparent !important;
+  border-bottom-color: transparent !important;
+  gap: 0 !important;
+  background: transparent !important;
+}
+
+html[data-demo-only-wireframe='true'] .monolith-primary-link-active {
+  border-bottom-color: #111 !important;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+}
+
+html[data-demo-only-wireframe='true'] .team-face-ring {
+  border-color: transparent !important;
+}
+
+html[data-demo-only-wireframe='true']
+  .team-face-button[data-selected]
+  .team-face-ring {
+  border-color: #111 !important;
+}
+
+html[data-demo-only-wireframe='true']
+  .team-face-button[data-duo-selected]
+  .team-face-ring {
+  border-color: transparent !important;
+  box-shadow: 0 0 0 5px #111 !important;
+}
+
+html[data-demo-only-wireframe='true']
+  :where([class*='gradient'], [class*='Gradient']) {
+  background: #fff !important;
+}
+
+html[data-demo-only-wireframe='true'] .team-dna-empty-state {
+  --empty-pane-gap: 0;
+
+  grid-template-columns: minmax(0, 620px) !important;
+  justify-content: center !important;
+}
+
+html[data-demo-only-wireframe='true']
+  .monolith-shell-preview
+  .team-dna-empty-state {
+  transform: none !important;
+}
+
+html[data-demo-only-wireframe='true']
+  .info-block--spectrum:has(.big-five-spectrum-list[data-view='all']) {
+  border-color: transparent !important;
+  background: transparent !important;
 }
