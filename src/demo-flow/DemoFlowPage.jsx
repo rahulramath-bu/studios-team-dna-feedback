@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { BetterUpIcon } from '../team-dna/components/BetterUpIcon.jsx';
 import { getDemoFlowJourney } from './demoFlowMoments.js';
 import './demoFlow.css';
+import './demoOnlyWireframeMode.css';
 
 function getDemoJourneyId() {
   if (typeof window === 'undefined') return 'user';
@@ -10,12 +11,20 @@ function getDemoJourneyId() {
   return params.get('journey') ?? 'user';
 }
 
+function getDemoViewMode() {
+  if (typeof window === 'undefined') return 'full';
+
+  const params = new URLSearchParams(window.location.search);
+  return params.get('view') === 'wireframe' ? 'wireframe' : 'full';
+}
+
 function clampIndex(index, total) {
   return Math.max(0, Math.min(index, total - 1));
 }
 
 export function DemoFlowPage({ onNavigate }) {
   const journey = useMemo(() => getDemoFlowJourney(getDemoJourneyId()), []);
+  const viewMode = useMemo(() => getDemoViewMode(), []);
   const demoFlowMoments = journey.moments;
   const [activeIndex, setActiveIndex] = useState(0);
   const [isPinnedOpen, setIsPinnedOpen] = useState(false);
@@ -34,7 +43,11 @@ export function DemoFlowPage({ onNavigate }) {
   };
 
   return (
-    <main className="team-dna-demo-flow" aria-label="Team DNA flow demo">
+    <main
+      className="team-dna-demo-flow"
+      data-demo-only-view={viewMode}
+      aria-label="Team DNA flow demo"
+    >
       <section className="team-dna-demo-flow-stage">
         <iframe
           key={activeMoment.id}

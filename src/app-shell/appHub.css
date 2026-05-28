@@ -224,10 +224,11 @@
   flex-wrap: wrap;
   justify-content: center;
   gap: 14px;
-  margin-top: 10px;
+  margin-top: 6px;
 }
 
-.team-dna-hub-demo-intro-actions button {
+.team-dna-hub-demo-intro-actions button,
+.team-dna-hub-demo-view-toggle button {
   margin-top: 18px;
   padding: 16px 26px 15px;
   border: 1px solid rgba(255, 250, 244, 0.42);
@@ -246,6 +247,46 @@
     background 160ms ease,
     color 160ms ease,
     transform 160ms ease;
+}
+
+.team-dna-hub-demo-view-toggle {
+  display: inline-flex;
+  gap: 0;
+  margin-top: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255, 250, 244, 0.24);
+  border-radius: 999px;
+  background: rgba(255, 250, 244, 0.06);
+}
+
+.team-dna-hub-demo-view-toggle button {
+  margin: 0;
+  padding: 12px 17px 11px;
+  border-color: transparent;
+  color: rgba(255, 250, 244, 0.66);
+  background: transparent;
+}
+
+.team-dna-hub-demo-view-toggle button[data-active] {
+  background: #fffaf4;
+  color: #000;
+}
+
+.team-dna-hub-demo-view-toggle button:not([data-active]):hover,
+.team-dna-hub-demo-view-toggle button:not([data-active]):focus-visible {
+  border-color: transparent;
+  background: rgba(255, 250, 244, 0.1);
+  color: #fffaf4;
+}
+
+.team-dna-hub-demo-view-note {
+  max-width: 430px;
+  margin-top: -14px;
+  color: rgba(255, 250, 244, 0.48);
+  font-size: 13px;
+  font-weight: 300;
+  line-height: 1.5;
+  text-wrap: balance;
 }
 
 .team-dna-hub-engineer-cta {

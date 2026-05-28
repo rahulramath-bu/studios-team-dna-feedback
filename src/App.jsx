@@ -88,6 +88,16 @@ function SurfaceLink({ eyebrow, title, body, href, icon, onNavigate }) {
 function PrototypeHub({ onNavigate }) {
   const [showDemoIntro, setShowDemoIntro] = useState(false);
   const [showEngineerIntro, setShowEngineerIntro] = useState(false);
+  const [demoView, setDemoView] = useState('full');
+
+  const startDemoFlow = (journey) => {
+    const params = new URLSearchParams({ journey });
+    if (demoView === 'wireframe') {
+      params.set('view', 'wireframe');
+    }
+
+    onNavigate(`${DEMO_FLOW_PATH}?${params.toString()}`);
+  };
 
   return (
     <main className="team-dna-hub" aria-label="Team DNA prototype hub">
@@ -151,16 +161,39 @@ function PrototypeHub({ onNavigate }) {
               As we walk through it, your feedback can directly shape what it
               becomes.
             </p>
+            <div
+              className="team-dna-hub-demo-view-toggle"
+              aria-label="Demo fidelity"
+            >
+              <button
+                type="button"
+                data-active={demoView === 'full' || undefined}
+                onClick={() => setDemoView('full')}
+              >
+                Full prototype
+              </button>
+              <button
+                type="button"
+                data-active={demoView === 'wireframe' || undefined}
+                onClick={() => setDemoView('wireframe')}
+              >
+                Wireframe view
+              </button>
+            </div>
+            <span className="team-dna-hub-demo-view-note">
+              Wireframe view removes visual polish so the conversation can stay
+              on flow and feature states.
+            </span>
             <div className="team-dna-hub-demo-intro-actions">
               <button
                 type="button"
-                onClick={() => onNavigate(`${DEMO_FLOW_PATH}?journey=user`)}
+                onClick={() => startDemoFlow('user')}
               >
                 Start user journey
               </button>
               <button
                 type="button"
-                onClick={() => onNavigate(`${DEMO_FLOW_PATH}?journey=manager`)}
+                onClick={() => startDemoFlow('manager')}
               >
                 Start manager journey
               </button>

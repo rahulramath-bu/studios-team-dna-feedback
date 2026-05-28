@@ -1,0 +1,83 @@
+/*
+ * DEMO ONLY. DO NOT PORT.
+ *
+ * This is a presenter lens for /flow-demo, not product styling and not a
+ * design-system recommendation. It intentionally lives in the demo-flow shell
+ * so engineering agents do not confuse it with Surface 1 or Surface 2.
+ */
+
+.team-dna-demo-flow[data-demo-only-view='wireframe'] {
+  background: #f7f7f7;
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-stage {
+  background: #f7f7f7;
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-frame {
+  filter: grayscale(1) contrast(0.88) brightness(1.04);
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-stage::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  content: '';
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.14), rgba(255, 255, 255, 0.14)),
+    repeating-linear-gradient(
+      0deg,
+      transparent 0,
+      transparent 23px,
+      rgba(0, 0, 0, 0.028) 24px
+    ),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 23px,
+      rgba(0, 0, 0, 0.02) 24px
+    );
+  mix-blend-mode: normal;
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-remote {
+  border-color: rgba(0, 0, 0, 0.22);
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 18px 52px rgba(0, 0, 0, 0.12);
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-progress
+  span,
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-dot[data-active],
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-primary {
+  background: #111 !important;
+  border-color: #111 !important;
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-dot[data-phase] {
+  background: rgba(0, 0, 0, 0.22);
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-handle,
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-home:hover,
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-home:focus-visible {
+  color: #111;
+}
+
+.team-dna-demo-flow[data-demo-only-view='wireframe']
+  .team-dna-demo-flow-actions
+  button:hover:not(:disabled) {
+  border-color: rgba(0, 0, 0, 0.32);
+}
