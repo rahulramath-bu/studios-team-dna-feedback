@@ -6,6 +6,11 @@ Team DNA is a high-fidelity React prototype for helping a team understand how
 its people work, how pairs collaborate, and what the team should pay attention
 to together.
 
+This nested README is the detailed Surface 2 handoff. The root `README.md` is
+the current whole-repo map, including the newer Surface 1 assessment prototype.
+If the two documents ever disagree, trust the code first, then the root README,
+then this older Surface 2 deep dive.
+
 This repo is intentionally more than a visual mock. The people and generated
 copy are demo data, but the product surface, data seams, fallback logic, motion,
 selection model, and porting boundaries are built like a real feature slice.
@@ -102,9 +107,17 @@ full scan.
 
 ### 4. Assessment output first, assessment design second
 
-This prototype starts from Surface 2: the results experience. That is
-intentional. Once we know what information would actually help a manager,
-teammate, or team, Surface 1 can collect the right data to power it.
+This prototype originally started from Surface 2: the results experience. That
+was intentional. Once we knew what information would actually help a manager,
+teammate, or team, Surface 1 could collect the right data to power it.
+
+Surface 1 now exists at `/assessment`. It is still prototype code, but it is no
+longer a placeholder: it includes Big Five questions, working-style spectra,
+non-scored image/interstitial moments, profile photo capture, profile review,
+privacy toggles, local draft persistence, and a deterministic local profile
+generator. Treat that implementation as the current assessment interaction
+reference, then map its answers back to real monolith `AssessmentItem.key`
+responses during the port.
 
 Big Five scores are useful, but not enough on their own. A future assessment
 should likely combine:
@@ -757,7 +770,8 @@ npm run dev
 ```
 
 Open `/team-dna` for this Surface 2 handoff. The root route `/` is a tiny
-prototype hub, and `/assessment` is only the parked Surface 1 placeholder.
+prototype hub, `/assessment` is the current Surface 1 assessment prototype, and
+`/flow-demo` is a presenter-only walkthrough shell.
 
 Build:
 

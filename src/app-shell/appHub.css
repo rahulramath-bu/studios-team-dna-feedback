@@ -137,6 +137,10 @@
   backdrop-filter: blur(14px);
 }
 
+.team-dna-hub-demo-intro[data-exiting] {
+  animation: team-dna-hub-demo-intro-fade-out 360ms ease both;
+}
+
 .team-dna-hub-overlay-close {
   position: fixed;
   top: 26px;
@@ -224,6 +228,29 @@
   padding-top: 22px;
   border-top: 1px solid rgba(255, 250, 244, 0.18);
   color: rgba(255, 250, 244, 0.88) !important;
+}
+
+.team-dna-hub-engineer-video {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  z-index: 1;
+  width: clamp(300px, 32vw, 500px);
+  pointer-events: none;
+  animation: team-dna-hub-engineer-video-in 620ms 120ms
+    cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.team-dna-hub-engineer-video video {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: transparent;
+}
+
+.team-dna-hub-demo-intro[data-exiting] .team-dna-hub-engineer-video {
+  animation: team-dna-hub-engineer-video-out 320ms
+    cubic-bezier(0.55, 0, 0.55, 0.2) both;
 }
 
 .team-dna-hub-demo-intro-actions {
@@ -367,6 +394,15 @@
   }
 }
 
+@keyframes team-dna-hub-demo-intro-fade-out {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
 @keyframes team-dna-hub-demo-intro-copy {
   from {
     opacity: 0;
@@ -375,6 +411,44 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes team-dna-hub-engineer-video-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%) scale(0.92);
+  }
+  62% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.018);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes team-dna-hub-engineer-video-out {
+  from {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(100%) scale(0.92);
+  }
+}
+
+@media (max-width: 1140px) {
+  .team-dna-hub-engineer-video {
+    width: clamp(264px, 32vw, 360px);
+  }
+}
+
+@media (max-width: 900px) {
+  .team-dna-hub-engineer-video {
+    display: none;
   }
 }
 

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { TeamDnaPage } from './team-dna/TeamDnaPage.jsx';
 import { TeamDnaAssessmentPage } from './team-dna-assessment/TeamDnaAssessmentPage.jsx';
 import { DemoFlowPage } from './demo-flow/DemoFlowPage.jsx';
@@ -108,7 +108,49 @@ function SurfaceLink({ eyebrow, title, body, href, icon, onNavigate }) {
 function PrototypeHub({ onNavigate }) {
   const [showDemoIntro, setShowDemoIntro] = useState(false);
   const [showEngineerIntro, setShowEngineerIntro] = useState(false);
+  const [isEngineerIntroClosing, setIsEngineerIntroClosing] = useState(false);
   const [demoView, setDemoView] = useState('full');
+  const engineerVideoRef = useRef(null);
+  const engineerCloseTimeoutRef = useRef(null);
+
+  useEffect(
+    () => () => {
+      if (engineerCloseTimeoutRef.current) {
+        window.clearTimeout(engineerCloseTimeoutRef.current);
+      }
+    },
+    []
+  );
+
+  const openEngineerIntro = () => {
+    if (engineerCloseTimeoutRef.current) {
+      window.clearTimeout(engineerCloseTimeoutRef.current);
+      engineerCloseTimeoutRef.current = null;
+    }
+
+    setIsEngineerIntroClosing(false);
+    setShowEngineerIntro(true);
+  };
+
+  const closeEngineerIntro = () => {
+    setIsEngineerIntroClosing(true);
+    engineerCloseTimeoutRef.current = window.setTimeout(() => {
+      setShowEngineerIntro(false);
+      setIsEngineerIntroClosing(false);
+      engineerCloseTimeoutRef.current = null;
+    }, 360);
+  };
+
+  useEffect(() => {
+    const video = engineerVideoRef.current;
+
+    if (!showEngineerIntro || !video) return;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.volume = 0;
+    video.play?.().catch(() => {});
+  }, [showEngineerIntro]);
 
   const startDemoFlow = (journey) => {
     const params = new URLSearchParams({ journey });
@@ -154,7 +196,7 @@ function PrototypeHub({ onNavigate }) {
           <button
             type="button"
             className="team-dna-hub-demo-link"
-            onClick={() => setShowEngineerIntro(true)}
+            onClick={openEngineerIntro}
           >
             Hey There Engineers
           </button>
@@ -220,16 +262,38 @@ function PrototypeHub({ onNavigate }) {
       {showEngineerIntro && (
         <section
           className="team-dna-hub-demo-intro"
+          data-exiting={isEngineerIntroClosing || undefined}
           aria-label="Engineering handoff"
         >
           <button
             type="button"
             className="team-dna-hub-overlay-close"
-            onClick={() => setShowEngineerIntro(false)}
+            onClick={closeEngineerIntro}
             aria-label="Close engineering note"
           >
             ×
           </button>
+          <div
+            className="team-dna-hub-engineer-video"
+            aria-label="Preetoshi video note"
+          >
+            <video
+              ref={engineerVideoRef}
+              autoPlay
+              loop
+              muted
+              defaultMuted
+              playsInline
+              preload="auto"
+              onLoadedMetadata={(event) => {
+                event.currentTarget.muted = true;
+                event.currentTarget.defaultMuted = true;
+                event.currentTarget.volume = 0;
+              }}
+            >
+              <source src="/preetoshi.webm" type="video/webm" />
+            </video>
+          </div>
           <div className="team-dna-hub-demo-intro-copy team-dna-hub-engineer-copy">
             <h2>Hope this makes your life easier</h2>
             <p>
