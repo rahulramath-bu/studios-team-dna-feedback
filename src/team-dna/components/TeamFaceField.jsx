@@ -13,6 +13,9 @@ const TEAM_FACE_SWAP_EXIT_MS = 240;
 const TAP_HINT_INITIAL_DELAY_MS = 5000;
 const TAP_HINT_VISIBLE_MS = 3300;
 const TAP_HINT_GAP_MS = 2600;
+const TITLE_BASE_FONT_SIZE = 48;
+const TITLE_MAX_FONT_SIZE = 58;
+const TITLE_MIN_FONT_SIZE = 12;
 
 function getLayoutCenter(node) {
   return {
@@ -232,24 +235,71 @@ function resolveFaceNudges(members, selectedIds, hitboxRefs) {
     : {};
 }
 
-function getEntityTitleStyle(title) {
-  const length = title?.length ?? 0;
+function useFittedEntityTitle(title) {
+  const titleRef = useRef(null);
+  const measureRef = useRef(null);
+  const [titleFontSize, setTitleFontSize] = useState(TITLE_BASE_FONT_SIZE);
 
-  if (length <= 13) {
-    return { '--team-face-context-title-size': '48px' };
-  }
+  useLayoutEffect(() => {
+    const titleNode = titleRef.current;
+    const measureNode = measureRef.current;
 
-  if (length <= 18) {
-    return { '--team-face-context-title-size': '42px' };
-  }
+    if (!titleNode || !measureNode) return undefined;
 
-  if (length <= 24) {
-    return { '--team-face-context-title-size': '36px' };
-  }
+    let animationFrame = 0;
+    let cancelled = false;
+
+    const updateTitleSize = () => {
+      if (cancelled) return;
+
+      const targetWidth = titleNode.getBoundingClientRect().width;
+      const measuredWidth = measureNode.scrollWidth;
+
+      if (!targetWidth || !measuredWidth) return;
+
+      const nextFontSize = Math.max(
+        TITLE_MIN_FONT_SIZE,
+        Math.min(
+          TITLE_MAX_FONT_SIZE,
+          (targetWidth / measuredWidth) * TITLE_BASE_FONT_SIZE
+        )
+      );
+
+      setTitleFontSize((currentFontSize) =>
+        Math.abs(currentFontSize - nextFontSize) < 0.2
+          ? currentFontSize
+          : nextFontSize
+      );
+    };
+
+    const scheduleUpdate = () => {
+      window.cancelAnimationFrame(animationFrame);
+      animationFrame = window.requestAnimationFrame(updateTitleSize);
+    };
+
+    scheduleUpdate();
+
+    const observer = new ResizeObserver(scheduleUpdate);
+    observer.observe(titleNode);
+    observer.observe(measureNode);
+
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(scheduleUpdate);
+    }
+
+    return () => {
+      cancelled = true;
+      window.cancelAnimationFrame(animationFrame);
+      observer.disconnect();
+    };
+  }, [title]);
 
   return {
-    '--team-face-context-title-size': '32px',
-    '--team-face-context-title-wrap': 'normal',
+    measureRef,
+    titleRef,
+    titleStyle: {
+      '--team-face-context-title-size': `${titleFontSize}px`,
+    },
   };
 }
 
@@ -297,6 +347,11 @@ export function TeamFaceField({
   const [useSelectionNudgeMotion, setUseSelectionNudgeMotion] = useState(
     selectedIds.length === 2
   );
+  const {
+    measureRef: entityTitleMeasureRef,
+    titleRef: entityTitleRef,
+    titleStyle: entityTitleStyle,
+  } = useFittedEntityTitle(entityTitle);
   const tapHintMemberIds = useMemo(
     () =>
       displayedMembers
@@ -515,8 +570,18 @@ export function TeamFaceField({
             {entityEyebrow}
           </p>
         )}
-        <h2 className="team-face-context-title">
-          <span style={getEntityTitleStyle(entityTitle)}>
+        <h2 className="team-face-context-title" ref={entityTitleRef}>
+          <span
+            className="team-face-context-title-text"
+            style={entityTitleStyle}
+          >
+            {entityTitle}
+          </span>
+          <span
+            aria-hidden="true"
+            className="team-face-context-title-measure"
+            ref={entityTitleMeasureRef}
+          >
             {entityTitle}
           </span>
         </h2>

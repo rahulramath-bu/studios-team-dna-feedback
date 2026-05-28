@@ -2345,6 +2345,7 @@ button.team-management-row {
   .team-dna-experience[data-people-selector='scaled'] {
     --composition-shift: -72px;
     --pane-gap: 0px;
+    --team-face-context-title-scale: 0.5;
   }
 
   .team-dna-experience[data-people-selector='scaled'] .team-face-grid-scale {
@@ -2457,6 +2458,7 @@ button.team-management-row {
 }
 
 .team-face-context-title {
+  position: relative;
   margin: 0;
   min-width: 0;
   color: var(--foreground-heading);
@@ -2466,11 +2468,28 @@ button.team-management-row {
   line-height: var(--heading-display-line-height);
 }
 
-.team-face-context-title span {
+.team-face-context-title-text,
+.team-face-context-title-measure {
   display: block;
-  overflow-wrap: var(--team-face-context-title-wrap, normal);
-  white-space: var(--team-face-context-title-wrap, nowrap);
+  overflow-wrap: normal;
+  white-space: nowrap;
   font-size: var(--team-face-context-title-size, 48px);
+}
+
+.team-face-context-title-text {
+  overflow: visible;
+  transform: scale(var(--team-face-context-title-scale, 1));
+  transform-origin: left top;
+  transition: transform 620ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.team-face-context-title-measure {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: max-content;
+  max-width: none;
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .team-face-instruction {
