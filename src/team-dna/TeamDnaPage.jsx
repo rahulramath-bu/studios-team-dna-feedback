@@ -84,6 +84,27 @@ function applyProfileCopyEdits(dataset, profileCopyEditsByMemberId) {
         };
       }
 
+      if (card.kind === 'watchOut' && edit.watchOutSections?.length) {
+        const currentItems = card.data?.watchOut?.items ?? [];
+
+        return {
+          ...card,
+          data: {
+            watchOut: {
+              items: edit.watchOutSections.map((body, index) => ({
+                ...(currentItems[index] ?? {
+                  traitKey: `viewer-edit-${index}`,
+                  type: 'viewer-edit',
+                  title: index === 0 ? 'Look out for' : `Look out for ${index + 1}`,
+                }),
+                body,
+                tip: '',
+              })),
+            },
+          },
+        };
+      }
+
       return card;
     });
 
@@ -422,6 +443,7 @@ export function TeamDnaPage() {
     overview,
     workWithSections,
     whereShines,
+    watchOutSections,
   }) => {
     setProfileCopyEditsByMemberId((current) => ({
       ...current,
@@ -429,6 +451,7 @@ export function TeamDnaPage() {
         overview,
         workWithSections,
         whereShines,
+        watchOutSections,
       },
     }));
   };
@@ -644,6 +667,7 @@ export function TeamDnaPage() {
               selectedTeamId={activeTeamId}
               teamSwitcherTopOffset={devState.showMonolithShell ? 104 : 34}
               canManageTeam={canManageTeam}
+              currentViewerMemberId={currentViewerMemberId}
               onAddTeam={openCreateTeam}
               onEditTeam={openEditTeam}
               onTeamChange={switchTeam}

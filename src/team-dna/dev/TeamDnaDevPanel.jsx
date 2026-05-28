@@ -187,13 +187,6 @@ export function TeamDnaDevPanel({
                       );
                     })}
                   </div>
-                  <div className="team-dna-dev-status-copy">
-                    <h4>Own profile editing</h4>
-                    <p>
-                      Simulates the logged-in member. Only this person can edit
-                      their own profile copy when manager/admin is off.
-                    </p>
-                  </div>
                 </DevSection>
               )}
 

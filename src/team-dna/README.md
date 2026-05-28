@@ -522,12 +522,19 @@ For this prototype, editing is intentionally limited to profile-facing copy:
 - Main overview.
 - How to work with me.
 - Where I shine.
+- Look out for.
 
 It does not edit Big Five scores, Big Five reads, team summaries, duo reads, or
-watch-outs. In production, save these edits as backend-authored overrides or
+duo reads. In production, save these edits as backend-authored overrides or
 approved generated-profile edits, then feed them back through the same
 `TeamDnaInsight` view model. Do not special-case edited copy inside visual
 components.
+
+Inline editing is a prototype-local interaction shell, not a new form system.
+The viewed copy is replaced in place with an editor so users never see the same
+copy twice. During the monolith port, keep that behavior but replace the local
+textarea/button CSS with the component-library primitives listed in the design
+system section below.
 
 ### Prototype simulation
 
@@ -577,6 +584,9 @@ Monolith anchors checked:
 | React Platform styles | `ux/apps/react-platform/src/styles/index.css` |
 | Tailwind token mapping | `ux/apps/react-platform/tailwind.config.js` |
 | Icons | `ux/packages/icons/src/Icon.tsx` |
+| Textarea | `ux/packages/component-library/src/components/ui/textarea.tsx` |
+| Button | `ux/packages/component-library/src/components/ui/button.tsx` and `button-variants.ts` |
+| Circular icon button | `ux/packages/core-react/src/components/CircularIconButton/CircularIconButton.tsx` |
 | Avatar reference | `ux/packages/core-react/src/components/WBAvatar/WBAvatar.tsx` |
 | AI ask box precedent | `MemberHome/components/shared/ChatInputSection.tsx` and Lighthouse `InputBox.tsx` |
 | Generated AI status pattern | Team Pulse session result and health report cards |
@@ -671,8 +681,8 @@ service when the user wants to add someone.
 | `src/team-dna/components/TeamFaceField.jsx` | Face cluster, selection behavior, duo preview/selection line ownership, and team/person/duo headline area. |
 | `src/team-dna/components/TeamFace.jsx` | One person's interactive face button. |
 | `src/team-dna/components/DuoConnection.jsx` | Measured line between selected/previewed people. |
-| `src/team-dna/components/InsightPanel.jsx` | Right-side scroll panel and insight page transition. |
-| `src/team-dna/components/InfoBlock.jsx` | Card renderer switch for bloom, spectrum, watch-out, and guidance cards. |
+| `src/team-dna/components/InsightPanel.jsx` | Right-side scroll panel, insight page transition, and own-profile inline editing behavior. Port inline textareas/buttons to component-library primitives. |
+| `src/team-dna/components/InfoBlock.jsx` | Card renderer switch for bloom, spectrum, watch-out, and guidance cards. Owns quiet supporting-card edit action placement and inline body replacement. |
 | `src/team-dna/components/BigFiveBloom.jsx` | Radial Big Five shape for team/person/duo. |
 | `src/team-dna/components/BigFiveSpectrumList.jsx` | Spectrum carousel and show-all view. |
 | `src/team-dna/components/TeamDnaEmptyPreview.jsx` | Animated empty-state preview. Local demo content; not required for the production route. |
@@ -948,6 +958,9 @@ Important mappings:
 | Body copy | `--foreground-body` |
 | Primary selection | `--primary` / `--rubine` |
 | Cards | `--card`, `--card-subtle-bg`, `--card-subtle-border`, `--card-shadow` |
+| Textareas | component-library `Textarea`: `rounded-md`, `border-input`, transparent background, `px-4 py-2`, `focus-visible:ring-2`, `focus-visible:ring-black` |
+| Save/cancel buttons | component-library `Button`: rounded-full base, `default` for save, `text` or `tertiary` for cancel |
+| Image-backed edit icon | `CircularIconButton` or equivalent round icon button |
 | Label typography | `--label-font`, `--label-size`, `font-mono` |
 | Display titles | `--heading-display-font`, `font-display` |
 | Data colors | `--data-series-*`, `--blue-aa`, `--green`, `--purple` |
@@ -973,6 +986,11 @@ support the Team DNA visual requirements. If not, keep a Team DNA visual
 wrapper but feed it real monolith avatar URLs/profile data.
 
 Do not port fixture avatars as product data.
+
+The profile edit pencil on the image-backed overview card should use a round
+icon-button treatment because it sits over generated imagery. The quieter
+supporting-card edit pencils can remain simple icon buttons, but they should
+still be real buttons with accessible labels and should use `@betterup/icons`.
 
 ### 9. Custom interaction code
 

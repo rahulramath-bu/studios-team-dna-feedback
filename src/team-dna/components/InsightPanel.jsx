@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { InfoBlock } from './InfoBlock.jsx';
+import { BetterUpIcon } from './BetterUpIcon.jsx';
 
 const PAGE_EASE = [0.22, 1, 0.36, 1];
 const BASELINE_REVEAL_TRANSITION = {
@@ -22,6 +23,10 @@ const BASELINE_REVEAL_TRANSITION = {
  * generate-anyway affordances.
  * Port: this can be swapped back to a contained scroll panel if monolith needs
  * that shell behavior, but keep the selected-read transition owned by Team DNA.
+ * Inline profile edits should use component-library `Textarea` and `Button`
+ * (`variant="default"` for save, `variant="text"` or `tertiary` for cancel).
+ * The main-card edit affordance can map to `CircularIconButton` because it sits
+ * over imagery; supporting-card edit affordances can stay quiet icon buttons.
  */
 export function InsightPanel({
   insight,
@@ -133,9 +138,23 @@ function InsightPageContent({
     editableMemberId &&
     editableMemberId === currentViewerMemberId;
   const imageCard = insight.cards.find((card) => card.kind === 'archetypeImage');
-  const supportingCards = insight.cards.filter(
-    (card) => card.kind !== 'archetypeImage'
+  const supportingCards = orderSupportingCards(
+    insight.cards.filter((card) => card.kind !== 'archetypeImage')
   );
+  const [editingTarget, setEditingTarget] = React.useState(null);
+  React.useEffect(() => {
+    setEditingTarget(null);
+  }, [insight.id]);
+  const saveProfileCopyPatch = (patch) => {
+    const currentDraft = getProfileCopyDraft(insight);
+
+    onProfileCopySave?.({
+      memberId: editableMemberId,
+      ...currentDraft,
+      ...patch,
+    });
+    setEditingTarget(null);
+  };
   const isHardNotReady =
     lifecycle?.status === 'not_ready' && !lifecycle?.target?.canGenerateTeam;
 
@@ -170,17 +189,31 @@ function InsightPageContent({
             ) : null}
             <div className="insight-primary-copy">
               <div className="insight-heading-group">
-                <InsightHeading insight={insight} />
+              <InsightHeading insight={insight} />
               </div>
-              <InsightSummary insight={insight} />
-              {canEditOwnProfile ? (
-                <ProfileCopyEditor
-                  insight={insight}
-                  memberId={editableMemberId}
-                  onProfileCopySave={onProfileCopySave}
+              {editingTarget === 'overview' ? (
+                <InlineTextEditor
+                  ariaLabel="Edit main overview"
+                  value={getSummaryText(insight)}
+                  onCancel={() => setEditingTarget(null)}
+                  onSave={(overview) => saveProfileCopyPatch({ overview })}
                 />
-              ) : null}
+              ) : (
+                <InsightSummary insight={insight} />
+              )}
             </div>
+            {canEditOwnProfile ? (
+              editingTarget ? null : (
+                <button
+                  className="profile-copy-edit-trigger"
+                  type="button"
+                  aria-label="Edit your profile copy"
+                  onClick={() => setEditingTarget('overview')}
+                >
+                  <BetterUpIcon name="Edit" size={18} strokeWidth={1.8} />
+                </button>
+              )
+            ) : null}
           </section>
           <InsightBlocks
             cards={
@@ -188,12 +221,29 @@ function InsightPageContent({
                 ? getSelfProfileCardLabels(supportingCards)
                 : supportingCards
             }
+            canEditOwnProfile={canEditOwnProfile}
+            editingTarget={editingTarget}
+            onCancelEdit={() => setEditingTarget(null)}
+            onEditTarget={setEditingTarget}
+            onSaveProfileCopyPatch={saveProfileCopyPatch}
             onSelectMember={onSelectMember}
           />
         </>
       )}
     </>
   );
+}
+
+function orderSupportingCards(cards) {
+  const getCardOrder = (card) => {
+    if (card.kind === 'bigFiveSpectrumList') return 10;
+    if (card.kind === 'guidance' && card.id.endsWith('-where-shines')) return 20;
+    if (card.kind === 'guidance' && card.id.endsWith('-work-with')) return 30;
+    if (card.kind === 'watchOut') return 40;
+    return 50;
+  };
+
+  return [...cards].sort((first, second) => getCardOrder(first) - getCardOrder(second));
 }
 
 function getSelfProfileCardLabels(cards) {
@@ -413,129 +463,207 @@ function getGuidanceSectionsByCardSuffix(insight, suffix) {
   );
 }
 
+function getWatchOutSections(insight) {
+  return (
+    insight.cards
+      .find((card) => card.kind === 'watchOut')
+      ?.data?.watchOut?.items?.map((item) => item.body) ?? []
+  );
+}
+
 function getProfileCopyDraft(insight) {
   return {
     overview: getSummaryText(insight),
     workWithSections: getGuidanceSectionsByCardSuffix(insight, '-work-with'),
     whereShines:
       getGuidanceSectionsByCardSuffix(insight, '-where-shines')[0] ?? '',
+    watchOutSections: getWatchOutSections(insight),
   };
 }
 
-function ProfileCopyEditor({ insight, memberId, onProfileCopySave }) {
-  const [isEditing, setIsEditing] = React.useState(false);
-  const [draft, setDraft] = React.useState(() => getProfileCopyDraft(insight));
+/**
+ * Prototype-local mirror of component-library Textarea + Button.
+ *
+ * Port: replace textarea nodes with
+ * `@betterup/component-library/src/components/ui/textarea` and replace the
+ * action buttons with `@betterup/component-library/src/components/ui/button`.
+ * Keep the behavior: edit replaces the viewed copy in place and saves back
+ * through the profile override seam.
+ */
+function InlineTextEditor({ ariaLabel, value, onCancel, onSave }) {
+  const [draft, setDraft] = React.useState(value);
 
   React.useEffect(() => {
-    setIsEditing(false);
-    setDraft(getProfileCopyDraft(insight));
-  }, [insight.id]);
+    setDraft(value);
+  }, [value]);
 
-  const updateDraft = (field, value) => {
-    setDraft((current) => ({
-      ...current,
-      [field]: value,
-    }));
+  return (
+    <div className="inline-copy-editor" aria-label={ariaLabel}>
+      <textarea
+        autoFocus
+        value={draft}
+        onChange={(event) => setDraft(event.target.value)}
+      />
+      <InlineEditorActions
+        onCancel={onCancel}
+        onSave={() => onSave(draft.trim())}
+      />
+    </div>
+  );
+}
+
+function InlineListEditor({ ariaLabel, values, onCancel, onSave }) {
+  const [draft, setDraft] = React.useState(values);
+
+  React.useEffect(() => {
+    setDraft(values);
+  }, [values]);
+
+  const updateDraft = (index, value) => {
+    setDraft((current) =>
+      current.map((item, itemIndex) => (itemIndex === index ? value : item))
+    );
   };
 
-  const updateWorkWith = (index, value) => {
-    setDraft((current) => {
-      const workWithSections = [...current.workWithSections];
-      workWithSections[index] = value;
+  return (
+    <div className="inline-copy-editor" aria-label={ariaLabel}>
+      {draft.map((value, index) => (
+        <textarea
+          autoFocus={index === 0}
+          key={`${ariaLabel}-${index}`}
+          value={value}
+          onChange={(event) => updateDraft(index, event.target.value)}
+        />
+      ))}
+      <InlineEditorActions
+        onCancel={onCancel}
+        onSave={() =>
+          onSave(draft.map((value) => value.trim()).filter(Boolean))
+        }
+      />
+    </div>
+  );
+}
 
-      return {
-        ...current,
-        workWithSections,
-      };
-    });
-  };
-
-  const handleSave = () => {
-    onProfileCopySave?.({
-      memberId,
-      overview: draft.overview.trim(),
-      workWithSections: draft.workWithSections
-        .map((section) => section.trim())
-        .filter(Boolean),
-      whereShines: draft.whereShines.trim(),
-    });
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    setDraft(getProfileCopyDraft(insight));
-    setIsEditing(false);
-  };
-
-  if (!isEditing) {
-    return (
-      <button
-        className="profile-copy-edit-trigger"
-        type="button"
-        onClick={() => setIsEditing(true)}
-      >
-        Edit your profile copy
+function InlineEditorActions({ onCancel, onSave }) {
+  return (
+    <div className="inline-copy-editor-actions">
+      <button type="button" onClick={onCancel}>
+        Cancel
       </button>
+      <button type="button" onClick={onSave}>
+        Save
+      </button>
+    </div>
+  );
+}
+
+function isEditableProfileCard(card) {
+  if (card.kind === 'watchOut') return true;
+  if (card.kind !== 'guidance') return false;
+
+  return (
+    card.id.endsWith('-where-shines') ||
+    card.id.endsWith('-work-with')
+  );
+}
+
+function getEditableTargetForCard(card) {
+  if (card.kind === 'watchOut') return 'watchOutSections';
+  if (card.kind !== 'guidance') return null;
+  if (card.id.endsWith('-where-shines')) return 'whereShines';
+  if (card.id.endsWith('-work-with')) return 'workWithSections';
+
+  return null;
+}
+
+function getEditableBodyForCard({
+  card,
+  editingTarget,
+  onCancelEdit,
+  onSaveProfileCopyPatch,
+}) {
+  const target = getEditableTargetForCard(card);
+
+  if (!target || editingTarget !== target) return null;
+
+  if (target === 'whereShines') {
+    return (
+      <InlineTextEditor
+        ariaLabel="Edit where I shine"
+        value={card.data?.guidance?.sections?.[0]?.body ?? ''}
+        onCancel={onCancelEdit}
+        onSave={(whereShines) => onSaveProfileCopyPatch({ whereShines })}
+      />
+    );
+  }
+
+  if (target === 'workWithSections') {
+    return (
+      <InlineListEditor
+        ariaLabel="Edit how to work with me"
+        values={
+          card.data?.guidance?.sections?.map((section) => section.body) ?? []
+        }
+        onCancel={onCancelEdit}
+        onSave={(workWithSections) =>
+          onSaveProfileCopyPatch({ workWithSections })
+        }
+      />
     );
   }
 
   return (
-    <section className="profile-copy-editor" aria-label="Edit profile copy">
-      <label>
-        <span>Main overview</span>
-        <textarea
-          value={draft.overview}
-          onChange={(event) => updateDraft('overview', event.target.value)}
-        />
-      </label>
-
-      <div className="profile-copy-editor-group">
-        <p>How to work with me</p>
-        {draft.workWithSections.map((section, index) => (
-          <label key={`work-with-${index}`}>
-            <span>{`Note ${index + 1}`}</span>
-            <textarea
-              value={section}
-              onChange={(event) => updateWorkWith(index, event.target.value)}
-            />
-          </label>
-        ))}
-      </div>
-
-      <label>
-        <span>Where I shine</span>
-        <textarea
-          value={draft.whereShines}
-          onChange={(event) => updateDraft('whereShines', event.target.value)}
-        />
-      </label>
-
-      <div className="profile-copy-editor-actions">
-        <button type="button" onClick={handleCancel}>
-          Cancel
-        </button>
-        <button type="button" onClick={handleSave}>
-          Save
-        </button>
-      </div>
-    </section>
+    <InlineListEditor
+      ariaLabel="Edit look out for"
+      values={card.data?.watchOut?.items?.map((item) => item.body) ?? []}
+      onCancel={onCancelEdit}
+      onSave={(watchOutSections) =>
+        onSaveProfileCopyPatch({ watchOutSections })
+      }
+    />
   );
 }
 
-function InsightBlocks({ cards, onSelectMember }) {
+function InsightBlocks({
+  cards,
+  canEditOwnProfile,
+  editingTarget,
+  onCancelEdit,
+  onEditTarget,
+  onSaveProfileCopyPatch,
+  onSelectMember,
+}) {
   if (!cards.length) {
     return null;
   }
 
   return (
     <div className="info-block-stack" aria-label="Future insight blocks">
-      {cards.map((card) => (
-        <InfoBlock
-          key={card.id}
-          card={card}
-          onSelectMember={onSelectMember}
-        />
-      ))}
+      {cards.map((card) => {
+        const target = getEditableTargetForCard(card);
+        const isEditingCard = target && editingTarget === target;
+
+        return (
+          <InfoBlock
+            key={card.id}
+            card={card}
+            actionLabel={isEditableProfileCard(card) ? `Edit ${card.label}` : undefined}
+            bodyOverride={getEditableBodyForCard({
+              card,
+              editingTarget,
+              onCancelEdit,
+              onSaveProfileCopyPatch,
+            })}
+            onAction={
+              canEditOwnProfile && target && !isEditingCard
+                ? () => onEditTarget(target)
+                : undefined
+            }
+            onSelectMember={onSelectMember}
+          />
+        );
+      })}
     </div>
   );
 }
