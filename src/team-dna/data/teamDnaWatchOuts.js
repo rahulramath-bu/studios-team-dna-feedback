@@ -68,7 +68,7 @@ const WATCH_OUTS = {
     },
     wide: {
       title: 'When direct meets warm.',
-      body: 'One side may name what is wrong fast while the other protects how it lands.',
+      body: 'One side may sharpen the issue fast while the other protects how it lands.',
       tip: 'use a small signal like "I am being direct, not annoyed" or "I am being careful, not avoiding."',
     },
   },
@@ -79,9 +79,9 @@ const WATCH_OUTS = {
       tip: 'ask, "what are you carrying that I am not seeing?"',
     },
     high: {
-      title: 'When worry becomes the work.',
-      body: 'Catching what could go wrong is useful until the same worry repeats without changing the plan.',
-      tip: 'name the worry, decide to act or release it, and then move on.',
+      title: 'When risk-sensing needs a next step.',
+      body: 'Catching what could go wrong is useful until the signal repeats without changing the plan.',
+      tip: 'name the signal, decide to act or release it, and then move on.',
     },
     wide: {
       title: 'Translating between steady and vigilant.',

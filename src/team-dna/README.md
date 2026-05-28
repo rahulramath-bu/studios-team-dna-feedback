@@ -329,6 +329,36 @@ AI is useful for:
 - Watch-outs that use open-ended answers.
 - Spectrum sentence reads that feel specific to the person or pair.
 
+### AI copy standard
+
+All generated and fallback copy should use Scott's developmental framing:
+
+```txt
+Every strength adds value by leaning in a direction.
+The watch-out is usually that same strength stretched too far.
+```
+
+So the AI pass should not frame low scores as broken, bad, immature, or less
+valuable. It should name the useful contribution first, then describe the
+watch-out as the moment that contribution needs a complement, boundary, or next
+step.
+
+Examples:
+
+- Not "too anxious"; use "risk-sensing needs a next step."
+- Not "too blunt"; use "directness needs landing context."
+- Not "too slow"; use "reflection needs an earlier voice."
+- Not "too scattered"; use "flexibility needs a few stronger anchors."
+
+This standard applies to:
+
+- `watchOut`
+- `meetingBehavior`
+- overview summaries
+- where-shines copy
+- how-to-work-with guidance
+- duo and team reads
+
 ### AI should not own
 
 AI should not be the source of truth for:
@@ -522,13 +552,19 @@ For this prototype, editing is intentionally limited to profile-facing copy:
 - Main overview.
 - How to work with me.
 - Where I shine.
+- In meetings.
 - Look out for.
 
 It does not edit Big Five scores, Big Five reads, team summaries, duo reads, or
-duo reads. In production, save these edits as backend-authored overrides or
-approved generated-profile edits, then feed them back through the same
-`TeamDnaInsight` view model. Do not special-case edited copy inside visual
+AI lifecycle state. In production, save these edits as backend-authored
+overrides or approved generated-profile edits, then feed them back through the
+same `TeamDnaInsight` view model. Do not special-case edited copy inside visual
 components.
+
+The local harness stores edits in `profileCopyOverrides` and applies them with
+`applyProfileCopyEdits()` before the dataset reaches `TeamDnaExperience`. That
+is intentionally shaped like a future backend override/read-model seam, not a
+component-local state trick.
 
 Inline editing is a prototype-local interaction shell, not a new form system.
 The viewed copy is replaced in place with an editor so users never see the same
@@ -675,6 +711,7 @@ service when the user wants to add someone.
 | `src/team-dna/data/teamDnaFallbackRoles.js` | Scott-inspired deterministic person-role matrix for fallback titles. |
 | `src/team-dna/data/teamDnaPairInsights.js` | Deterministic fallback insight generation. |
 | `src/team-dna/data/teamDnaWatchOuts.js` | Deterministic fallback watch-outs. |
+| `src/team-dna/data/teamDnaMeetingBehavior.js` | Deterministic person-only fallback for Scott's likely meeting behavior card. |
 | `src/team-dna/data/bigFiveTraits.js` | Trait order, labels, endpoint names, colors, and fallback spectrum copy. |
 | `src/team-dna/data/teamDnaIds.js` | Stable team/person/duo id helpers, including order-insensitive pair ids. |
 | `src/team-dna/components/TeamContextSwitcher.jsx` | Manager/admin team switcher, current-team edit button, and add-team entry point. |
@@ -683,6 +720,7 @@ service when the user wants to add someone.
 | `src/team-dna/components/DuoConnection.jsx` | Measured line between selected/previewed people. |
 | `src/team-dna/components/InsightPanel.jsx` | Right-side scroll panel, insight page transition, and own-profile inline editing behavior. Port inline textareas/buttons to component-library primitives. |
 | `src/team-dna/components/InfoBlock.jsx` | Card renderer switch for bloom, spectrum, watch-out, and guidance cards. Owns quiet supporting-card edit action placement and inline body replacement. |
+| `src/team-dna/components/TeamShapeContributions.jsx` | Team-only Role distribution card content. Uses the same `InfoBlock` editorial card shell as Big Five/guidance/watch-out cards. |
 | `src/team-dna/components/BigFiveBloom.jsx` | Radial Big Five shape for team/person/duo. |
 | `src/team-dna/components/BigFiveSpectrumList.jsx` | Spectrum carousel and show-all view. |
 | `src/team-dna/components/TeamDnaEmptyPreview.jsx` | Animated empty-state preview. Local demo content; not required for the production route. |

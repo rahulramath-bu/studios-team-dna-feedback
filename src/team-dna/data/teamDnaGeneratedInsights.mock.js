@@ -82,7 +82,7 @@ const PERSON_SYNTHESIS = {
     misread:
       'People may read her vigilance as resistance. It is often protection: she is trying to keep the team from learning the hard thing too late.',
     pairGift: 'protective clarity',
-    pairNeed: 'a path for concerns to become decisions instead of loops',
+    pairNeed: 'a path for concerns to become decisions instead of repeated signals',
   },
   scott: {
     title: 'The Learning Architect',

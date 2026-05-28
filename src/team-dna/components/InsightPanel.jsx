@@ -236,9 +236,11 @@ function InsightPageContent({
 
 function orderSupportingCards(cards) {
   const getCardOrder = (card) => {
+    if (card.kind === 'teamShapeContributions') return 5;
     if (card.kind === 'bigFiveSpectrumList') return 10;
     if (card.kind === 'guidance' && card.id.endsWith('-where-shines')) return 20;
     if (card.kind === 'guidance' && card.id.endsWith('-work-with')) return 30;
+    if (card.kind === 'meetingBehavior') return 35;
     if (card.kind === 'watchOut') return 40;
     return 50;
   };
@@ -471,6 +473,14 @@ function getWatchOutSections(insight) {
   );
 }
 
+function getMeetingBehaviorSections(insight) {
+  return (
+    insight.cards
+      .find((card) => card.kind === 'meetingBehavior')
+      ?.data?.meetingBehavior?.items?.map((item) => item.body) ?? []
+  );
+}
+
 function getProfileCopyDraft(insight) {
   return {
     overview: getSummaryText(insight),
@@ -478,6 +488,7 @@ function getProfileCopyDraft(insight) {
     whereShines:
       getGuidanceSectionsByCardSuffix(insight, '-where-shines')[0] ?? '',
     watchOutSections: getWatchOutSections(insight),
+    meetingBehaviorSections: getMeetingBehaviorSections(insight),
   };
 }
 
@@ -559,6 +570,7 @@ function InlineEditorActions({ onCancel, onSave }) {
 }
 
 function isEditableProfileCard(card) {
+  if (card.kind === 'meetingBehavior') return true;
   if (card.kind === 'watchOut') return true;
   if (card.kind !== 'guidance') return false;
 
@@ -569,6 +581,7 @@ function isEditableProfileCard(card) {
 }
 
 function getEditableTargetForCard(card) {
+  if (card.kind === 'meetingBehavior') return 'meetingBehaviorSections';
   if (card.kind === 'watchOut') return 'watchOutSections';
   if (card.kind !== 'guidance') return null;
   if (card.id.endsWith('-where-shines')) return 'whereShines';
@@ -608,6 +621,21 @@ function getEditableBodyForCard({
         onCancel={onCancelEdit}
         onSave={(workWithSections) =>
           onSaveProfileCopyPatch({ workWithSections })
+        }
+      />
+    );
+  }
+
+  if (target === 'meetingBehaviorSections') {
+    return (
+      <InlineListEditor
+        ariaLabel="Edit in meetings"
+        values={
+          card.data?.meetingBehavior?.items?.map((item) => item.body) ?? []
+        }
+        onCancel={onCancelEdit}
+        onSave={(meetingBehaviorSections) =>
+          onSaveProfileCopyPatch({ meetingBehaviorSections })
         }
       />
     );

@@ -3623,16 +3623,150 @@ button.team-management-row {
   will-change: opacity, transform;
 }
 
-.archetype-image-card--duo .archetype-image-card-image {
+.archetype-image-card--duo .archetype-image-card-image,
+.archetype-image-card--team .archetype-image-card-image {
   animation:
     archetype-image-drift 24s ease-in-out infinite alternate,
     archetype-image-crossfade 20s ease-in-out infinite;
 }
 
-.archetype-image-card--duo .archetype-image-card-image[data-layer="1"] {
+.archetype-image-card--duo .archetype-image-card-image[data-layer="1"],
+.archetype-image-card--team .archetype-image-card-image[data-layer="1"] {
   animation:
     archetype-image-drift-alt 24s ease-in-out infinite alternate,
     archetype-image-crossfade-alt 20s ease-in-out infinite;
+}
+
+.archetype-image-card--team .archetype-image-card-image[data-layer="2"] {
+  animation:
+    archetype-image-drift 26s ease-in-out infinite alternate-reverse,
+    archetype-image-crossfade-third 20s ease-in-out infinite;
+}
+
+.team-shape-contributions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 18px;
+  margin-top: 0;
+}
+
+.team-shape-contribution {
+  display: inline-flex;
+  min-width: min(100%, 248px);
+  align-items: center;
+  gap: 10px;
+}
+
+.team-shape-contribution-faces {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+}
+
+.team-shape-face-carousel {
+  position: relative;
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  overflow: visible;
+  border: 2px solid rgb(var(--team-dna-canvas-rgb));
+  border-radius: 999px;
+  background: rgb(var(--team-dna-canvas-rgb));
+  box-shadow: 0 5px 13px rgba(var(--team-dna-ink-rgb), 0.13);
+  color: var(--foreground-heading);
+  cursor: default;
+}
+
+.team-shape-face-carousel::before {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  border-radius: inherit;
+  content: "";
+}
+
+.team-shape-face-carousel[data-clickable] {
+  cursor: pointer;
+}
+
+.team-shape-face-carousel:hover,
+.team-shape-face-carousel:focus-visible {
+  z-index: 2;
+  outline: 2px solid rgba(var(--team-dna-focus-rgb), 0.18);
+  outline-offset: 2px;
+}
+
+.team-shape-face-carousel-layer {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  overflow: hidden;
+  place-items: center;
+  border-radius: inherit;
+  opacity: 0;
+}
+
+.team-shape-face-carousel-layer:first-child {
+  opacity: 1;
+}
+
+.team-shape-face-carousel-layer:not(:only-child) {
+  animation: team-shape-face-crossfade calc(var(--team-shape-layer-count) * 3.2s) ease-in-out infinite;
+  animation-delay: calc(var(--team-shape-layer-index) * 3.2s);
+}
+
+.team-shape-face-carousel-layer img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-shape-face-carousel-layer > span {
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.2px;
+}
+
+.team-shape-face-count {
+  position: absolute;
+  right: -5px;
+  bottom: -4px;
+  z-index: 4;
+  display: grid;
+  min-width: 15px;
+  height: 15px;
+  place-items: center;
+  border: 1px solid rgb(var(--team-dna-canvas-rgb));
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.86);
+  color: rgb(var(--team-dna-canvas-rgb));
+  font-family: var(--label-font);
+  font-size: 8px;
+  font-weight: var(--label-weight);
+  line-height: 1;
+}
+
+.team-shape-contribution-copy {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 7px;
+  align-items: baseline;
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.28;
+}
+
+.team-shape-contribution-copy strong {
+  color: var(--foreground-heading);
+  font-weight: 760;
+}
+
+.team-shape-contribution-copy span {
+  color: var(--muted-foreground);
 }
 
 @keyframes archetype-image-drift {
@@ -3692,6 +3826,39 @@ button.team-management-row {
 
   100% {
     opacity: 0;
+  }
+}
+
+@keyframes archetype-image-crossfade-third {
+  0%,
+  25% {
+    opacity: 0;
+  }
+
+  33%,
+  60% {
+    opacity: 1;
+  }
+
+  70%,
+  100% {
+    opacity: 0;
+  }
+}
+
+@keyframes team-shape-face-crossfade {
+  0%,
+  23% {
+    opacity: 1;
+  }
+
+  31%,
+  92% {
+    opacity: 0;
+  }
+
+  100% {
+    opacity: 1;
   }
 }
 

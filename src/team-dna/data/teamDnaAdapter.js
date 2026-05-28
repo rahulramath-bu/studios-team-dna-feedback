@@ -2,7 +2,11 @@ import { teamDnaDataset } from './teamDnaMock.js';
 import { BIG_FIVE_TRAITS } from './bigFiveTraits.js';
 import { makePairId } from './teamDnaIds.js';
 import { getWatchOutForSubjects } from './teamDnaWatchOuts.js';
-import { getArchetypeImageForMember } from './teamDnaArchetypeImages.js';
+import { getMeetingBehaviorForMember } from './teamDnaMeetingBehavior.js';
+import {
+  getArchetypeImageForMember,
+  getArchetypeImageForTeam,
+} from './teamDnaArchetypeImages.js';
 import {
   buildPairInsight,
   buildPersonInsight,
@@ -69,6 +73,10 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
   const spectrumLabel = getSpectrumLabel(selectedMembers);
   const watchOut =
     insight.watchOut ?? getWatchOutForSubjects(subjects);
+  const meetingBehavior =
+    selectedMembers.length === 1
+      ? insight.meetingBehavior ?? getMeetingBehaviorForMember(selectedMembers[0])
+      : null;
   const spectrumReads = insight.spectrumReads;
   const insightCards = insight.cards ?? [];
   const archetypeImage =
@@ -80,7 +88,11 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
               .map((member) => getArchetypeImageForMember(member))
               .filter(Boolean),
           }
-      : null;
+        : getArchetypeImageForTeam(selectableMembers);
+  const teamShapeContributions =
+    !hasSelectedSubjects && archetypeImage?.contributions?.length
+      ? archetypeImage.contributions
+      : [];
 
   const coreCards = [
     archetypeImage?.imageUrl || archetypeImage?.images?.length
@@ -90,6 +102,14 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
           label: archetypeImage.title ?? 'Role imagery',
           showLabel: false,
           data: { image: archetypeImage },
+        }
+      : null,
+    teamShapeContributions.length
+      ? {
+          id: 'team-shape-contributions',
+          kind: 'teamShapeContributions',
+          label: 'Role distribution',
+          data: { contributions: teamShapeContributions },
         }
       : null,
     hasSelectedSubjects
@@ -105,6 +125,14 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
           label: spectrumLabel,
           data: { subjects, traits: BIG_FIVE_TRAITS, reads: spectrumReads },
         },
+    meetingBehavior
+      ? {
+          id: `${scopeId}-meeting-behavior`,
+          kind: 'meetingBehavior',
+          label: 'In meetings...',
+          data: { meetingBehavior },
+        }
+      : null,
     {
       id: hasSelectedSubjects
         ? `${scopeId}-watch-out`

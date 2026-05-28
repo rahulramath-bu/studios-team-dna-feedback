@@ -5,6 +5,7 @@ import { WatchOutCard } from './WatchOutCard.jsx';
 import { GuidanceCard } from './GuidanceCard.jsx';
 import { ArchetypeImageCard } from './ArchetypeImageCard.jsx';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
+import { TeamShapeContributions } from './TeamShapeContributions.jsx';
 
 /**
  * Supporting insight card slot.
@@ -35,10 +36,11 @@ export function InfoBlock({
   // `insight.cards`, not through fixture or backend imports inside the panel.
   const blockClassName = [
     'info-block',
-    ['bigFiveSpectrumList', 'guidance', 'watchOut'].includes(card.kind)
+    ['bigFiveSpectrumList', 'guidance', 'watchOut', 'meetingBehavior', 'teamShapeContributions'].includes(card.kind)
       ? 'info-block--editorial'
       : '',
     card.kind === 'bigFiveSpectrumList' ? 'info-block--spectrum' : '',
+    card.kind === 'teamShapeContributions' ? 'info-block--team-shape' : '',
     card.kind === 'archetypeImage' ? 'info-block--archetype-image' : '',
     className,
   ]
@@ -95,8 +97,21 @@ function InfoBlockBody({ card, onSelectMember }) {
     return <ArchetypeImageCard image={card.data?.image} />;
   }
 
+  if (card.kind === 'teamShapeContributions') {
+    return (
+      <TeamShapeContributions
+        contributions={card.data?.contributions ?? []}
+        onSelectMember={onSelectMember}
+      />
+    );
+  }
+
   if (card.kind === 'watchOut') {
     return <WatchOutCard watchOut={card.data?.watchOut} />;
+  }
+
+  if (card.kind === 'meetingBehavior') {
+    return <WatchOutCard watchOut={card.data?.meetingBehavior} />;
   }
 
   if (card.kind === 'guidance') {

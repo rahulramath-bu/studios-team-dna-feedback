@@ -15,12 +15,14 @@ export function ArchetypeImageCard({ image }) {
     return null;
   }
   const isDuo = images.length > 1;
+  const isTeam = image?.key === 'team-shape';
 
   return (
     <figure
       className={[
         'archetype-image-card',
         isDuo ? 'archetype-image-card--duo' : '',
+        isTeam ? 'archetype-image-card--team' : '',
       ]
         .filter(Boolean)
         .join(' ')}

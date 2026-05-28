@@ -97,7 +97,28 @@ export type TeamDnaArchetypeImageCard = {
         imageUrl: string;
         alt?: string;
       }>;
+      contributions?: Array<{
+        key: string;
+        label: string;
+        description: string;
+        members: TeamDnaMember[];
+      }>;
     };
+  };
+};
+
+export type TeamDnaTeamShapeContributionsCard = {
+  id: string;
+  kind: 'teamShapeContributions';
+  label: string;
+  showLabel?: boolean;
+  data: {
+    contributions: Array<{
+      key: string;
+      label: string;
+      description: string;
+      members: TeamDnaMember[];
+    }>;
   };
 };
 
@@ -115,6 +136,18 @@ export type TeamDnaWatchOutCard = {
   showLabel?: boolean;
   data: {
     watchOut: {
+      items: TeamDnaWatchOutItem[];
+    };
+  };
+};
+
+export type TeamDnaMeetingBehaviorCard = {
+  id: string;
+  kind: 'meetingBehavior';
+  label: string;
+  showLabel?: boolean;
+  data: {
+    meetingBehavior: {
       items: TeamDnaWatchOutItem[];
     };
   };
@@ -142,7 +175,9 @@ export type TeamDnaInsightCard =
   | TeamDnaBigFiveBloomCard
   | TeamDnaBigFiveSpectrumCard
   | TeamDnaArchetypeImageCard
+  | TeamDnaTeamShapeContributionsCard
   | TeamDnaWatchOutCard
+  | TeamDnaMeetingBehaviorCard
   | TeamDnaGuidanceCard;
 
 export type TeamDnaInsight = {
@@ -173,6 +208,9 @@ export type TeamDnaInsight = {
   summary: TeamDnaInsightSummaryPart[];
   spectrumReads?: Partial<Record<TeamDnaTraitKey, string>>;
   watchOut?: {
+    items: TeamDnaWatchOutItem[];
+  };
+  meetingBehavior?: {
     items: TeamDnaWatchOutItem[];
   };
   cards: TeamDnaInsightCard[];

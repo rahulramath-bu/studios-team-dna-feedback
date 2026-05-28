@@ -1,5 +1,6 @@
 import { BIG_FIVE_TRAITS } from './bigFiveTraits.js';
 import { getCombinedFallbackRole } from './teamDnaFallbackRoles.js';
+import { buildTeamShapeContributions } from './teamDnaTeamShape.js';
 
 const ARCHETYPE_IMAGE_URLS = {
   'systems-innovator': new URL(
@@ -204,5 +205,27 @@ export function getArchetypeImageForMember(member) {
     ...role,
     imageUrl,
     alt: `${role.title} abstract role illustration`,
+  };
+}
+
+export function getArchetypeImageForTeam(members) {
+  const contributions = buildTeamShapeContributions(members);
+  const images = contributions
+    .flatMap((contribution) => contribution.members)
+    .map((member) => getArchetypeImageForMember(member))
+    .filter(Boolean)
+    .filter(
+      (image, index, allImages) =>
+        allImages.findIndex((entry) => entry.slug === image.slug) === index
+    )
+    .slice(0, 3);
+
+  return {
+    key: 'team-shape',
+    slug: 'team-shape',
+    title: 'Team Shape',
+    alt: 'Abstract team shape illustration',
+    images,
+    contributions,
   };
 }

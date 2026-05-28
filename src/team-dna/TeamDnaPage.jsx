@@ -45,6 +45,9 @@ function getPersonCardBySuffix(insight, suffix) {
   return insight?.cards?.find((card) => card.id.endsWith(suffix));
 }
 
+// Prototype-only stand-in for the production profile-copy override read model.
+// The important seam is that edited copy is merged before TeamDnaExperience
+// renders, so visual cards still consume the normal TeamDnaInsight shape.
 function applyProfileCopyEdits(dataset, profileCopyEditsByMemberId) {
   const entries = Object.entries(profileCopyEditsByMemberId);
 
@@ -112,6 +115,16 @@ function applyProfileCopyEdits(dataset, profileCopyEditsByMemberId) {
       ...baseInsight,
       source: 'override',
       summary: edit.overview ? [{ text: edit.overview }] : baseInsight.summary,
+      meetingBehavior: edit.meetingBehaviorSections?.length
+        ? {
+            items: edit.meetingBehaviorSections.map((body, index) => ({
+              traitKey: `viewer-edit-meeting-${index}`,
+              type: 'viewer-edit',
+              title: index === 0 ? 'In meetings' : `In meetings ${index + 1}`,
+              body,
+            })),
+          }
+        : baseInsight.meetingBehavior,
       cards: nextCards,
       meta: {
         ...(baseInsight.meta ?? {}),
@@ -444,6 +457,7 @@ export function TeamDnaPage() {
     workWithSections,
     whereShines,
     watchOutSections,
+    meetingBehaviorSections,
   }) => {
     setProfileCopyEditsByMemberId((current) => ({
       ...current,
@@ -452,6 +466,7 @@ export function TeamDnaPage() {
         workWithSections,
         whereShines,
         watchOutSections,
+        meetingBehaviorSections,
       },
     }));
   };
