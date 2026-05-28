@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { TeamDnaPage } from './team-dna/TeamDnaPage.jsx';
 import { TeamDnaAssessmentPage } from './team-dna-assessment/TeamDnaAssessmentPage.jsx';
+import { DemoFlowPage } from './demo-flow/DemoFlowPage.jsx';
+import { DEMO_FLOW_PATH } from './demo-flow/demoFlowMoments.js';
 import './app-shell/appHub.css';
 
 const TEAM_DNA_PATH = '/team-dna';
@@ -9,6 +11,7 @@ const ASSESSMENT_PATH = '/assessment';
 function getRoute(pathname) {
   if (pathname === TEAM_DNA_PATH) return 'team-dna';
   if (pathname === ASSESSMENT_PATH) return 'assessment';
+  if (pathname === DEMO_FLOW_PATH) return 'flow-demo';
   if (pathname === '/') return 'hub';
   return 'unknown';
 }
@@ -25,7 +28,7 @@ function useRoute() {
   const navigate = (nextPath) => {
     if (window.location.pathname === nextPath) return;
     window.history.pushState({}, '', nextPath);
-    setPathname(nextPath);
+    setPathname(window.location.pathname);
   };
 
   return { pathname, route: getRoute(pathname), navigate };
@@ -83,10 +86,11 @@ function SurfaceLink({ eyebrow, title, body, href, icon, onNavigate }) {
 }
 
 function PrototypeHub({ onNavigate }) {
+  const [showDemoIntro, setShowDemoIntro] = useState(false);
+
   return (
     <main className="team-dna-hub" aria-label="Team DNA prototype hub">
       <section className="team-dna-hub-inner">
-        <h1>Let's get kickin'</h1>
         <div className="team-dna-hub-grid">
           <SurfaceLink
             eyebrow="Surface 1"
@@ -105,7 +109,47 @@ function PrototypeHub({ onNavigate }) {
             onNavigate={onNavigate}
           />
         </div>
+        <a
+          className="team-dna-hub-demo-link"
+          href={DEMO_FLOW_PATH}
+          onClick={(event) => {
+            event.preventDefault();
+            setShowDemoIntro(true);
+          }}
+        >
+          Demo The Flow
+        </a>
       </section>
+
+      {showDemoIntro && (
+        <section
+          className="team-dna-hub-demo-intro"
+          aria-label="Prototype framing"
+        >
+          <div className="team-dna-hub-demo-intro-copy">
+            <h2>A concept prototype</h2>
+            <p>
+              This is a working preview, shaped to be changed with your team.
+              As we walk through it, your feedback can directly shape what it
+              becomes.
+            </p>
+            <div className="team-dna-hub-demo-intro-actions">
+              <button
+                type="button"
+                onClick={() => onNavigate(`${DEMO_FLOW_PATH}?journey=user`)}
+              >
+                Start user journey
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate(`${DEMO_FLOW_PATH}?journey=manager`)}
+              >
+                Start manager journey
+              </button>
+            </div>
+          </div>
+        </section>
+      )}
     </main>
   );
 }
@@ -120,6 +164,10 @@ export function App() {
 
   if (route === 'assessment') {
     return <TeamDnaAssessmentPage key={routeKey} onNavigate={navigate} />;
+  }
+
+  if (route === 'flow-demo') {
+    return <DemoFlowPage key={routeKey} onNavigate={navigate} />;
   }
 
   return <PrototypeHub key={routeKey} onNavigate={navigate} />;

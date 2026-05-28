@@ -38,6 +38,18 @@ const paths = {
       <path d="m15 18-6-6 6-6" />
     </>
   ),
+  ChevronRight: (
+    <>
+      <path d="m9 18 6-6-6-6" />
+    </>
+  ),
+  Home: (
+    <>
+      <path d="m3 10.5 9-7 9 7" />
+      <path d="M5 9v11h14V9" />
+      <path d="M9.5 20v-6h5v6" />
+    </>
+  ),
   Dna: (
     <>
       <path d="m10 16 1.5 1.5" />
