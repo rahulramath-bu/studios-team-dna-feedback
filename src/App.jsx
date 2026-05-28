@@ -220,7 +220,7 @@ function PrototypeHub({ onNavigate }) {
       {showEngineerIntro && (
         <section
           className="team-dna-hub-demo-intro"
-          aria-label="Engineering start here"
+          aria-label="Engineering handoff"
         >
           <button
             type="button"
@@ -231,24 +231,27 @@ function PrototypeHub({ onNavigate }) {
             ×
           </button>
           <div className="team-dna-hub-demo-intro-copy team-dna-hub-engineer-copy">
-            <h2>I hope this makes your life easier</h2>
+            <h2>Hope this makes your life easier</h2>
             <p>
               This prototype was built to be portable at the seams, but it is
-              not a perfect drop-in. Expect the real work to be stitching the
-              assessment, Team DNA data, AI generation, profile photo, and
-              design-system seams into the monolith.
+              not a perfect drop-in. The real work will be stitching the
+              assessment, Team DNA data, AI generation, profile photo,
+              permissions, routing, responsiveness, and design-system seams
+              into the monolith.
             </p>
             <p>
-              It is also not fully complete yet. There is still design-system
-              mapping and porting-guide cleanup to do, especially around what
-              should become a real shared component versus what is prototype
-              styling.
+              There will likely be refactoring too, especially as you decide
+              what should become shared production components versus what
+              should be rebuilt or replaced. At the very least, I hope this
+              repo gives you something useful to pull from piece by piece:
+              keep what helps, replace what needs to change, and build what
+              the monolith actually needs.
             </p>
-            <p>
-              The README is the map. Please have Claude, Codex, or your agent
-              of choice read it and cross-reference it with the code before
-              implementation. It explains what should port cleanly, what is
-              prototype-only, and where the remaining seams are.
+            <p className="team-dna-hub-engineer-readme-note">
+              The README is the map. Please have Claude read the README first
+              and cross-reference it with the code, because it explains what
+              should port cleanly, what is prototype-only, and where the
+              remaining seams are.
             </p>
             <a
               className="team-dna-hub-engineer-cta"
