@@ -8,6 +8,7 @@ import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
 const INTRO_CHROME_REVEAL_MS = 1200;
+const PEOPLE_SELECTOR_SCALE_SCROLL_Y = 140;
 const GROW_CHAT_BEHAVIOR = 'orchestration';
 
 function canViewMemberProfile(member, currentViewerMemberId) {
@@ -125,6 +126,7 @@ export function TeamDnaExperience({
     !shouldReduceMotion && !startWithIntroReleased
   );
   const [blockedAttempt, setBlockedAttempt] = useState(null);
+  const [isPeopleSelectorScaled, setIsPeopleSelectorScaled] = useState(false);
   const blockedTimeoutRef = useRef(null);
   const initialSelectedIdsKey = initialSelectedIds.join(',');
   const selectableMemberIds = useMemo(
@@ -199,6 +201,38 @@ export function TeamDnaExperience({
     },
     []
   );
+
+  useEffect(() => {
+    if (isIntroGateActive || typeof window === 'undefined') {
+      setIsPeopleSelectorScaled(false);
+      return undefined;
+    }
+
+    let animationFrame = 0;
+
+    const updateSelectorScale = () => {
+      const scrollY = window.scrollY;
+
+      setIsPeopleSelectorScaled(scrollY >= PEOPLE_SELECTOR_SCALE_SCROLL_Y);
+      animationFrame = 0;
+    };
+
+    const handleScroll = () => {
+      if (animationFrame) return;
+
+      animationFrame = window.requestAnimationFrame(updateSelectorScale);
+    };
+
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      if (animationFrame) {
+        window.cancelAnimationFrame(animationFrame);
+      }
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [isIntroGateActive]);
 
   const releaseIntroGate = useCallback(() => {
     setHasReleasedIntroGate(true);
@@ -333,6 +367,7 @@ export function TeamDnaExperience({
       className="team-dna-experience"
       data-intro={isIntroGateActive || undefined}
       data-layout-debug={showLayoutOutlines || undefined}
+      data-people-selector={isPeopleSelectorScaled ? 'scaled' : undefined}
     >
       {canManageTeam ? (
         <TeamContextSwitcher
@@ -354,6 +389,7 @@ export function TeamDnaExperience({
           blockedAttempt={blockedAttempt}
           entityEyebrow={insight.entityEyebrow ?? insight.eyebrow}
           entityTitle={insight.entityTitle ?? insight.title}
+          hideConnections={isPeopleSelectorScaled}
           introActive={isIntroGateActive}
           showIntroHint={isIntroGateActive}
           canPreviewDuoMember={(memberId) => {
@@ -371,6 +407,9 @@ export function TeamDnaExperience({
         insight={insight}
         isHidden={isIntroGateActive}
         preserveScroll={preserveInsightScroll}
+        resetScrollTop={
+          isPeopleSelectorScaled ? PEOPLE_SELECTOR_SCALE_SCROLL_Y : 0
+        }
         canManageTeam={canManageTeam}
         currentViewerMemberId={currentViewerMemberId}
         onSelectMember={handleSelectMember}

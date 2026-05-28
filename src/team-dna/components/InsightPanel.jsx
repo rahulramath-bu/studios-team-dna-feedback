@@ -32,6 +32,7 @@ export function InsightPanel({
   insight,
   isHidden,
   preserveScroll = false,
+  resetScrollTop = 0,
   revealMode = 'standard',
   canManageTeam = true,
   currentViewerMemberId,
@@ -43,7 +44,11 @@ export function InsightPanel({
   const resetScrollAfterExit = () => {
     if (preserveScroll) return;
 
-    document.scrollingElement?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+    document.scrollingElement?.scrollTo({
+      top: resetScrollTop,
+      left: 0,
+      behavior: 'instant',
+    });
     scrollRef.current?.scrollTo({ top: 0, left: 0, behavior: 'instant' });
   };
 

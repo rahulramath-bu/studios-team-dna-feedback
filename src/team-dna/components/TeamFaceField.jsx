@@ -272,6 +272,7 @@ export function TeamFaceField({
   blockedAttempt,
   entityEyebrow,
   entityTitle,
+  hideConnections = false,
   introActive,
   showIntroHint = false,
   canPreviewDuoMember,
@@ -520,73 +521,75 @@ export function TeamFaceField({
           </span>
         </h2>
       </div>
-      <motion.div className="team-face-grid" aria-label="Team members" layout>
-        <AnimatePresence>
-          {selectedIds.length === 2 ? (
-            <DuoConnection
-              key={selectedIds.join(':')}
-              containerRef={fieldRef}
-              faceRefs={faceRefs}
-              selectedIds={selectedIds}
-              variant="selected"
-            />
-          ) : previewSelectedIds ? (
-            <DuoConnection
-              key={`preview-${previewSelectedIds.join(':')}`}
-              containerRef={fieldRef}
-              faceRefs={faceRefs}
-              isObstructed={connectionObscuredIds.size > 0}
-              selectedIds={previewSelectedIds}
-              variant="preview"
-            />
-          ) : null}
-        </AnimatePresence>
-        <AnimatePresence initial={introActive}>
-          {displayedMembers.length > 0 ? (
-            displayedMembers.map((member, index) => {
-              const isSelectedMember = selectedIds.includes(member.id);
+      <AnimatePresence>
+        {!hideConnections && selectedIds.length === 2 ? (
+          <DuoConnection
+            key={selectedIds.join(':')}
+            containerRef={fieldRef}
+            faceRefs={faceRefs}
+            selectedIds={selectedIds}
+            variant="selected"
+          />
+        ) : !hideConnections && previewSelectedIds ? (
+          <DuoConnection
+            key={`preview-${previewSelectedIds.join(':')}`}
+            containerRef={fieldRef}
+            faceRefs={faceRefs}
+            isObstructed={connectionObscuredIds.size > 0}
+            selectedIds={previewSelectedIds}
+            variant="preview"
+          />
+        ) : null}
+      </AnimatePresence>
+      <div className="team-face-grid-scale">
+        <motion.div className="team-face-grid" aria-label="Team members" layout>
+          <AnimatePresence initial={introActive}>
+            {displayedMembers.length > 0 ? (
+              displayedMembers.map((member, index) => {
+                const isSelectedMember = selectedIds.includes(member.id);
 
-              return (
-                <TeamFace
-                  key={member.id}
-                  ref={setHitboxNode(member.id)}
-                  visualRef={setFaceNode(member.id)}
-                  member={member}
-                  isBlocked={blockedAttempt?.memberId === member.id}
-                  blockedLabel={
-                    blockedAttempt?.memberId === member.id
-                      ? blockedAttempt.label
-                      : undefined
-                  }
-                  blockedAttempt={blockedAttempt?.attempt ?? 0}
-                  isSelected={isSelectedMember}
-                  isDuoSelected={
-                    selectedIds.length === 2 && isSelectedMember
-                  }
-                  introDelay={introActive ? 0.24 + index * 0.055 : 0}
-                  showTapHint={activeTapHint.memberId === member.id}
-                  tapHintCycle={activeTapHint.cycle}
-                  nudge={faceNudges[member.id]}
-                  nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
-                  isDimmed={hasSelection && !isSelectedMember}
-                  isPreviewObscured={connectionObscuredIds.has(member.id)}
-                  onSelect={() => onSelectMember(member.id)}
-                  onHoverChange={(isHovered) =>
-                    setHoveredMemberId((current) => {
-                      if (isHovered) return member.id;
-                      return current === member.id ? null : current;
-                    })
-                  }
-                />
-              );
-            })
-          ) : isTeamSwapWaiting ? null : (
-            <motion.div className="team-face-empty-state" layout>
-              <p>No team members</p>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </motion.div>
+                return (
+                  <TeamFace
+                    key={member.id}
+                    ref={setHitboxNode(member.id)}
+                    visualRef={setFaceNode(member.id)}
+                    member={member}
+                    isBlocked={blockedAttempt?.memberId === member.id}
+                    blockedLabel={
+                      blockedAttempt?.memberId === member.id
+                        ? blockedAttempt.label
+                        : undefined
+                    }
+                    blockedAttempt={blockedAttempt?.attempt ?? 0}
+                    isSelected={isSelectedMember}
+                    isDuoSelected={
+                      selectedIds.length === 2 && isSelectedMember
+                    }
+                    introDelay={introActive ? 0.24 + index * 0.055 : 0}
+                    showTapHint={activeTapHint.memberId === member.id}
+                    tapHintCycle={activeTapHint.cycle}
+                    nudge={faceNudges[member.id]}
+                    nudgeMotion={useSelectionNudgeMotion ? 'selection' : 'idle'}
+                    isDimmed={hasSelection && !isSelectedMember}
+                    isPreviewObscured={connectionObscuredIds.has(member.id)}
+                    onSelect={() => onSelectMember(member.id)}
+                    onHoverChange={(isHovered) =>
+                      setHoveredMemberId((current) => {
+                        if (isHovered) return member.id;
+                        return current === member.id ? null : current;
+                      })
+                    }
+                  />
+                );
+              })
+            ) : isTeamSwapWaiting ? null : (
+              <motion.div className="team-face-empty-state" layout>
+                <p>No team members</p>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </div>
     </motion.div>
   );
 }
