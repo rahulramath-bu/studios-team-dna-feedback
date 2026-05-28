@@ -703,6 +703,28 @@ function InsightBlocks({
       {cards.map((card, index) => {
         const target = getEditableTargetForCard(card);
         const isEditingCard = target && editingTarget === target;
+        const block = (
+          <InfoBlock
+            card={card}
+            actionLabel={isEditableProfileCard(card) ? `Edit ${card.label}` : undefined}
+            bodyOverride={getEditableBodyForCard({
+              card,
+              editingTarget,
+              onCancelEdit,
+              onSaveProfileCopyPatch,
+            })}
+            onAction={
+              canEditOwnProfile && target && !isEditingCard
+                ? () => onEditTarget(target)
+                : undefined
+            }
+            onSelectMember={onSelectMember}
+          />
+        );
+
+        if (revealMode !== 'selfReview') {
+          return React.cloneElement(block, { key: card.id });
+        }
 
         return (
           <motion.div
@@ -728,22 +750,7 @@ function InsightBlocks({
                 : undefined
             }
           >
-            <InfoBlock
-              card={card}
-              actionLabel={isEditableProfileCard(card) ? `Edit ${card.label}` : undefined}
-              bodyOverride={getEditableBodyForCard({
-                card,
-                editingTarget,
-                onCancelEdit,
-                onSaveProfileCopyPatch,
-              })}
-              onAction={
-                canEditOwnProfile && target && !isEditingCard
-                  ? () => onEditTarget(target)
-                  : undefined
-              }
-              onSelectMember={onSelectMember}
-            />
+            {block}
           </motion.div>
         );
       })}

@@ -151,6 +151,12 @@ function writeStoredDraft(draft) {
   }
 }
 
+function clearStoredDraft() {
+  if (typeof window === 'undefined') return;
+  if (!window.localStorage) return;
+  window.localStorage.removeItem(TEAM_DNA_ASSESSMENT_STORAGE_KEY);
+}
+
 function copyText(value) {
   if (!navigator.clipboard) return;
   navigator.clipboard.writeText(value);
@@ -213,6 +219,7 @@ function buildArchetypeImageScores(roles, bigFive) {
 export function TeamDnaAssessmentPage({ onNavigate }) {
   const pageRef = useRef(null);
   const confirmPressTargetRef = useRef(null);
+  const skipNextPersistRef = useRef(false);
   const assessmentSteps = useMemo(() => buildAssessmentSteps(), []);
   const storedDraft = useMemo(readStoredDraft, []);
   const [flowStep, setFlowStep] = useState(
@@ -380,6 +387,11 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
   }, []);
 
   useEffect(() => {
+    if (skipNextPersistRef.current) {
+      skipNextPersistRef.current = false;
+      return;
+    }
+
     writeStoredDraft({
       responses,
       avatarDataUrl,
@@ -398,6 +410,24 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
       updatedAt: new Date().toISOString(),
     });
   }, [avatarDataUrl, privacy, profile, profileCopy, responses]);
+
+  const resetStoredAssessment = () => {
+    skipNextPersistRef.current = true;
+    clearStoredDraft();
+    seenInterstitialIdsRef.current.clear();
+    setFlowStep(FLOW_STEPS.WELCOME);
+    setQuestionIndex(0);
+    setResponses({});
+    setAvatarDataUrl('');
+    setProfile(null);
+    setProfileReady(false);
+    setProfileCopy({});
+    setPrivacy({
+      profileVisibility: 'teams',
+      pairComparisonVisibility: 'teams',
+    });
+    setDebugOpen(false);
+  };
 
   const setResponse = (questionId, value) => {
     setResponses((current) => ({
@@ -563,10 +593,20 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
         )}
       </AnimatePresence>
 
+      <button
+        type="button"
+        className="team-dna-dev-tab"
+        onClick={() => setDebugOpen((current) => !current)}
+        aria-pressed={debugOpen}
+      >
+        Debug <span>\</span>
+      </button>
+
       <DebugPanel
         isOpen={debugOpen}
         payload={debugPayload}
         onClose={() => setDebugOpen(false)}
+        onReset={resetStoredAssessment}
       />
     </main>
   );
@@ -2157,42 +2197,83 @@ function Toggle({ ariaLabel, label, value, onChange }) {
   );
 }
 
-function DebugPanel({ isOpen, payload, onClose }) {
+function DebugPanel({ isOpen, payload, onClose, onReset }) {
   const prettyPayload = JSON.stringify(payload, null, 2);
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.aside
-          className="tdna-debug-panel"
-          initial={{ x: 360 }}
+          className="team-dna-dev-panel tdna-debug-panel"
+          initial={{ x: 340 }}
           animate={{ x: 0 }}
-          exit={{ x: 360 }}
+          exit={{ x: 340 }}
           transition={{ type: 'spring', damping: 28, stiffness: 220 }}
           aria-label="Team DNA assessment debug panel"
         >
-          <header>
-            <h2>Debug</h2>
-            <button type="button" onClick={onClose}>Close</button>
-          </header>
-          <dl>
-            <div>
-              <dt>Step</dt>
-              <dd>{payload.flowStep}</dd>
-            </div>
-            <div>
-              <dt>Answered</dt>
-              <dd>{payload.answeredCount}</dd>
-            </div>
-          </dl>
-          <button
-            type="button"
-            className="tdna-copy-json"
-            onClick={() => copyText(prettyPayload)}
-          >
-            Copy JSON
-          </button>
-          <pre>{prettyPayload}</pre>
+          <div className="team-dna-dev-panel-bg" />
+          <div className="team-dna-dev-content">
+            <header className="team-dna-dev-header">
+              <h2>Debug</h2>
+              <p>
+                Press <span>\</span> to toggle
+              </p>
+            </header>
+
+            <section className="team-dna-dev-section">
+              <div className="team-dna-dev-section-header">
+                <h3>Assessment</h3>
+                <span>{payload.flowStep}</span>
+              </div>
+              <div className="team-dna-dev-status-copy">
+                <h4>Progress</h4>
+                <p>
+                  {payload.answeredCount} answers captured. Current step:{' '}
+                  {payload.questionIndex + 1}.
+                </p>
+              </div>
+            </section>
+
+            <section className="team-dna-dev-section">
+              <div className="team-dna-dev-section-header">
+                <h3>Actions</h3>
+                <span>local draft</span>
+              </div>
+              <div className="team-dna-dev-chip-row">
+                <button
+                  type="button"
+                  className="team-dna-dev-chip"
+                  onClick={() => copyText(prettyPayload)}
+                >
+                  Copy JSON
+                </button>
+                <button
+                  type="button"
+                  className="team-dna-dev-chip tdna-debug-reset"
+                  onClick={onReset}
+                >
+                  Reset saved draft
+                </button>
+                <button
+                  type="button"
+                  className="team-dna-dev-chip"
+                  onClick={onClose}
+                >
+                  Close
+                </button>
+              </div>
+            </section>
+
+            <section className="team-dna-dev-section">
+              <div className="team-dna-dev-section-header">
+                <h3>Payload</h3>
+                <span>copyable</span>
+              </div>
+              <div className="team-dna-dev-status-copy tdna-debug-json">
+                <pre>{prettyPayload}</pre>
+              </div>
+            </section>
+          </div>
         </motion.aside>
       )}
     </AnimatePresence>

@@ -1640,62 +1640,31 @@
   justify-content: flex-start;
 }
 
-.tdna-debug-panel {
-  position: fixed;
-  inset: 0 0 0 auto;
-  z-index: 80;
-  width: min(360px, 100vw);
-  overflow-y: auto;
-  border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
-  background: rgba(255, 250, 244, 0.96);
-  box-shadow: -24px 0 60px rgba(var(--team-dna-ink-rgb), 0.12);
-  padding: 22px;
+.tdna-debug-reset {
+  width: auto;
+  padding-inline: 10px;
+  color: rgba(var(--white-rgb), 0.64);
 }
 
-.tdna-debug-panel header {
-  display: flex;
-  justify-content: space-between;
-  gap: 14px;
-  align-items: center;
+.tdna-debug-reset:hover,
+.tdna-debug-reset:focus-visible {
+  border-color: rgba(var(--team-dna-primary-rgb), 0.46);
+  color: rgba(var(--white-rgb), 0.78);
 }
 
-.tdna-debug-panel h2 {
+.tdna-debug-json {
+  max-height: 46vh;
+  overflow: auto;
+  scrollbar-width: none;
+}
+
+.tdna-debug-json::-webkit-scrollbar {
+  display: none;
+}
+
+.tdna-debug-json pre {
   margin: 0;
-  font-family: var(--heading-display-font);
-  font-size: 34px;
-  font-weight: 400;
-}
-
-.tdna-debug-panel header button,
-.tdna-copy-json {
-  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
-  border-radius: 999px;
-  background: var(--white);
-  cursor: pointer;
-  padding: 8px 12px;
-}
-
-.tdna-debug-panel dl {
-  display: grid;
-  gap: 8px;
-  margin: 22px 0;
-}
-
-.tdna-debug-panel dl div {
-  display: flex;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
-  padding-bottom: 8px;
-}
-
-.tdna-debug-panel dt {
-  color: rgba(var(--team-dna-ink-rgb), 0.58);
-}
-
-.tdna-debug-panel pre {
-  overflow-x: auto;
-  margin: 16px 0 0;
-  color: rgba(var(--team-dna-ink-rgb), 0.72);
+  color: rgba(var(--white-rgb), 0.36);
   font: 11px/1.45 var(--label-font);
   white-space: pre-wrap;
 }
