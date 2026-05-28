@@ -1,115 +1,1813 @@
 .team-dna-assessment-page {
   min-height: 100vh;
-  padding: 28px;
-  background: #fbfaf7;
-  color: #17130f;
-  font-family: 'Söhne', sans-serif;
+  background: var(--page-background);
+  color: var(--team-dna-ink);
+  font-family: var(--body-font);
+  overflow: hidden;
 }
 
-.team-dna-assessment-nav {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.team-dna-assessment-nav button {
-  min-height: 38px;
-  padding: 0 16px;
-  border: 1px solid rgba(23, 19, 15, 0.16);
-  border-radius: 999px;
-  background: #ffffff;
-  color: #17130f;
-  cursor: pointer;
-}
-
-.team-dna-assessment-nav button:hover {
-  border-color: rgba(206, 0, 88, 0.46);
-  color: #ce0058;
-}
-
-.team-dna-assessment-hero {
-  display: grid;
-  align-content: end;
-  min-height: 44vh;
-  width: min(940px, 100%);
-  margin: 0 auto;
-  padding: 56px 0 42px;
-}
-
-.team-dna-assessment-hero p,
-.team-dna-assessment-map h2 {
+.tdna-kicker {
   margin: 0;
-  font-family: 'Söhne Mono', monospace;
-  font-size: 11px;
+  color: rgba(var(--team-dna-ink-rgb), 0.64);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  line-height: var(--label-line-height);
+  text-transform: uppercase;
+}
+
+.tdna-primary-action,
+.tdna-quiet-action,
+.tdna-upload-action {
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.16);
+  padding: 0 18px;
+  cursor: pointer;
+  font-size: 14px;
   font-weight: 500;
+  text-decoration: none;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    color 160ms ease,
+    opacity 160ms ease,
+    transform 120ms ease;
+}
+
+.tdna-primary-action:active,
+.tdna-quiet-action:active,
+.tdna-upload-action:active,
+.tdna-fixed-back:active,
+.tdna-capture-action:active,
+.tdna-upload-link:active,
+.tdna-redo-link:active,
+.tdna-photo-continue-button:active,
+.tdna-toggle:active,
+.tdna-debug-panel button:active {
+  transform: scale(1.025);
+}
+
+.tdna-primary-action {
+  border-color: var(--rubine);
+  background: var(--rubine);
+  color: var(--white);
+}
+
+.tdna-primary-action:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+.tdna-quiet-action,
+.tdna-upload-action {
+  background: rgba(var(--white-rgb), 0.66);
+  color: var(--team-dna-ink);
+}
+
+.tdna-quiet-action:hover,
+.tdna-upload-action:hover {
+  border-color: rgba(var(--team-dna-primary-rgb), 0.42);
+  color: var(--rubine);
+}
+
+.tdna-upload-action input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tdna-welcome {
+  position: relative;
+  display: block;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--page-background);
+}
+
+.tdna-welcome-media {
+  position: absolute;
+  left: 0;
+  top: 15%;
+  z-index: 2;
+  width: 45%;
+  height: 120%;
+  pointer-events: none;
+}
+
+.tdna-hand-stage {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0.96;
+  transform: translateZ(0);
+}
+
+.tdna-halftone-hand {
+  width: 100%;
+  height: 100%;
+}
+
+.tdna-welcome-lines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tdna-line {
+  position: absolute;
+  background: #4a4845;
+  opacity: 0.15;
+}
+
+.tdna-line-h {
+  left: 0;
+  right: 0;
+  height: 1px;
+}
+
+.tdna-line-v {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+}
+
+.tdna-line-h-1 {
+  top: 1.7%;
+}
+
+.tdna-line-h-2 {
+  top: 19.7%;
+}
+
+.tdna-line-h-3 {
+  bottom: 18.3%;
+}
+
+.tdna-line-h-4 {
+  bottom: 1.6%;
+}
+
+.tdna-line-v-1 {
+  left: 6.4%;
+}
+
+.tdna-line-v-2 {
+  left: 40%;
+}
+
+.tdna-line-v-3 {
+  left: 41.2%;
+}
+
+.tdna-line-v-4 {
+  right: 2.1%;
+}
+
+.tdna-plus {
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  color: #ff2970;
+}
+
+.tdna-plus::before,
+.tdna-plus::after {
+  content: '';
+  position: absolute;
+  background: currentColor;
+}
+
+.tdna-plus::before {
+  left: 5px;
+  top: 0;
+  width: 1.5px;
+  height: 12px;
+}
+
+.tdna-plus::after {
+  left: 0;
+  top: 5px;
+  width: 12px;
+  height: 1.5px;
+}
+
+.tdna-plus-1 {
+  left: 6.4%;
+  top: 19.7%;
+  transform: translate(-50%, -50%);
+}
+
+.tdna-plus-2 {
+  left: 40%;
+  bottom: 18.3%;
+  transform: translate(-50%, 50%);
+}
+
+.tdna-welcome-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+}
+
+.tdna-welcome-copy {
+  width: 100%;
+  max-width: 480px;
+  transform: translateX(55%);
+  text-align: left;
+}
+
+.tdna-dna-mark {
+  display: block;
+  width: 40px;
+  height: 40px;
+  margin-bottom: 16px;
+  color: var(--rubine);
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.5;
+}
+
+.tdna-welcome-body strong {
+  color: var(--team-dna-ink);
+  font-weight: 600;
+}
+
+.tdna-welcome-body a {
+  display: inline-block;
+  margin-left: 2px;
+  color: rgba(var(--team-dna-ink-rgb), 0.58);
+  font-size: 0.68em;
+  font-weight: 500;
+  line-height: 1;
+  text-decoration: none;
+  vertical-align: super;
+}
+
+.tdna-welcome-body a:hover {
+  color: var(--team-dna-ink);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.tdna-welcome-body a:focus-visible {
+  border-radius: 2px;
+  outline: 2px solid var(--team-dna-ink);
+  outline-offset: 2px;
+}
+
+.tdna-welcome-copy h1,
+.tdna-review-main h1 {
+  margin: 18px 0 18px;
+  font-family: var(--heading-display-font);
+  font-size: 46px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.2;
+}
+
+.tdna-welcome-copy p:not(.tdna-kicker),
+.tdna-avatar-copy p:not(.tdna-kicker) {
+  max-width: 420px;
+  margin: 0;
+  color: #4d4d4d;
+  font-size: 18px;
+  line-height: 1.5;
+  letter-spacing: 0.36px;
+}
+
+.tdna-welcome-actions,
+.tdna-step-actions,
+.tdna-avatar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 30px;
+}
+
+.tdna-welcome-actions {
+  display: grid;
+  width: min(348px, 100%);
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.tdna-welcome .tdna-kicker {
+  color: var(--rubine);
+  font-size: 13px;
+  letter-spacing: 0.2em;
+}
+
+.tdna-welcome .tdna-primary-action,
+.tdna-welcome .tdna-quiet-action {
+  width: 100%;
+  min-height: 56px;
+  padding-inline: 40px;
+}
+
+.tdna-welcome .tdna-primary-action span {
+  margin-left: 9px;
+  font-size: 12px;
+  font-style: italic;
+  font-weight: 400;
+  opacity: 0.74;
+}
+
+.tdna-welcome .tdna-quiet-action {
+  border-style: dashed;
+  background: transparent;
+  color: var(--rubine);
+  font-family: var(--label-font);
+  font-size: 14px;
+  font-weight: 600;
   letter-spacing: 1.1px;
   text-transform: uppercase;
 }
 
-.team-dna-assessment-hero h1 {
-  max-width: 760px;
-  margin: 18px 0 24px;
-  font-family: 'Ivar Display', serif;
-  font-size: clamp(54px, 9vw, 112px);
-  font-weight: 400;
-  line-height: 0.96;
+.tdna-progress {
+  position: fixed;
+  inset: 0 0 auto;
+  z-index: 20;
+  height: 12px;
+  background: transparent;
 }
 
-.team-dna-assessment-note {
-  max-width: 610px;
-  color: rgba(23, 19, 15, 0.68);
-  font-size: 18px;
-  line-height: 1.5;
+.tdna-progress-bar {
+  height: 100%;
+  background: var(--rubine);
+  border-radius: 0 999px 999px 0;
 }
 
-.team-dna-assessment-map {
+.tdna-question-frame {
+  min-height: 100vh;
+}
+
+.tdna-fixed-back {
+  position: fixed;
+  top: 28px;
+  left: 32px;
+  z-index: 30;
+  display: inline-flex;
+  min-height: 42px;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  border-radius: 999px;
+  background: rgba(var(--white-rgb), 0.58);
+  color: rgba(var(--team-dna-ink-rgb), 0.72);
+  cursor: pointer;
+  font-family: var(--label-font);
+  font-size: 12px;
+  letter-spacing: 0.09em;
+  padding: 0 15px 0 11px;
+  text-transform: uppercase;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background 160ms ease,
+    transform 120ms ease;
+}
+
+.tdna-fixed-back:hover {
+  border-color: rgba(var(--team-dna-primary-rgb), 0.34);
+  background: rgba(var(--white-rgb), 0.82);
+  color: var(--rubine);
+}
+
+.tdna-question-shell,
+.tdna-break-shell,
+.tdna-processing {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 14px;
-  width: min(940px, 100%);
+  min-height: 100vh;
+  place-items: center;
+  padding: 68px 24px;
+}
+
+.tdna-question-card {
+  width: min(1500px, calc(100vw - 72px));
+  text-align: center;
+}
+
+.tdna-question-card h2,
+.tdna-break-shell h2,
+.tdna-processing h2 {
+  max-width: min(1560px, calc(100vw - 160px));
+  margin: 0 auto 92px;
+  font-family: var(--heading-display-font);
+  font-size: var(--tdna-question-font-size, 56px);
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: var(--tdna-question-line-height, 1.08);
+  text-wrap: balance;
+}
+
+.tdna-break-shell h2 {
+  max-width: min(980px, calc(100vw - 96px));
+  margin: 0;
+  text-align: center;
+}
+
+.tdna-break-letter {
+  display: inline-block;
+  will-change: opacity, transform;
+}
+
+.tdna-question-card[data-kind='bigFive'] h2 {
+  white-space: nowrap;
+}
+
+.tdna-question-highlight {
+  position: relative;
+  display: inline-block;
+  animation: tdna-highlight-color-wave 2600ms ease-in-out infinite;
+  color: var(--team-dna-ink);
+  white-space: nowrap;
+}
+
+.tdna-question-highlight-char {
+  display: inline-block;
+  animation: tdna-highlight-character-wave 2600ms ease-in-out infinite;
+  animation-delay: calc(var(--tdna-wave-index, 0) * 62ms);
+}
+
+@keyframes tdna-highlight-character-wave {
+  0%,
+  58%,
+  100% {
+    transform: translateY(0);
+  }
+
+  8% {
+    transform: translateY(-0.055em);
+  }
+
+  16% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes tdna-highlight-color-wave {
+  0%,
+  62%,
+  100% {
+    color: var(--team-dna-ink);
+  }
+
+  13%,
+  28% {
+    color: var(--rubine);
+  }
+}
+
+.tdna-likert {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(190px, 1fr));
+  align-items: center;
+  width: min(1420px, 100%);
+  margin: 0 auto;
+  gap: 22px;
+  perspective: 1400px;
+}
+
+.tdna-likert-option {
+  --tdna-likert-active-border: rgba(var(--team-dna-primary-rgb), 0.5);
+  --tdna-likert-active-bg: rgba(var(--team-dna-primary-rgb), 0.08);
+  --tdna-likert-active-color: #8a003b;
+  --tdna-likert-label-size: 20px;
+
+  min-height: clamp(156px, 12vw, 208px);
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
+  border-radius: 8px;
+  background: rgba(var(--white-rgb), 0.68);
+  box-shadow: 0 18px 44px rgba(var(--team-dna-ink-rgb), 0.045);
+  color: var(--team-dna-ink);
+  cursor: pointer;
+  font-size: var(--tdna-likert-label-size);
+  font-weight: 500;
+  line-height: 1.28;
+  padding: 24px 18px;
+  transform-origin: center bottom;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    color 180ms ease;
+}
+
+.tdna-likert-option {
+  white-space: nowrap;
+}
+
+.tdna-likert-option[data-tone='1'] {
+  --tdna-likert-active-border: rgba(var(--team-dna-primary-rgb), 0.48);
+  --tdna-likert-active-bg: rgba(var(--team-dna-primary-rgb), 0.11);
+  --tdna-likert-active-color: #8a003b;
+}
+
+.tdna-likert-option[data-tone='2'] {
+  --tdna-likert-active-border: rgba(var(--team-dna-primary-rgb), 0.28);
+  --tdna-likert-active-bg: rgba(var(--team-dna-primary-rgb), 0.055);
+  --tdna-likert-active-color: #8a003b;
+}
+
+.tdna-likert-option[data-tone='3'] {
+  --tdna-likert-active-border: rgba(var(--team-dna-ink-rgb), 0.22);
+  --tdna-likert-active-bg: rgba(var(--team-dna-ink-rgb), 0.045);
+  --tdna-likert-active-color: var(--team-dna-ink);
+}
+
+.tdna-likert-option[data-tone='4'] {
+  --tdna-likert-active-border: rgba(55, 180, 255, 0.34);
+  --tdna-likert-active-bg: rgba(55, 180, 255, 0.075);
+  --tdna-likert-active-color: #005f96;
+}
+
+.tdna-likert-option[data-tone='5'] {
+  --tdna-likert-active-border: rgba(0, 114, 183, 0.42);
+  --tdna-likert-active-bg: rgba(0, 114, 183, 0.1);
+  --tdna-likert-active-color: #00527e;
+}
+
+.tdna-likert-option:hover,
+.tdna-likert-option[data-selected] {
+  border-color: var(--tdna-likert-active-border);
+  background: var(--tdna-likert-active-bg);
+  color: var(--tdna-likert-active-color);
+}
+
+.tdna-step-actions {
+  justify-content: center;
+  margin-top: 88px;
+}
+
+.tdna-image-choice-shell .tdna-question-card h2 {
+  max-width: min(1120px, calc(100vw - 128px));
+  margin-bottom: 86px;
+  font-size: var(--tdna-question-font-size, 56px);
+  line-height: var(--tdna-question-line-height, 1.08);
+  white-space: normal;
+}
+
+.tdna-image-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(280px, 1fr));
+  width: min(1120px, calc(100vw - 96px));
+  margin: 0 auto;
+  gap: 58px;
+  perspective: 1200px;
+}
+
+.tdna-image-choice-option {
+  position: relative;
+  display: grid;
+  min-height: clamp(340px, 32vw, 440px);
+  overflow: hidden;
+  align-items: stretch;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  border-radius: 10px;
+  background: rgba(var(--white-rgb), 0.6);
+  box-shadow: 0 20px 54px rgba(var(--team-dna-ink-rgb), 0.075);
+  color: var(--team-dna-ink);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+  transform-origin: center bottom;
+}
+
+.tdna-image-choice-option::after {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 1px solid transparent;
+  border-radius: inherit;
+  background: rgba(var(--white-rgb), 0.02);
+  content: '';
+  pointer-events: none;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease;
+}
+
+.tdna-image-choice-option:hover::after,
+.tdna-image-choice-option[data-selected]::after {
+  border-color: rgba(var(--team-dna-primary-rgb), 0.42);
+  background: rgba(var(--team-dna-primary-rgb), 0.08);
+}
+
+.tdna-image-choice-media,
+.tdna-image-choice-media img {
+  position: absolute;
+  inset: 0;
+}
+
+.tdna-image-choice-media img {
+  width: 100%;
+  height: 100%;
+  animation: tdna-image-choice-drift 18s ease-in-out infinite alternate;
+  object-fit: cover;
+  transform: scale(1.22) translate3d(-4%, -3%, 0);
+}
+
+.tdna-image-choice-option:nth-child(2) .tdna-image-choice-media img {
+  animation-name: tdna-image-choice-drift-alt;
+}
+
+@keyframes tdna-image-choice-drift {
+  0% {
+    transform: scale(1.22) translate3d(-6%, -4%, 0);
+  }
+
+  50% {
+    transform: scale(1.25) translate3d(4%, -6%, 0);
+  }
+
+  100% {
+    transform: scale(1.23) translate3d(6%, 4%, 0);
+  }
+}
+
+@keyframes tdna-image-choice-drift-alt {
+  0% {
+    transform: scale(1.23) translate3d(6%, 4%, 0);
+  }
+
+  50% {
+    transform: scale(1.25) translate3d(-4%, 6%, 0);
+  }
+
+  100% {
+    transform: scale(1.22) translate3d(-6%, -4%, 0);
+  }
+}
+
+.tdna-slider-control {
+  display: grid;
+  grid-template-columns: minmax(86px, auto) minmax(260px, 680px) minmax(86px, auto);
+  align-items: center;
+  gap: 34px;
+  max-width: 940px;
   margin: 0 auto;
 }
 
-.team-dna-assessment-map article {
-  min-height: 210px;
-  padding: 24px;
-  border: 1px solid rgba(23, 19, 15, 0.12);
-  border-radius: 8px;
-  background: #ffffff;
+.tdna-slider-control input {
+  width: 100%;
+  height: 56px;
+  accent-color: var(--rubine);
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
 }
 
-.team-dna-assessment-map ul {
+.tdna-slider-control input::-webkit-slider-runnable-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-primary-rgb), 0.58);
+}
+
+.tdna-slider-control input::-webkit-slider-thumb {
+  width: 40px;
+  height: 40px;
+  margin-top: -17px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--rubine);
+  cursor: pointer;
+  -webkit-appearance: none;
+  box-shadow: 0 4px 18px rgba(var(--team-dna-primary-rgb), 0.22);
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tdna-slider-control input:hover::-webkit-slider-thumb {
+  box-shadow: 0 0 0 10px rgba(var(--team-dna-primary-rgb), 0.1);
+  transform: scale(1.08);
+}
+
+.tdna-slider-control input:active::-webkit-slider-thumb {
+  box-shadow: 0 0 0 18px rgba(var(--team-dna-primary-rgb), 0.14);
+  transform: scale(1.42);
+}
+
+.tdna-slider-control input::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-primary-rgb), 0.58);
+}
+
+.tdna-slider-control input::-moz-range-thumb {
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--rubine);
+  cursor: pointer;
+  box-shadow: 0 4px 18px rgba(var(--team-dna-primary-rgb), 0.18);
+  transition:
+    box-shadow 160ms ease,
+    transform 160ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tdna-slider-control input:hover::-moz-range-thumb {
+  box-shadow: 0 0 0 10px rgba(var(--team-dna-primary-rgb), 0.1);
+  transform: scale(1.08);
+}
+
+.tdna-slider-control input:active::-moz-range-thumb {
+  box-shadow: 0 0 0 18px rgba(var(--team-dna-primary-rgb), 0.14);
+  transform: scale(1.42);
+}
+
+.tdna-slider-labels {
+  display: contents;
+  margin: 0;
+  color: rgba(var(--team-dna-ink-rgb), 0.76);
+  font-family: var(--label-font);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.tdna-slider-labels span:first-child {
+  order: -1;
+  text-align: right;
+  transform-origin: right center;
+}
+
+.tdna-slider-labels span:last-child {
+  text-align: left;
+  transform-origin: left center;
+}
+
+.tdna-slider-labels span {
+  transform: scale(var(--tdna-pole-scale, 1));
+  transition:
+    opacity 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tdna-slider-labels span[data-pulse] {
+  animation: tdna-pole-breathing-pulse 2600ms ease-in-out infinite;
+}
+
+@keyframes tdna-pole-breathing-pulse {
+  0% {
+    transform: scale(var(--tdna-pole-scale, 1));
+  }
+
+  50% {
+    transform: scale(var(--tdna-pole-pulse-scale, 1.025));
+  }
+
+  100% {
+    transform: scale(var(--tdna-pole-scale, 1));
+  }
+}
+
+.tdna-slider-labels strong {
+  display: none;
+}
+
+.tdna-avatar-step {
+  position: relative;
+  display: block;
+  min-height: 100vh;
+  overflow: hidden;
+  background: var(--page-background);
+  color: var(--team-dna-ink);
+}
+
+.tdna-camera-shell,
+.tdna-review-avatar {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  background: rgba(var(--white-rgb), 0.44);
+}
+
+.tdna-photo-stage {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 58px 24px 122px;
+  text-align: center;
+  transition: opacity 340ms ease;
+}
+
+.tdna-photo-stage[data-obscured] {
+  opacity: 0;
+}
+
+.tdna-photo-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  background: var(--page-background);
+  color: var(--team-dna-ink);
+  text-align: center;
+}
+
+.tdna-photo-intro h2 {
+  max-width: 720px;
+  margin: 0;
+  font-family: var(--heading-display-font);
+  font-size: 44px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.05;
+}
+
+.tdna-photo-headline {
+  min-height: 104px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+}
+
+.tdna-photo-headline h2 {
+  max-width: 720px;
+  margin: 0;
+  font-family: var(--heading-display-font);
+  font-size: 38px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.08;
+}
+
+.tdna-photo-helper {
+  max-width: 420px;
+  margin: 0;
+  color: rgba(var(--team-dna-ink-rgb), 0.54);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tdna-capture-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 48px 0;
+}
+
+.tdna-camera-shell {
+  width: min(660px, 75vw, 60vh);
+  height: min(660px, 75vw, 60vh);
+  border-radius: 50%;
+  background: rgba(var(--white-rgb), 0.48);
+}
+
+.tdna-camera-preview {
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;
+  transform: scaleX(-1);
+}
+
+.tdna-camera-freeze {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tdna-capture-flash {
+  position: absolute;
+  inset: 0;
+  background: var(--white);
+  animation: tdna-flash 180ms linear forwards;
+}
+
+@keyframes tdna-flash {
+  from {
+    opacity: 0.85;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+.tdna-countdown,
+.tdna-camera-note {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: transparent;
+  color: var(--white);
+  font-family: var(--heading-display-font);
+  font-size: min(144px, 16vw, 13vh);
+  font-weight: 300;
+  text-shadow: 0 2px 24px rgba(0, 0, 0, 0.6);
+}
+
+.tdna-camera-note {
+  color: rgba(var(--team-dna-ink-rgb), 0.58);
+  font-family: var(--label-font);
+  font-size: 12px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
+
+.tdna-processing {
+  text-align: center;
+}
+
+.tdna-profile-loader {
+  display: flex;
+  min-height: 320px;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+}
+
+.tdna-profile-loader-mark {
+  position: relative;
+  display: grid;
+  width: 112px;
+  height: 112px;
+  place-items: center;
+}
+
+.tdna-profile-loader-visual,
+.tdna-profile-loader-check {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+}
+
+.tdna-loader-visual,
+.tdna-loader-check {
+  position: relative;
+}
+
+.tdna-loader-visual-rotor,
+.tdna-loader-check > svg {
+  position: absolute;
+  inset: 0;
+}
+
+.tdna-loader-visual-rotor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tdna-loader-piece {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.tdna-loader-piece svg,
+.tdna-loader-square {
+  position: absolute;
+}
+
+.tdna-loader-square {
+  border-radius: 2px;
+}
+
+.tdna-loader-check {
+  display: grid;
+  place-items: center;
+}
+
+.tdna-loader-check-diamond {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  transform: rotate(45deg);
+}
+
+.tdna-loader-check-diamond svg {
+  position: static;
+}
+
+.tdna-profile-loader-message {
+  display: flex;
+  height: 24px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 36px;
+}
+
+.tdna-profile-loader-message p {
+  margin: 0;
+  color: var(--rubine);
+  font-family: var(--label-font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.tdna-avatar-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  margin: 0;
+}
+
+.tdna-capture-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border: 2px solid var(--rubine);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--rubine);
+  cursor: pointer;
+  font-family: var(--label-font);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  padding: 12px 24px;
+  text-transform: uppercase;
+}
+
+.tdna-capture-action span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--rubine);
+}
+
+.tdna-upload-link,
+.tdna-redo-link {
+  border: 0;
+  background: transparent;
+  color: rgba(var(--team-dna-ink-rgb), 0.54);
+  cursor: pointer;
+  font-family: var(--label-font);
+  font-size: 11px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  transition: color 160ms ease;
+}
+
+.tdna-upload-link:hover,
+.tdna-redo-link:hover {
+  color: var(--rubine);
+}
+
+.tdna-upload-link input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tdna-camera-error {
+  max-width: 440px;
+  margin: 0;
+  color: rgba(var(--team-dna-ink-rgb), 0.62);
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.tdna-photo-continue {
+  position: fixed;
+  inset: auto 0 80px;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+}
+
+.tdna-photo-continue-button {
+  border: 0;
+  border-radius: 999px;
+  background: var(--rubine);
+  color: var(--white);
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  min-height: 48px;
+  min-width: 132px;
+  padding: 0 24px;
+}
+
+.tdna-photo-skip {
+  position: fixed;
+  right: 42px;
+  bottom: 38px;
+  z-index: 11;
+  border: 0;
+  background: transparent;
+  color: rgba(var(--team-dna-ink-rgb), 0.5);
+  cursor: pointer;
+  font-family: var(--label-font);
+  font-size: 11px;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  transition: color 160ms ease;
+}
+
+.tdna-photo-skip:hover,
+.tdna-photo-skip:focus-visible {
+  color: var(--rubine);
+  outline: none;
+}
+
+.tdna-processing-line {
+  width: min(340px, 78vw);
+  height: 2px;
+  overflow: hidden;
+  background: rgba(var(--team-dna-ink-rgb), 0.1);
+}
+
+.tdna-processing-line::after {
+  content: '';
+  display: block;
+  width: 42%;
+  height: 100%;
+  background: var(--rubine);
+  animation: tdna-processing 1.1s ease-in-out infinite;
+}
+
+@keyframes tdna-processing {
+  0% {
+    transform: translateX(-110%);
+  }
+  100% {
+    transform: translateX(260%);
+  }
+}
+
+.tdna-review {
+  display: grid;
+  min-height: 100vh;
+  grid-template-columns: minmax(260px, 360px) minmax(0, 760px);
+  gap: min(7vw, 86px);
+  align-items: start;
+  justify-content: center;
+  padding: 56px min(6vw, 86px);
+  overflow-y: auto;
+}
+
+.tdna-review-side {
+  position: sticky;
+  top: 56px;
+  display: grid;
+  gap: 18px;
+}
+
+.tdna-review-avatar-control {
+  position: relative;
+  display: block;
+  width: min(320px, 100%);
+  cursor: pointer;
+}
+
+.tdna-review-avatar-control input {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tdna-review-avatar {
+  display: grid;
+  width: 100%;
+  aspect-ratio: 1;
+  place-items: center;
+  border-radius: 50%;
+  color: rgba(var(--team-dna-ink-rgb), 0.46);
+  font-family: var(--heading-display-font);
+  font-size: 56px;
+  transition:
+    border-color 220ms ease,
+    box-shadow 220ms ease,
+    transform 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tdna-review-avatar-control:hover .tdna-review-avatar,
+.tdna-review-avatar-control:focus-within .tdna-review-avatar {
+  border-color: rgba(var(--team-dna-primary-rgb), 0.38);
+  box-shadow: 0 18px 44px rgba(var(--team-dna-ink-rgb), 0.08);
+  transform: scale(1.015);
+}
+
+.tdna-review-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tdna-review-avatar-edit {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  display: inline-grid;
+  width: 42px;
+  height: 42px;
+  place-items: center;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
+  border-radius: 50%;
+  background: rgba(var(--team-dna-warm-white-rgb), 0.9);
+  color: var(--team-dna-ink);
+  box-shadow: 0 10px 28px rgba(var(--team-dna-ink-rgb), 0.1);
+  transform: translateX(-50%);
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    transform 180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.tdna-review-avatar-control:hover .tdna-review-avatar-edit,
+.tdna-review-avatar-control:focus-within .tdna-review-avatar-edit {
+  background: var(--rubine);
+  color: var(--white);
+  transform: translateX(-50%) translateY(-2px) scale(1.06);
+}
+
+.tdna-review-main {
+  padding-bottom: 60px;
+}
+
+.tdna-review--surface-two {
+  --review-side-width: 410px;
+  --review-detail-width: 620px;
+  --review-pane-gap: 92px;
+  --review-width: calc(
+    var(--review-side-width) + var(--review-detail-width) + var(--review-pane-gap)
+  );
+
+  grid-template-columns: var(--review-side-width) var(--review-detail-width);
+  gap: var(--review-pane-gap);
+  min-height: 100vh;
+  align-items: start;
+  width: min(calc(100% - 48px), var(--review-width));
+  margin: 0 auto;
+  padding: 0;
+  overflow: hidden;
+}
+
+.tdna-review--surface-two[data-reveal-stage='0'],
+.tdna-review--surface-two[data-reveal-stage='1'] {
+  --review-width: var(--review-detail-width);
+
+  grid-template-columns: var(--review-detail-width);
+}
+
+.tdna-review--surface-two[data-reveal-stage='0'] .tdna-review-side,
+.tdna-review--surface-two[data-reveal-stage='1'] .tdna-review-side {
+  position: absolute;
+  left: max(24px, calc(50% - (var(--review-width) / 2)));
+  width: var(--review-side-width);
+  pointer-events: none;
+}
+
+.tdna-review--surface-two[data-reveal-stage='0'] .tdna-review-insight-wrap,
+.tdna-review--surface-two[data-reveal-stage='1'] .tdna-review-insight-wrap {
+  grid-column: 1;
+  width: var(--review-detail-width);
+  justify-self: center;
+}
+
+.tdna-review--surface-two[data-reveal-stage='0'] .tdna-review-control-dock,
+.tdna-review--surface-two[data-reveal-stage='1'] .tdna-review-control-dock,
+.tdna-review--surface-two[data-reveal-stage='2'] .tdna-review-control-dock {
+  pointer-events: none;
+}
+
+.tdna-review--surface-two .tdna-review-side {
+  top: 0;
+  height: 100vh;
+  align-content: center;
+  justify-items: center;
+  padding: 8px 0 136px;
+}
+
+.tdna-review-name {
+  margin: 0 0 28px;
+  color: var(--team-dna-ink);
+  font-family: var(--heading-display-font);
+  font-size: clamp(54px, 5.2vw, 82px);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 0.92;
+  text-align: center;
+}
+
+.tdna-review-insight-wrap {
+  min-width: 0;
+  height: 100vh;
+}
+
+.tdna-review-kicker-row {
+  display: none;
+}
+
+.tdna-review--surface-two .team-dna-insight-pane,
+.tdna-review--surface-two .team-dna-insight-scroll {
+  height: 100vh;
+  min-height: 0;
+}
+
+.tdna-review--surface-two .team-dna-insight-pane {
+  overflow: hidden;
+}
+
+.tdna-review--surface-two .team-dna-insight-scroll {
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.tdna-review--surface-two .team-dna-insight-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tdna-review--surface-two .team-dna-scroll-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 8;
+  display: block;
+  height: 128px;
+  pointer-events: none;
+}
+
+.tdna-review--surface-two .team-dna-insight-content {
+  padding: 26vh 0 32vh;
+}
+
+.tdna-review--surface-two .info-block-stack {
+  padding-bottom: 0;
+}
+
+.tdna-review--single {
+  display: block;
+  width: min(calc(100% - 48px), 620px);
+  max-width: 100%;
+  min-height: 100vh;
+  margin: 0 auto;
+  padding: 0;
+  overflow: visible;
+}
+
+.tdna-review--single .tdna-review-insight-wrap {
+  width: 100%;
+  min-width: 0;
+  height: 100vh;
+}
+
+.tdna-review--single .team-dna-insight-pane,
+.tdna-review--single .team-dna-insight-scroll {
+  height: 100vh;
+  min-height: 0;
+}
+
+.tdna-review--single .team-dna-insight-pane {
+  overflow: hidden;
+}
+
+.tdna-review--single .team-dna-insight-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: none;
+}
+
+.tdna-review--single .team-dna-insight-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.tdna-review--single .team-dna-scroll-fade {
+  position: absolute;
+  left: 0;
+  right: 0;
+  z-index: 8;
+  display: block;
+  height: 128px;
+  pointer-events: none;
+}
+
+.tdna-review--single .team-dna-insight-content {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 16vh 0 32vh;
+}
+
+.tdna-review--single .team-dna-insight-page,
+.tdna-review--single .insight-primary-read,
+.tdna-review--single .insight-primary-copy,
+.tdna-review--single .info-block-stack,
+.tdna-review--single .info-block-reveal-wrap,
+.tdna-review--single .info-block,
+.tdna-review--single .archetype-image-card,
+.tdna-review--single .big-five-spectrum-list,
+.tdna-review--single .team-shape-contributions {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.tdna-review--single .insight-primary-read--with-image,
+.tdna-review--single .info-block {
+  contain: layout paint;
+}
+
+.tdna-review--single .insight-primary-read--with-image .info-block--archetype-image {
+  width: 100%;
+  max-width: 100%;
+}
+
+.tdna-review--single .info-block--spectrum {
+  overflow: hidden;
+}
+
+.tdna-review--single .info-block-stack {
+  padding-bottom: 0;
+}
+
+.tdna-review--single .insight-self-review-line {
+  width: 100%;
+  max-width: 100%;
+  margin: 0 0 24px;
+  color: rgba(var(--team-dna-ink-rgb), 0.68);
+  font-family: var(--heading-display-font);
+  font-size: clamp(38px, 4.4vw, 58px);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1;
+}
+
+.tdna-review-avatar-control--floating {
+  position: fixed;
+  top: 34px;
+  right: 38px;
+  z-index: 42;
+  width: 92px;
+}
+
+.tdna-review-avatar-control--floating .tdna-review-avatar {
+  font-size: 24px;
+  box-shadow: 0 18px 44px rgba(var(--team-dna-ink-rgb), 0.1);
+}
+
+.tdna-review-avatar-control--floating .tdna-review-avatar-edit {
+  bottom: -7px;
+  right: -3px;
+  left: auto;
+  width: 34px;
+  height: 34px;
+  transform: none;
+}
+
+.tdna-review-avatar-control--floating:hover .tdna-review-avatar-edit,
+.tdna-review-avatar-control--floating:focus-within .tdna-review-avatar-edit {
+  transform: translateY(-2px) scale(1.06);
+}
+
+.tdna-review-control-dock {
+  position: fixed;
+  left: 50%;
+  bottom: 42px;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  width: auto;
+  max-width: calc(100vw - 64px);
+  pointer-events: none;
+  transform: translateX(-50%);
+}
+
+.tdna-review-control-dock .tdna-toggle {
+  min-height: 64px;
+  flex: 0 0 auto;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
+  border-radius: 999px;
+  background: rgba(var(--team-dna-warm-white-rgb), 0.92);
+  box-shadow:
+    0 18px 44px rgba(var(--team-dna-ink-rgb), 0.09),
+    0 1px 0 rgba(var(--white-rgb), 0.42) inset;
+  backdrop-filter: blur(16px);
+  padding: 0 16px 0 24px;
+  font-size: 15px;
+  pointer-events: auto;
+}
+
+.tdna-review-control-dock .tdna-toggle:hover {
+  border-color: rgba(var(--team-dna-primary-rgb), 0.28);
+  background: rgba(var(--team-dna-warm-white-rgb), 0.98);
+}
+
+.tdna-review-control-dock .tdna-toggle span {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.tdna-review-control-dock .tdna-primary-action {
+  min-height: 64px;
+  flex: 0 0 auto;
+  min-width: 210px;
+  box-shadow: 0 18px 44px rgba(var(--team-dna-primary-rgb), 0.18);
+  padding-inline: 34px;
+  pointer-events: auto;
+  white-space: nowrap;
+}
+
+.tdna-review-main h1 {
+  max-width: 660px;
+  font-size: clamp(52px, 6.5vw, 92px);
+}
+
+.tdna-score-strip {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
-  margin: 28px 0 0;
-  padding: 0;
-  list-style: none;
+  margin: 0 0 22px;
 }
 
-.team-dna-assessment-map li {
-  padding: 8px 10px;
+.tdna-score-strip span {
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.11);
   border-radius: 999px;
-  background: rgba(206, 0, 88, 0.08);
-  color: #8a003b;
-  font-size: 13px;
+  background: rgba(var(--white-rgb), 0.54);
+  padding: 7px 10px;
+  color: rgba(var(--team-dna-ink-rgb), 0.62);
+  font-family: var(--label-font);
+  font-size: 11px;
+  text-transform: uppercase;
 }
 
-@media (max-width: 800px) {
-  .team-dna-assessment-page {
-    padding: 18px;
-  }
+.tdna-profile-field {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0;
+}
 
-  .team-dna-assessment-nav {
-    justify-content: flex-start;
-  }
+.tdna-profile-field span {
+  color: rgba(var(--team-dna-ink-rgb), 0.62);
+  font-family: var(--label-font);
+  font-size: 11px;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+}
 
-  .team-dna-assessment-hero {
-    min-height: 38vh;
-    padding-top: 42px;
-  }
+.tdna-profile-field textarea {
+  min-height: 112px;
+  resize: vertical;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  border-radius: 8px;
+  background: rgba(var(--white-rgb), 0.7);
+  color: var(--team-dna-ink);
+  font: 16px/1.45 var(--body-font);
+  padding: 14px;
+}
 
-  .team-dna-assessment-map {
+.tdna-privacy-box {
+  display: grid;
+  gap: 8px;
+  margin-top: 22px;
+}
+
+.tdna-toggle {
+  display: grid;
+  min-height: 54px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  border-radius: 8px;
+  background: rgba(var(--white-rgb), 0.64);
+  color: var(--team-dna-ink);
+  cursor: pointer;
+  padding: 0 14px 0 16px;
+  text-align: left;
+}
+
+.tdna-toggle i {
+  position: relative;
+  display: block;
+  width: 42px;
+  height: 24px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.16);
+}
+
+.tdna-toggle i::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--white);
+  transition: transform 160ms ease;
+}
+
+.tdna-toggle[data-active] i {
+  background: var(--rubine);
+}
+
+.tdna-toggle[data-active] i::after {
+  transform: translateX(18px);
+}
+
+.tdna-review-actions {
+  justify-content: flex-start;
+}
+
+.tdna-debug-panel {
+  position: fixed;
+  inset: 0 0 0 auto;
+  z-index: 80;
+  width: min(360px, 100vw);
+  overflow-y: auto;
+  border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  background: rgba(255, 250, 244, 0.96);
+  box-shadow: -24px 0 60px rgba(var(--team-dna-ink-rgb), 0.12);
+  padding: 22px;
+}
+
+.tdna-debug-panel header {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+}
+
+.tdna-debug-panel h2 {
+  margin: 0;
+  font-family: var(--heading-display-font);
+  font-size: 34px;
+  font-weight: 400;
+}
+
+.tdna-debug-panel header button,
+.tdna-copy-json {
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
+  border-radius: 999px;
+  background: var(--white);
+  cursor: pointer;
+  padding: 8px 12px;
+}
+
+.tdna-debug-panel dl {
+  display: grid;
+  gap: 8px;
+  margin: 22px 0;
+}
+
+.tdna-debug-panel dl div {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+  padding-bottom: 8px;
+}
+
+.tdna-debug-panel dt {
+  color: rgba(var(--team-dna-ink-rgb), 0.58);
+}
+
+.tdna-debug-panel pre {
+  overflow-x: auto;
+  margin: 16px 0 0;
+  color: rgba(var(--team-dna-ink-rgb), 0.72);
+  font: 11px/1.45 var(--label-font);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 860px) {
+  .tdna-avatar-step,
+  .tdna-review {
     grid-template-columns: 1fr;
+    overflow-y: auto;
+  }
+
+  .tdna-welcome {
+    overflow-y: auto;
+  }
+
+  .tdna-welcome-media {
+    top: 9%;
+    width: 100%;
+    height: 36%;
+  }
+
+  .tdna-hand-stage {
+    inset: 0;
+    width: 100%;
+    height: 100%;
+  }
+
+  .tdna-welcome-content {
+    min-height: 100vh;
+    height: auto;
+    align-items: end;
+    padding: 44vh 22px 56px;
+  }
+
+  .tdna-welcome-copy {
+    transform: none;
+  }
+
+  .tdna-likert {
+    grid-template-columns: 1fr;
+    width: min(420px, 100%);
+  }
+
+  .tdna-likert-option {
+    min-height: 72px;
+    font-size: 16px;
+  }
+
+  .tdna-review-side {
+    position: static;
+  }
+
+  .tdna-review--surface-two {
+    display: block;
+    width: 100%;
+    min-height: 100vh;
+    padding: 28px 24px 160px;
+    overflow-y: auto;
+  }
+
+  .tdna-review--surface-two .tdna-review-side,
+  .tdna-review-insight-wrap,
+  .tdna-review--surface-two .team-dna-insight-pane,
+  .tdna-review--surface-two .team-dna-insight-scroll {
+    height: auto;
+    min-height: 0;
+  }
+
+  .tdna-review--surface-two .team-dna-insight-scroll {
+    overflow: visible;
+  }
+
+  .tdna-review--surface-two .team-dna-scroll-fade {
+    display: none;
+  }
+
+  .tdna-review--surface-two .team-dna-insight-content {
+    padding: 48px 0 40px;
+  }
+
+  .tdna-review-avatar-control {
+    width: min(280px, 70vw);
+    margin: 0 auto 36px;
+  }
+
+  .tdna-review-name {
+    margin: 12px 0 24px;
+    font-size: 54px;
+  }
+
+  .tdna-review-control-dock {
+    grid-template-columns: 1fr;
+    border-radius: 22px;
+  }
+
+  .tdna-question-card h2,
+  .tdna-processing h2,
+  .tdna-photo-intro h2 {
+    font-size: 32px;
+  }
+
+  .tdna-question-card[data-kind='bigFive'] h2 {
+    white-space: normal;
+  }
+
+  .tdna-slider-control {
+    grid-template-columns: 1fr;
+  }
+
+  .tdna-slider-labels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    width: 100%;
   }
 }

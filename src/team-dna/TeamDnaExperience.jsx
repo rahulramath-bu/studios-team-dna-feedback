@@ -10,6 +10,21 @@ import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 const INTRO_CHROME_REVEAL_MS = 1200;
 const GROW_CHAT_BEHAVIOR = 'orchestration';
 
+function canViewMemberProfile(member, currentViewerMemberId) {
+  if (!member) return false;
+  if (member.id === currentViewerMemberId) return true;
+  return member.meta?.profileVisibility !== 'private';
+}
+
+function canUseMemberInPair(member) {
+  if (!member) return false;
+  return member.meta?.pairComparisonVisibility !== 'not_allowed';
+}
+
+function makeSelectionBlock(reason, label) {
+  return { reason, label };
+}
+
 /**
  * Grow Chat handoff payload builder.
  *
@@ -172,11 +187,54 @@ export function TeamDnaExperience({
 
   const handleSelectMember = (memberId, options = {}) => {
     const member = dataset.members.find((item) => item.id === memberId);
+    const isDeselecting = selectedIds.includes(memberId);
 
     if (member?.assessmentComplete === false) {
       setBlockedAttempt((current) => ({
         memberId,
         attempt: (current?.attempt ?? 0) + 1,
+        ...makeSelectionBlock('needs_assessment', 'Needs DNA assessment'),
+      }));
+      if (blockedTimeoutRef.current) {
+        window.clearTimeout(blockedTimeoutRef.current);
+      }
+      blockedTimeoutRef.current = window.setTimeout(() => {
+        setBlockedAttempt(null);
+        blockedTimeoutRef.current = null;
+      }, 1300);
+      return;
+    }
+
+    let selectionBlock = null;
+
+    if (!isDeselecting) {
+      const isPairAttempt =
+        options.mode !== 'solo' && selectedIds.length > 0;
+
+      if (isPairAttempt) {
+        const anchorMember = dataset.members.find(
+          (item) => item.id === selectedIds[0]
+        );
+
+        if (!canUseMemberInPair(anchorMember) || !canUseMemberInPair(member)) {
+          selectionBlock = makeSelectionBlock(
+            'pairing_not_allowed',
+            'Pairing not allowed'
+          );
+        }
+      } else if (!canViewMemberProfile(member, currentViewerMemberId)) {
+        selectionBlock = makeSelectionBlock(
+          'profile_private',
+          'Profile not shared'
+        );
+      }
+    }
+
+    if (selectionBlock) {
+      setBlockedAttempt((current) => ({
+        memberId,
+        attempt: (current?.attempt ?? 0) + 1,
+        ...selectionBlock,
       }));
       if (blockedTimeoutRef.current) {
         window.clearTimeout(blockedTimeoutRef.current);
@@ -279,6 +337,13 @@ export function TeamDnaExperience({
           entityTitle={insight.entityTitle ?? insight.title}
           introActive={isIntroGateActive}
           showIntroHint={isIntroGateActive}
+          canPreviewDuoMember={(memberId) => {
+            const member = dataset.members.find((item) => item.id === memberId);
+            const anchorMember = dataset.members.find(
+              (item) => item.id === selectedIds[0]
+            );
+            return canUseMemberInPair(anchorMember) && canUseMemberInPair(member);
+          }}
           onSelectMember={handleSelectMember}
           onSelectTeam={handleSelectTeam}
         />

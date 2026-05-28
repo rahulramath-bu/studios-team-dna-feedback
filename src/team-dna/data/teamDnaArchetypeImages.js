@@ -178,7 +178,7 @@ function getTraitDirection(score) {
 }
 
 function getRankedSignals(member) {
-  const scores = member?.bigFive ?? {};
+  const scores = member?.archetypeImageBigFive ?? member?.bigFive ?? {};
 
   return BIG_FIVE_TRAITS.map((trait) => {
     const score = scores[trait.key] ?? 50;

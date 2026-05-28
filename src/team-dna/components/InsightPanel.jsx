@@ -32,6 +32,7 @@ export function InsightPanel({
   insight,
   isHidden,
   preserveScroll = false,
+  revealMode = 'standard',
   canManageTeam = true,
   currentViewerMemberId,
   onSelectMember,
@@ -72,6 +73,7 @@ export function InsightPanel({
                   onSelectMember={onSelectMember}
                   onLifecycleAction={onLifecycleAction}
                   onProfileCopySave={onProfileCopySave}
+                  revealMode={revealMode}
                 />
               </AnimatePresence>
             </div>
@@ -89,6 +91,7 @@ function InsightPage({
   onSelectMember,
   onLifecycleAction,
   onProfileCopySave,
+  revealMode,
 }) {
   return (
     <motion.article
@@ -97,9 +100,9 @@ function InsightPage({
       animate={{
         opacity: 1,
         transition: {
-          duration: BASELINE_REVEAL_TRANSITION.duration,
-          ease: PAGE_EASE,
-        },
+        duration: BASELINE_REVEAL_TRANSITION.duration,
+        ease: PAGE_EASE,
+      },
       }}
       exit={{
         opacity: 0,
@@ -110,12 +113,13 @@ function InsightPage({
     >
       <InsightPageContent
         insight={insight}
-        canManageTeam={canManageTeam}
-        currentViewerMemberId={currentViewerMemberId}
-        onSelectMember={onSelectMember}
-        onLifecycleAction={onLifecycleAction}
-        onProfileCopySave={onProfileCopySave}
-      />
+      canManageTeam={canManageTeam}
+      currentViewerMemberId={currentViewerMemberId}
+      onSelectMember={onSelectMember}
+      onLifecycleAction={onLifecycleAction}
+      onProfileCopySave={onProfileCopySave}
+      revealMode={revealMode}
+    />
     </motion.article>
   );
 }
@@ -127,6 +131,7 @@ function InsightPageContent({
   onSelectMember,
   onLifecycleAction,
   onProfileCopySave,
+  revealMode,
 }) {
   const lifecycle = insight.generationLifecycle;
   const editableMemberId =
@@ -173,13 +178,38 @@ function InsightPageContent({
       ) : null}
       {isHardNotReady ? null : (
         <>
-          <section
+          {revealMode === 'selfReview' ? (
+            <motion.p
+              className="insight-self-review-line"
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.08, ease: PAGE_EASE }}
+            >
+              You are the
+            </motion.p>
+          ) : null}
+          <motion.section
             className={[
               'insight-primary-read',
               imageCard ? 'insight-primary-read--with-image' : '',
             ]
               .filter(Boolean)
               .join(' ')}
+            initial={
+              revealMode === 'selfReview'
+                ? { opacity: 0, y: 28 }
+                : undefined
+            }
+            animate={
+              revealMode === 'selfReview'
+                ? { opacity: 1, y: 0 }
+                : undefined
+            }
+            transition={
+              revealMode === 'selfReview'
+                ? { duration: 1.15, delay: 0.22, ease: PAGE_EASE }
+                : undefined
+            }
           >
             {imageCard ? (
               <InfoBlock
@@ -189,7 +219,7 @@ function InsightPageContent({
             ) : null}
             <div className="insight-primary-copy">
               <div className="insight-heading-group">
-              <InsightHeading insight={insight} />
+                <InsightHeading insight={insight} />
               </div>
               {editingTarget === 'overview' ? (
                 <InlineTextEditor
@@ -214,7 +244,7 @@ function InsightPageContent({
                 </button>
               )
             ) : null}
-          </section>
+          </motion.section>
           <InsightBlocks
             cards={
               canEditOwnProfile
@@ -227,6 +257,7 @@ function InsightPageContent({
             onEditTarget={setEditingTarget}
             onSaveProfileCopyPatch={saveProfileCopyPatch}
             onSelectMember={onSelectMember}
+            revealMode={revealMode}
           />
         </>
       )}
@@ -661,6 +692,7 @@ function InsightBlocks({
   onEditTarget,
   onSaveProfileCopyPatch,
   onSelectMember,
+  revealMode,
 }) {
   if (!cards.length) {
     return null;
@@ -668,28 +700,51 @@ function InsightBlocks({
 
   return (
     <div className="info-block-stack" aria-label="Future insight blocks">
-      {cards.map((card) => {
+      {cards.map((card, index) => {
         const target = getEditableTargetForCard(card);
         const isEditingCard = target && editingTarget === target;
 
         return (
-          <InfoBlock
+          <motion.div
             key={card.id}
-            card={card}
-            actionLabel={isEditableProfileCard(card) ? `Edit ${card.label}` : undefined}
-            bodyOverride={getEditableBodyForCard({
-              card,
-              editingTarget,
-              onCancelEdit,
-              onSaveProfileCopyPatch,
-            })}
-            onAction={
-              canEditOwnProfile && target && !isEditingCard
-                ? () => onEditTarget(target)
+            className="info-block-reveal-wrap"
+            initial={
+              revealMode === 'selfReview'
+                ? { opacity: 0, y: 26 }
                 : undefined
             }
-            onSelectMember={onSelectMember}
-          />
+            animate={
+              revealMode === 'selfReview'
+                ? { opacity: 1, y: 0 }
+                : undefined
+            }
+            transition={
+              revealMode === 'selfReview'
+                ? {
+                    duration: 0.9,
+                    delay: 1.05 + index * 0.28,
+                    ease: PAGE_EASE,
+                  }
+                : undefined
+            }
+          >
+            <InfoBlock
+              card={card}
+              actionLabel={isEditableProfileCard(card) ? `Edit ${card.label}` : undefined}
+              bodyOverride={getEditableBodyForCard({
+                card,
+                editingTarget,
+                onCancelEdit,
+                onSaveProfileCopyPatch,
+              })}
+              onAction={
+                canEditOwnProfile && target && !isEditingCard
+                  ? () => onEditTarget(target)
+                  : undefined
+              }
+              onSelectMember={onSelectMember}
+            />
+          </motion.div>
         );
       })}
     </div>

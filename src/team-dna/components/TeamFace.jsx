@@ -56,6 +56,7 @@ export const TeamFace = forwardRef(function TeamFace(
     isDuoSelected,
     isDimmed,
     isBlocked,
+    blockedLabel,
     introDelay = 0,
     showTapHint = false,
     tapHintCycle = 0,
@@ -91,7 +92,7 @@ export const TeamFace = forwardRef(function TeamFace(
   const hoverLabel = isSelected
     ? 'Deselect'
     : isBlocked
-      ? 'Assessment incomplete'
+      ? blockedLabel ?? 'Unavailable'
       : member.name;
   const showHoverLabel = hovered || isBlocked;
   const dimmedOpacity = isPreviewObscured ? 0.1 : 0.26;
@@ -228,8 +229,10 @@ export const TeamFace = forwardRef(function TeamFace(
       onClick={onSelect}
       aria-pressed={isSelected}
       aria-label={
-        isUnavailable
-          ? `${member.name} assessment incomplete`
+        isBlocked && blockedLabel
+          ? `${member.name}: ${blockedLabel}`
+          : isUnavailable
+            ? `${member.name} assessment incomplete`
           : `Explore ${member.name}`
       }
       {...handlers}

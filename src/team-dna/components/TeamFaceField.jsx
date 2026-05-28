@@ -274,6 +274,7 @@ export function TeamFaceField({
   entityTitle,
   introActive,
   showIntroHint = false,
+  canPreviewDuoMember,
   onSelectMember,
   onSelectTeam,
 }) {
@@ -308,6 +309,7 @@ export function TeamFaceField({
     selectedIds.length === 1 &&
     previewMember &&
     previewMember.assessmentComplete !== false &&
+    (canPreviewDuoMember?.(previewMember.id) ?? true) &&
     !selectedIds.includes(previewMember.id)
       ? [selectedIds[0], previewMember.id]
       : null;
@@ -551,6 +553,11 @@ export function TeamFaceField({
                   visualRef={setFaceNode(member.id)}
                   member={member}
                   isBlocked={blockedAttempt?.memberId === member.id}
+                  blockedLabel={
+                    blockedAttempt?.memberId === member.id
+                      ? blockedAttempt.label
+                      : undefined
+                  }
                   blockedAttempt={blockedAttempt?.attempt ?? 0}
                   isSelected={isSelectedMember}
                   isDuoSelected={

@@ -50,6 +50,7 @@ export function TeamDnaDevPanel({
   canResizeTeam,
   devState,
   onSetGenerationStatus,
+  onSetMemberPrivacy,
   onSetTeamSize,
   onToggleMemberAssessment,
   onToggleMemberAvatar,
@@ -196,6 +197,10 @@ export function TeamDnaDevPanel({
                     {baseMembers.map((member, index) => {
                       const hasAvatar = Boolean(member.avatarUrl);
                       const hasDna = member.assessmentComplete !== false;
+                      const profileShared =
+                        member.meta?.profileVisibility !== 'private';
+                      const pairingAllowed =
+                        member.meta?.pairComparisonVisibility !== 'not_allowed';
 
                       return (
                         <div
@@ -218,6 +223,28 @@ export function TeamDnaDevPanel({
                             value={hasDna}
                             onChange={() =>
                               onToggleMemberAssessment?.(member.id)
+                            }
+                          />
+                          <DevToggle
+                            label="Profile"
+                            value={profileShared}
+                            onChange={() =>
+                              onSetMemberPrivacy?.(
+                                member.id,
+                                'profileVisibility',
+                                !profileShared
+                              )
+                            }
+                          />
+                          <DevToggle
+                            label="Pair"
+                            value={pairingAllowed}
+                            onChange={() =>
+                              onSetMemberPrivacy?.(
+                                member.id,
+                                'pairComparisonVisibility',
+                                !pairingAllowed
+                              )
                             }
                           />
                         </div>

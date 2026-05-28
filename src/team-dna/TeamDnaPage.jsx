@@ -142,6 +142,32 @@ function applyProfileCopyEdits(dataset, profileCopyEditsByMemberId) {
   };
 }
 
+function applyMemberPrivacyOverrides(dataset, memberPrivacyById = {}) {
+  const entries = Object.entries(memberPrivacyById);
+
+  if (entries.length === 0) {
+    return dataset;
+  }
+
+  return {
+    ...dataset,
+    members: dataset.members.map((member) => {
+      const override = memberPrivacyById[member.id];
+      if (!override) return member;
+
+      return {
+        ...member,
+        meta: {
+          ...(member.meta ?? {}),
+          profileVisibility: override.profileVisibility ?? 'teams',
+          pairComparisonVisibility:
+            override.pairComparisonVisibility ?? 'teams',
+        },
+      };
+    }),
+  };
+}
+
 function makeTeamRecordId(name) {
   const slug = name
     .trim()
@@ -281,8 +307,12 @@ export function TeamDnaPage() {
       organizationEmployees,
       teamDnaResultsByEmployeeId
     );
+    const privacyDataset = applyMemberPrivacyOverrides(
+      baseDataset,
+      activeRecord.devState.memberPrivacyById
+    );
 
-    return applyProfileCopyEdits(baseDataset, profileCopyEditsByMemberId);
+    return applyProfileCopyEdits(privacyDataset, profileCopyEditsByMemberId);
   }, [
     activeRecord,
     organizationEmployees,
@@ -545,6 +575,30 @@ export function TeamDnaPage() {
     });
   };
 
+  const setMemberPrivacy = (memberId, key, enabled) => {
+    updateActiveDevState((current) => {
+      const currentPrivacy = current.memberPrivacyById?.[memberId] ?? {
+        profileVisibility: 'teams',
+        pairComparisonVisibility: 'teams',
+      };
+      const nextValue =
+        key === 'profileVisibility'
+          ? enabled ? 'teams' : 'private'
+          : enabled ? 'teams' : 'not_allowed';
+
+      return {
+        ...current,
+        memberPrivacyById: {
+          ...(current.memberPrivacyById ?? {}),
+          [memberId]: {
+            ...currentPrivacy,
+            [key]: nextValue,
+          },
+        },
+      };
+    });
+  };
+
   const setMemberAssessmentStates = (memberAssessmentStates) => {
     setTeamDnaResultsByEmployeeId((current) => {
       const next = { ...current };
@@ -714,6 +768,7 @@ export function TeamDnaPage() {
         onSetTeamSize={setActiveTeamSize}
         onToggleMemberAvatar={toggleMemberAvatar}
         onToggleMemberAssessment={toggleMemberAssessment}
+        onSetMemberPrivacy={setMemberPrivacy}
         setDevState={updateActiveDevState}
       />
     </>

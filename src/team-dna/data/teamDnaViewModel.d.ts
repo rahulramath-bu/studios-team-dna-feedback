@@ -32,6 +32,8 @@ export type TeamDnaPronouns = {
 };
 
 export type TeamDnaBigFiveScores = Record<TeamDnaTraitKey, number>;
+export type TeamDnaProfileVisibility = 'private' | 'teams';
+export type TeamDnaPairComparisonVisibility = 'not_allowed' | 'teams';
 
 export type TeamDnaTeam = {
   id: string;
@@ -47,7 +49,10 @@ export type TeamDnaMember = {
   avatarUrl?: string | null;
   assessmentComplete: boolean;
   bigFive?: TeamDnaBigFiveScores;
-  meta?: Record<string, unknown>;
+  meta?: Record<string, unknown> & {
+    profileVisibility?: TeamDnaProfileVisibility;
+    pairComparisonVisibility?: TeamDnaPairComparisonVisibility;
+  };
 };
 
 export type TeamDnaInsightSummaryPart = {
