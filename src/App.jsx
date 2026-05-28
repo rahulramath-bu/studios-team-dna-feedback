@@ -3,12 +3,12 @@ import { TeamDnaPage } from './team-dna/TeamDnaPage.jsx';
 import { TeamDnaAssessmentPage } from './team-dna-assessment/TeamDnaAssessmentPage.jsx';
 import './app-shell/appHub.css';
 
-const RESULT_PATHS = new Set(['/results', '/team-dna', '/surface-2']);
-const ASSESSMENT_PATHS = new Set(['/assessment', '/surface-1']);
+const TEAM_DNA_PATH = '/team-dna';
+const ASSESSMENT_PATH = '/assessment';
 
 function getRoute(pathname) {
-  if (RESULT_PATHS.has(pathname)) return 'results';
-  if (ASSESSMENT_PATHS.has(pathname)) return 'assessment';
+  if (pathname === TEAM_DNA_PATH) return 'team-dna';
+  if (pathname === ASSESSMENT_PATH) return 'assessment';
   if (pathname === '/') return 'hub';
   return 'unknown';
 }
@@ -100,7 +100,7 @@ function PrototypeHub({ onNavigate }) {
             eyebrow="Surface 2"
             title="Team Page"
             body="See those signals become team, person, and pair reads for working together."
-            href="/results"
+            href={TEAM_DNA_PATH}
             icon="team"
             onNavigate={onNavigate}
           />
@@ -114,7 +114,7 @@ export function App() {
   const { pathname, route, navigate } = useRoute();
   const routeKey = useMemo(() => `${route}:${pathname}`, [pathname, route]);
 
-  if (route === 'results') {
+  if (route === 'team-dna') {
     return <TeamDnaPage key={routeKey} />;
   }
 

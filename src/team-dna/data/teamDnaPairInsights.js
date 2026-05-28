@@ -155,20 +155,6 @@ function getFirstName(member) {
   return member?.name?.split(' ')?.[0] ?? 'This person';
 }
 
-function getPronouns(member) {
-  const pronouns = member?.pronouns;
-
-  if (pronouns?.subject && pronouns?.object && pronouns?.possessive) {
-    return pronouns;
-  }
-
-  return {
-    subject: 'they',
-    object: 'them',
-    possessive: 'their',
-  };
-}
-
 function getTraitDirection(score) {
   if (score >= HIGH_TRAIT) return 'high';
   if (score <= LOW_TRAIT) return 'low';
@@ -280,11 +266,10 @@ function getTeamTitle(primary, widest) {
 
 function buildPersonSummary(member, primary, secondary) {
   const firstName = getFirstName(member);
-  const pronouns = getPronouns(member);
 
   return [
     {
-      text: `${firstName} changes the team by bringing ${getTraitGift(primary.trait, primary.direction)} into the work first. ${firstName} ${getTraitLine(primary.trait, primary.direction)}, then supports that pattern with ${getTraitGift(secondary.trait, secondary.direction)}. The result is that ${pronouns.possessive} presence helps the team feel both more capable and more aware of what the moment is asking for.`,
+      text: `${firstName} helps the team by bringing ${getTraitGift(primary.trait, primary.direction)} into the work first. In practice, ${firstName} ${getTraitLine(primary.trait, primary.direction)}. That becomes most useful when the team also needs ${getTraitGift(secondary.trait, secondary.direction)}: ${getTraitLine(secondary.trait, secondary.direction)}.`,
     },
   ];
 }
@@ -383,7 +368,7 @@ export function buildTeamInsight({ team, members, cards, authoredInsight }) {
     isEditable: true,
     summary: [
       {
-        text: `${teamName} is shaped most by ${getTraitGift(primary.trait, primary.direction)}. As a group, the team ${getTraitLine(primary.trait, primary.direction)}, which gives the work a clear center of gravity. The biggest range is around ${widestLanguage.label}, so this is the place where naming expectations out loud will save the most translation cost.`,
+        text: `${teamName} is shaped most by ${getTraitGift(primary.trait, primary.direction)}. As a group, the team ${getTraitLine(primary.trait, primary.direction)}. The biggest range is around ${widestLanguage.label}, so naming expectations there will save the team from guessing what each person means.`,
       },
     ],
     spectrumReads: getTeamSpectrumReads(teamName, traitAverages),
@@ -426,7 +411,7 @@ function buildComplementInsight(first, second, complement) {
       },
       { text: secondName, emphasis: true },
       {
-        text: ` brings ${getTraitGift(trait, secondDirection)}: ${getTraitLine(trait, secondDirection)}. Together, ${firstName} and ${secondName} create useful tension around ${language.label}. ${firstName}'s ${getTraitGift(trait, firstDirection)} gives the pair one pole; ${secondName}'s ${getTraitGift(trait, secondDirection)} gives it the other.`,
+        text: ` brings ${getTraitGift(trait, secondDirection)}: ${getTraitLine(trait, secondDirection)}. Together, ${firstName} and ${secondName} are useful when the team needs both poles visible before it decides.`,
       },
     ],
   };
@@ -446,7 +431,7 @@ function buildSharedInsight(first, second, shared) {
       { text: ` and ` },
       { text: secondName, emphasis: true },
       {
-        text: ` both bring ${getTraitGift(trait, direction)}. That shared ${language.label} gives this pair an easy rhythm: they tend to recognize the same kind of signal quickly, reinforce each other's instincts, and help the team move with less translation cost.`,
+        text: ` both bring ${getTraitGift(trait, direction)}. That shared ${language.label} means they may spot the same signal quickly and help the team move with less explanation.`,
       },
     ],
   };
@@ -467,7 +452,7 @@ function buildBalancedInsight(first, second) {
       },
       { text: secondName, emphasis: true },
       {
-        text: ` brings ${getTraitGift(secondTrait.trait, secondTrait.direction)}. This pair works because ${firstName} and ${secondName} do not need to be the same to be useful to each other. Their combined value is the way their strongest instincts give the team more range.`,
+        text: ` brings ${getTraitGift(secondTrait.trait, secondTrait.direction)}. This pair is useful because each person can notice something the other may not lead with.`,
       },
     ],
   };

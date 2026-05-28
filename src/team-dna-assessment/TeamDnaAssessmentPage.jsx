@@ -23,8 +23,8 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
         <button type="button" onClick={() => onNavigate('/')}>
           Hub
         </button>
-        <button type="button" onClick={() => onNavigate('/results')}>
-          Results
+        <button type="button" onClick={() => onNavigate('/team-dna')}>
+          Team DNA
         </button>
       </nav>
 

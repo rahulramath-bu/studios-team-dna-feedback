@@ -26,7 +26,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Bring Sergio the shape of the problem and the tradeoffs you already see. He will be more useful if the conversation has enough structure to land, but not so much that the answer is already decided.',
     bestFor:
-      'Turning fuzzy product intent into an engineering path, finding the first buildable version, and keeping cross-functional work from drifting away from reality.',
+      'Use Sergio when a fuzzy product idea needs a buildable first version. He helps name the tradeoffs, define the next step, and keep the work close to what can actually ship.',
     misread:
       'People may read his steadiness as low excitement. It is usually more accurate to read it as him testing whether the idea has legs.',
     pairGift: 'grounded momentum',
@@ -39,7 +39,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Give Justin the real constraints early. He does not need a long performance around the idea; he needs enough context to make a durable call.',
     bestFor:
-      'Architecture, cleanup, hard tradeoffs, technical closure, and any moment where the team needs fewer opinions and a stronger spine.',
+      'Use Justin when the system needs a clearer spine. He helps sort constraints, close technical tradeoffs, and make the path sturdy enough for other people to build on.',
     misread:
       'People may read his concise style as distance. It is usually a sign that he is already sorting the problem into what matters and what does not.',
     pairGift: 'technical gravity',
@@ -52,7 +52,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Show Darshan the moving pieces and the decision that needs to happen next. He will usually help by sequencing the room and making the work easier to coordinate.',
     bestFor:
-      'Team rallying, launch coordination, decision moments, and work that needs both high energy and high follow-through.',
+      'Use Darshan when scattered work needs one shared rhythm. He helps sequence the room, turn energy into owners, and keep launch motion from splitting into separate lanes.',
     misread:
       'People may read his momentum as certainty. It is often more like active coordination: he is moving the room so the answer can become visible.',
     pairGift: 'coordinated lift',
@@ -65,7 +65,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Give Mae the mess, not just the cleaned-up brief. She is often most useful when she can see the contradiction, the feeling, and the user tension before the team has over-solved it.',
     bestFor:
-      'Sensemaking, product story, experience framing, critique, and turning scattered user or stakeholder signals into a direction people can feel.',
+      'Use Mae when the team has many inputs but no clear human story yet. She helps turn messy signals, contradictions, and user tension into a direction people can feel.',
     misread:
       'People may read her slower synthesis as hesitation. It is often the work of finding the real shape instead of grabbing the easiest one.',
     pairGift: 'human sensemaking',
@@ -78,7 +78,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Treat Sam’s concerns as product input, not emotional noise. Ask what decision, dependency, or user risk the concern is pointing toward.',
     bestFor:
-      'Product calls under uncertainty, launch readiness, stakeholder alignment, and moments where the team needs care translated into a sharper next step.',
+      'Use Sam when uncertainty needs to become a clearer product call. She helps spot exposed risks, name who is affected, and turn concern into a decision or dependency.',
     misread:
       'People may read her vigilance as resistance. It is often protection: she is trying to keep the team from learning the hard thing too late.',
     pairGift: 'protective clarity',
@@ -91,7 +91,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Bring Scott in when the team is deciding how something should make sense to a person over time. He will often see the learning path behind the interface.',
     bestFor:
-      'Experience architecture, learning moments, content strategy, and work where adoption depends on understanding rather than exposure.',
+      'Use Scott when adoption depends on understanding, not just exposure. He helps shape the learning path, clarify the experience logic, and make the product teach itself.',
     misread:
       'People may read his quietness as absence. It is often deep processing: he is looking for the pattern that makes the experience teach itself.',
     pairGift: 'patient meaning',
@@ -104,7 +104,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Give Sophie clear ownership and the context behind the ask. She will carry the work well, but the team should not make her guess which details matter most.',
     bestFor:
-      'Implementation, multi-step technical work, quality passes, and moments where the team needs calm progress instead of more discussion.',
+      'Use Sophie when the team needs calm progress through multi-step work. She helps turn ownership, context, and priorities into implementation people can trust.',
     misread:
       'People may read her calm as unlimited capacity. It is better to make priorities explicit so her reliability does not become the place messy work disappears.',
     pairGift: 'quiet completion',
@@ -117,7 +117,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Give Rahul permission to explore before asking him to converge. Then name the moment when the team is switching from opening possibilities to choosing one.',
     bestFor:
-      'Early product exploration, concept generation, reframing, and moments where the team is stuck inside an answer that feels too small.',
+      'Use Rahul when the team is stuck inside an answer that feels too small. He helps reopen the frame, generate better options, and name when exploration needs to become choice.',
     misread:
       'People may read his looseness as lack of seriousness. It is often his way of refusing to let the team over-commit to a mediocre frame.',
     pairGift: 'creative reframe',
@@ -130,7 +130,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Do not bring Preetoshi only the safe version. Bring the real user experience problem and let him react to what feels dead, generic, or too small.',
     bestFor:
-      'Experience vision, interaction quality, design direction, provocation, and moments where the team needs to raise its own expectations.',
+      'Use Preetoshi when the experience feels safe, generic, or too small. He helps raise the quality bar, sharpen the interaction, and turn a vague problem into a stronger direction.',
     misread:
       'People may read his intensity as rejection. It is usually care for the experience arriving before the room has caught up.',
     pairGift: 'alive tension',
@@ -139,11 +139,11 @@ const PERSON_SYNTHESIS = {
   jon: {
     title: 'The Studio Current',
     summary:
-      'Jon carries creative momentum across people. He can make ambitious work feel socially possible, which matters when a team needs belief as much as it needs a plan.',
+      'Jon helps people believe ambitious work is worth pushing for. He is useful when a team has a plan but still needs the energy, story, and social permission to move.',
     workWith:
       'Give Jon the human stakes, not just the task list. He is useful when he can connect the work to energy, people, and the larger story.',
     bestFor:
-      'Studio direction, team momentum, creative leadership, and moments where the group needs to believe the work is worth pushing for.',
+      'Use Jon when the team needs belief as much as a plan. He helps connect the work to people, energy, and the larger story so ambitious work feels socially possible.',
     misread:
       'People may read his energy as only vision. It often also carries the social glue that keeps ambitious work from becoming lonely.',
     pairGift: 'shared belief',
@@ -156,7 +156,7 @@ const PERSON_SYNTHESIS = {
     workWith:
       'Bring Rainy the question behind the question. She will be most useful if she can help decide what would count as evidence before the team falls in love with an answer.',
     bestFor:
-      'Research framing, measurement, evidence checks, behavioral interpretation, and moments where the team needs rigor without losing curiosity.',
+      'Use Rainy when the team needs to know what would count as evidence. She helps frame the research question, test assumptions, and keep curiosity connected to reality.',
     misread:
       'People may read her precision as slowing things down. It is usually the work of preventing the team from moving fast around a false assumption.',
     pairGift: 'evidence-backed curiosity',
@@ -830,6 +830,19 @@ function makePersonWorkWithSections(member, synthesis) {
   return notes.map((body) => ({ body }));
 }
 
+function makePersonWatchOutSections(synthesis) {
+  return makeWatchOut([
+    {
+      title: 'When the strength gets misread.',
+      body: `${synthesis.misread} When that happens, name the useful job this pattern is trying to do before the room reacts only to the style.`,
+    },
+    {
+      title: 'When the useful version needs a cue.',
+      body: `${synthesis.workWith} Try making the ask visible before expecting the best version of this strength to show up.`,
+    },
+  ]);
+}
+
 function getScoreBand(member, trait) {
   const score = getScore(member, trait);
 
@@ -896,16 +909,7 @@ function makePersonInsight(member) {
     title: synthesis.title,
     summary: [{ text: synthesis.summary }],
     spectrumReads: getPersonSpectrumReads(member),
-    watchOut: makeWatchOut([
-      {
-        title: 'When the signal needs a landing place.',
-        body: synthesis.misread,
-      },
-      {
-        title: 'When the room needs the useful version.',
-        body: synthesis.workWith,
-      },
-    ]),
+    watchOut: makePersonWatchOutSections(synthesis),
     cards: [
       makeGuidanceCard(
         `${member.id}-work-with`,

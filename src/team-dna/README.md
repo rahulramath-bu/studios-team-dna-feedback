@@ -336,12 +336,24 @@ All generated and fallback copy should use Scott's developmental framing:
 ```txt
 Every strength adds value by leaning in a direction.
 The watch-out is usually that same strength stretched too far.
+Useful copy names the observable behavior, not just the vibe.
 ```
 
 So the AI pass should not frame low scores as broken, bad, immature, or less
 valuable. It should name the useful contribution first, then describe the
 watch-out as the moment that contribution needs a complement, boundary, or next
 step.
+
+Prefer concrete behavioral language over atmospheric language:
+
+- Better: "speaks early, thinks out loud, and turns energy into next steps."
+- Less useful: "carries creative momentum across people."
+- Better: "ask what might break later."
+- Less useful: "invite their technical gravity."
+
+The hero summary can stay more expressive and individually resonant. Supporting
+cards should be easier to verify in real work: what the person does, when it
+helps, when it stretches too far, and one small move others can try.
 
 Examples:
 
@@ -744,7 +756,7 @@ Run the prototype:
 npm run dev
 ```
 
-Open `/results` for this Surface 2 handoff. The root route `/` is a tiny
+Open `/team-dna` for this Surface 2 handoff. The root route `/` is a tiny
 prototype hub, and `/assessment` is only the parked Surface 1 placeholder.
 
 Build:

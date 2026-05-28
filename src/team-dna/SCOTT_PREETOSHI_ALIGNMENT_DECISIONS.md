@@ -391,3 +391,53 @@ Examples:
 | Team strengths | Team overview and `Where this team shines`. | Adopted. |
 | Team watch-outs | Team `Look out for...` card. | Adopted. |
 | Ability to edit | Own-profile inline editing for overview, where-I-shine, how-to-work-with-me, and look-outs. | Adopted for individual profile copy. |
+
+## Decision 7: More Behavioral, Less Atmospheric Supporting Copy
+
+**Status:** Adopted as a copy direction.
+
+### Scott's Direction
+
+Scott's examples are strongest when they name behavior someone could actually
+see in a meeting:
+
+```txt
+Speaks early.
+Thinks out loud.
+Asks what could fail.
+Names owners, timing, and next steps.
+```
+
+His coaching prompts also work because they are immediately usable:
+
+```txt
+Who have we not heard from yet?
+What is your early read?
+Which risks matter most?
+What is the minimum structure we need?
+```
+
+### Prototype Decision
+
+Keep the expressive hero titles and overview cards, because that is where the
+AI-native "being seen" feeling belongs.
+
+Move the supporting cards closer to Scott's concrete behavior model:
+
+- `Where I shine` should say what the person helps the team do and when.
+- `How to work with me` should read like usable prompts or cues.
+- `In meetings...` should stay observable and behavior-based.
+- `Look out for...` should keep natural prose, but each description should
+  include the useful strength, the moment it stretches too far, and a small
+  behavior to try.
+
+### Implementation Notes
+
+- `teamDnaGeneratedInsights.mock.js` now rewrites person `bestFor` copy toward
+  "Use this person when..." behavior.
+- `teamDnaWatchOuts.js` now makes the strength and overextension more explicit
+  inside the natural watch-out sentence.
+- `teamDnaPairInsights.js` trims some abstract deterministic summary language
+  so fallback copy names the useful behavior more directly.
+- `README.md` documents the copy rule: supporting cards should be easier to
+  verify in real work than purely atmospheric language.

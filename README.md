@@ -7,7 +7,7 @@ This repo now holds two intentionally separate Team DNA prototype surfaces:
 | Surface | Local route | Purpose |
 | --- | --- | --- |
 | Surface 1 | `/assessment` | Lightweight placeholder for the future assessment path. |
-| Surface 2 | `/results` | Existing Team DNA results experience. |
+| Surface 2 | `/team-dna` | Existing Team DNA results experience. |
 
 The root route (`/`) is a tiny chooser so the same Vercel URL can host both
 surfaces without mixing their implementation. Surface 2 keeps its detailed
@@ -29,9 +29,10 @@ browser:
 
 - `/` shows the hub.
 - `/assessment` shows Surface 1.
-- `/results` shows Surface 2.
-- `/team-dna` and `/surface-2` are aliases for Surface 2.
-- `/surface-1` is an alias for Surface 1.
+- `/team-dna` shows Surface 2.
+
+Older prototype aliases like `/results`, `/surface-1`, and `/surface-2` were
+removed so the handoff only has two real surface routes to reason about.
 
 ## Architecture Rule
 

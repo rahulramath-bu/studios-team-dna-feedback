@@ -7,85 +7,85 @@ const WATCH_OUTS = {
   openness: {
     low: {
       title: 'When the answer needs to be new.',
-      body: "The familiar path is often the right one, until it isn't.",
+      body: "Practical judgment is useful because it keeps the team close to what works. Watch when it narrows the room before a new option has been tested.",
       tip: 'try asking, "what is one option I have not considered yet?"',
     },
     high: {
       title: 'When the ideas keep coming.',
-      body: 'The pull toward the next idea can be stronger than the pull to land the current one.',
-      tip: 'ask if the thing in front of you is actually done, or if you just want a new puzzle.',
+      body: 'Inventive energy is useful because it opens paths the team would not see otherwise. Watch when opening another path delays choosing the one in front of you.',
+      tip: 'ask if the thing in front of you is done, or if you just want a new puzzle.',
     },
     wide: {
       title: 'When one wants new and one wants known.',
-      body: "One side reaches for an option no one has tried; the other reaches for what's been proven.",
+      body: "This range is useful because one side opens possibility while the other tests feasibility. Watch when either exploration or grounding becomes the only voice in the room.",
       tip: 'let the inventive side propose first, then let the grounded side ask what would have to be true.',
     },
   },
   conscientiousness: {
     low: {
       title: 'When the handoff matters most.',
-      body: 'Working spontaneously is useful until someone else needs to pick up the thread.',
+      body: 'Flexibility is useful because it helps the work adapt when the plan changes. Watch when too much looseness makes the next owner guess what done means.',
       tip: 'say what done looks like and when it is needed before passing work along.',
     },
     high: {
       title: 'When the plan stops being the plan.',
-      body: 'Standards and follow-through are strengths, but the original plan is not always the right plan.',
+      body: 'Structure is useful because it turns intent into owners, standards, and next steps. Watch when the plan gets protected after the situation has changed.',
       tip: 'add one midpoint check to ask if the plan still matches what you now know.',
     },
     wide: {
       title: 'Getting agreement on the handoff.',
-      body: 'One side may move with flow while the other needs a clear plan.',
+      body: 'This range is useful because one side adapts quickly while the other creates anchors. Watch when the handoff depends on assumptions instead of an explicit agreement.',
       tip: 'before switching owners, try saying exactly what done means.',
     },
   },
   extraversion: {
     low: {
       title: 'Mistaking quiet for no energy.',
-      body: 'Give people time to think before asking for the big answer.',
+      body: 'Reflection is useful because it gives the team a more considered read. Watch when the room moves on before that read has entered the conversation.',
       tip: 'send the question first, then discuss it live.',
     },
     high: {
       title: 'Letting the loudest energy lead every time.',
-      body: 'Pause long enough for quieter signals to enter the room.',
+      body: 'Expressive energy is useful because it creates momentum the room can feel. Watch when that momentum sets the pace before quieter signals have surfaced.',
       tip: 'ask for one quiet read before the group decides.',
     },
     wide: {
       title: 'Losing either pause or spark.',
-      body: 'Some energy may need space, and some may need motion.',
+      body: 'This range is useful because one side creates spark while the other creates space. Watch when the team treats one rhythm as the default.',
       tip: 'give the room a minute to think, then invite the push.',
     },
   },
   agreeableness: {
     low: {
       title: 'When the message lands harder than meant.',
-      body: "Direct feedback is useful when it is wanted and a hit when it isn't.",
+      body: 'Skepticism is useful because it tests weak logic before the team over-agrees. Watch when the challenge arrives without enough landing context.',
       tip: 'try saying, "I am going to be direct because I think this matters" before the hard part.',
     },
     high: {
       title: 'When the hard thing needs saying.',
-      body: 'Keeping the room warm is real value, but some disagreements need to come above the surface.',
+      body: 'Cooperation is useful because it keeps trust and participation intact. Watch when preserving warmth makes the real disagreement harder to see.',
       tip: 'pick one disagreement and name it kindly but plainly.',
     },
     wide: {
       title: 'When direct meets warm.',
-      body: 'One side may sharpen the issue fast while the other protects how it lands.',
+      body: 'This range is useful because one side sharpens the issue while the other protects trust. Watch when directness or warmth has to carry the whole exchange alone.',
       tip: 'use a small signal like "I am being direct, not annoyed" or "I am being careful, not avoiding."',
     },
   },
   neuroticism: {
     low: {
       title: "When someone else's pressure is real.",
-      body: 'Calm is a gift, except when it gets read as not caring.',
+      body: 'Steadiness is useful because it keeps perspective when pressure rises. Watch when calm gets read as not noticing what others are carrying.',
       tip: 'ask, "what are you carrying that I am not seeing?"',
     },
     high: {
       title: 'When risk-sensing needs a next step.',
-      body: 'Catching what could go wrong is useful until the signal repeats without changing the plan.',
+      body: 'Vigilance is useful because it catches weak signals before they become expensive. Watch when the risk keeps repeating without becoming a decision or action.',
       tip: 'name the signal, decide to act or release it, and then move on.',
     },
     wide: {
       title: 'Translating between steady and vigilant.',
-      body: 'One side may read pressure as a signal to act while the other reads it as something to move through.',
+      body: 'This range is useful because one side detects risk while the other keeps perspective. Watch when pressure is either dismissed too quickly or held too long.',
       tip: 'ask what each person is seeing before deciding whether the signal needs action.',
     },
   },
