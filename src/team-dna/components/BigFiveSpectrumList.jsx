@@ -23,6 +23,7 @@ const SPECTRUM_AUTO_ADVANCE_MS = 12000;
 const SPECTRUM_TRANSITION_MS = 400;
 const SPECTRUM_VIEW_FADE_MS = 320;
 const SPECTRUM_VIEW_HEIGHT_MS = 520;
+const FACE_MARKER_HIDE_THRESHOLD = 6;
 
 function getInitials(name) {
   return name
@@ -179,6 +180,15 @@ function getTeamDistribution(subjects, trait) {
     mean,
     range: getPercentBand(min, max, 2),
   };
+}
+
+function getMarkerScale(subjectCount) {
+  if (subjectCount <= 2) return 1;
+  if (subjectCount <= FACE_MARKER_HIDE_THRESHOLD) {
+    return Math.max(0.56, 1 - (subjectCount - 2) * 0.1);
+  }
+
+  return 0;
 }
 
 /**
@@ -480,12 +490,14 @@ function SpectrumRow({ trait, subjects, reads }) {
         <span className="big-five-spectrum-end low">{trait.lowLabel}</span>
         <span className="big-five-spectrum-end high">{trait.highLabel}</span>
         <span className="big-five-spectrum-line" />
-        {subjects.length > 2 ? (
+        {subjects.length > 1 ? (
           <TeamDistribution subjects={subjects} trait={trait} />
-        ) : (
+        ) : null}
+        {subjects.length <= FACE_MARKER_HIDE_THRESHOLD ? (
           subjects.map((subject, index) => {
             const score = getBigFiveScore(subject, trait.key);
             const color = SUBJECT_COLORS[index % SUBJECT_COLORS.length];
+            const markerScale = getMarkerScale(subjects.length);
 
             return (
               <span
@@ -494,6 +506,7 @@ function SpectrumRow({ trait, subjects, reads }) {
                 style={{
                   left: `${score}%`,
                   '--subject-color': color,
+                  '--big-five-marker-scale': markerScale,
                   zIndex: 10 + index,
                 }}
                 aria-label={`${subject.name}. ${trait.label}: ${score} out of 100.`}
@@ -515,7 +528,7 @@ function SpectrumRow({ trait, subjects, reads }) {
               </span>
             );
           })
-        )}
+        ) : null}
       </div>
     </div>
   );

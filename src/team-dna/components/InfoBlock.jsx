@@ -46,7 +46,7 @@ export function InfoBlock({
   ]
     .filter(Boolean)
     .join(' ');
-  const label = card.label;
+  const label = getDisplayLabel(card);
   const shouldShowLabel = card.showLabel !== false;
 
   return (
@@ -70,6 +70,15 @@ export function InfoBlock({
       )}
     </section>
   );
+}
+
+function getDisplayLabel(card) {
+  if (card.kind === 'watchOut') return 'Potential blind spots';
+  if (card.kind === 'guidance' && card.id.endsWith('-where-shines')) {
+    return 'Strengths';
+  }
+
+  return card.label;
 }
 
 function InfoBlockBody({ card, onSelectMember }) {

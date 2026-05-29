@@ -185,6 +185,7 @@ export const mockTeamRecords = [];
 export const sampleTeamRecord = {
   id: 'sample-team',
   name: 'Sample Team',
+  teamType: 'Direct reports',
   memberEmployeeIds: teamDnaDataset.members.map((member) => member.id),
   invitedEmails: [],
   sample: true,
@@ -215,6 +216,7 @@ export function buildTeamDnaDatasetFromTeamRecord(
   const team = {
     id: teamRecord.id,
     name: teamRecord.name,
+    teamType: teamRecord.teamType,
     sample: Boolean(teamRecord.sample),
   };
   const employeeMembers = teamRecord.memberEmployeeIds
@@ -269,10 +271,20 @@ export function buildTeamDnaDatasetFromTeamRecord(
   };
 }
 
+export const TEAM_TYPE_OPTIONS = [
+  'Direct reports',
+  'Cross-functional',
+  'Skip-level peers',
+  'Project team',
+];
+
 export function normalizeTeamRecord(teamRecord) {
   return {
     id: teamRecord.id,
     name: teamRecord.name.trim() || 'Untitled team',
+    teamType: TEAM_TYPE_OPTIONS.includes(teamRecord.teamType)
+      ? teamRecord.teamType
+      : 'Direct reports',
     memberEmployeeIds: Array.from(new Set(teamRecord.memberEmployeeIds)),
     invitedEmails: Array.from(new Set(teamRecord.invitedEmails.map(normalizeEmail))),
     sample: Boolean(teamRecord.sample),

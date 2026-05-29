@@ -326,6 +326,7 @@ export function TeamFaceField({
   introActive,
   showIntroHint = false,
   canPreviewDuoMember,
+  currentViewerMemberId,
   onSelectMember,
   onSelectTeam,
 }) {
@@ -619,6 +620,7 @@ export function TeamFaceField({
                     ref={setHitboxNode(member.id)}
                     visualRef={setFaceNode(member.id)}
                     member={member}
+                    isViewer={member.id === currentViewerMemberId}
                     isBlocked={blockedAttempt?.memberId === member.id}
                     blockedLabel={
                       blockedAttempt?.memberId === member.id

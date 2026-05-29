@@ -3,7 +3,6 @@ import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
 import { TeamDnaChatInputBridge } from './components/TeamDnaChatInputBridge.jsx';
-import { TeamContextSwitcher } from './components/TeamContextSwitcher.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
@@ -116,6 +115,7 @@ export function TeamDnaExperience({
   onGenerationTargetChange,
   onInsightLifecycleAction,
   onProfileCopySave,
+  onStartAssessment,
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
@@ -139,9 +139,6 @@ export function TeamDnaExperience({
     [dataset.members]
   );
 
-  const resolvedTeamOptions =
-    teamOptions.length > 0 ? teamOptions : [dataset.team];
-  const resolvedSelectedTeamId = selectedTeamId ?? dataset.team.id;
   const isIntroGateActive = !hasReleasedIntroGate && !shouldReduceMotion;
 
   useEffect(() => {
@@ -369,18 +366,6 @@ export function TeamDnaExperience({
       data-layout-debug={showLayoutOutlines || undefined}
       data-people-selector={isPeopleSelectorScaled ? 'scaled' : undefined}
     >
-      {canManageTeam ? (
-        <TeamContextSwitcher
-          teamOptions={resolvedTeamOptions}
-          selectedTeamId={resolvedSelectedTeamId}
-          selectedTeamName={dataset.team.name}
-          introHidden={isIntroChromeHidden}
-          topOffset={teamSwitcherTopOffset}
-          onAddTeam={onAddTeam}
-          onEditTeam={handleEditTeam}
-          onTeamChange={onTeamChange}
-        />
-      ) : null}
       <div className="team-dna-people-pane">
         <TeamFaceField
           teamId={dataset.team.id}
@@ -392,6 +377,7 @@ export function TeamDnaExperience({
           hideConnections={isPeopleSelectorScaled}
           introActive={isIntroGateActive}
           showIntroHint={isIntroGateActive}
+          currentViewerMemberId={currentViewerMemberId}
           canPreviewDuoMember={(memberId) => {
             const member = dataset.members.find((item) => item.id === memberId);
             const anchorMember = dataset.members.find(
@@ -412,9 +398,12 @@ export function TeamDnaExperience({
         }
         canManageTeam={canManageTeam}
         currentViewerMemberId={currentViewerMemberId}
+        members={dataset.members}
+        teamName={dataset.team?.name}
         onSelectMember={handleSelectMember}
         onLifecycleAction={onInsightLifecycleAction}
         onProfileCopySave={onProfileCopySave}
+        onStartAssessment={onStartAssessment}
       />
       <TeamDnaChatInputBridge
         scope={questionScope}

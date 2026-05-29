@@ -52,6 +52,7 @@ function getFirstNameSizeScale(firstName) {
 export const TeamFace = forwardRef(function TeamFace(
   {
     member,
+    isViewer = false,
     isSelected,
     isDuoSelected,
     isDimmed,
@@ -193,9 +194,14 @@ export const TeamFace = forwardRef(function TeamFace(
               {fallbackFirstName}
             </span>
           )}
-          {isUnavailable && (
+          {isUnavailable && !isViewer && (
             <span className="team-face-pending-pill" aria-hidden="true">
               Pending
+            </span>
+          )}
+          {isViewer && (
+            <span className="team-face-viewer-pill" aria-hidden="true">
+              You
             </span>
           )}
           {showTapHint && (
@@ -226,10 +232,15 @@ export const TeamFace = forwardRef(function TeamFace(
       data-duo-selected={isDuoSelected || undefined}
       data-dimmed={isDimmed || undefined}
       data-unavailable={isUnavailable || undefined}
+      data-viewer={isViewer || undefined}
       onClick={onSelect}
       aria-pressed={isSelected}
       aria-label={
-        isBlocked && blockedLabel
+        isViewer
+          ? isUnavailable
+            ? 'Your face - assessment not started'
+            : 'Your profile'
+          : isBlocked && blockedLabel
           ? `${member.name}: ${blockedLabel}`
           : isUnavailable
             ? `${member.name} assessment incomplete`

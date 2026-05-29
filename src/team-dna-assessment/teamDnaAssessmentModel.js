@@ -207,7 +207,7 @@ export const EXPERIENCE_BREAKS = [
     id: 'tdna_break_shape_forming',
     kind: 'interstitial',
     nonScored: true,
-    text: 'A pattern is starting to form.',
+    text: 'Reading the signals.',
   },
   {
     id: 'tdna_image_break_stuck_team',
@@ -231,7 +231,7 @@ export const EXPERIENCE_BREAKS = [
     id: 'tdna_break_signal_coming',
     kind: 'interstitial',
     nonScored: true,
-    text: 'Another signal is coming through.',
+    text: "You're quite the character.",
   },
   {
     id: 'tdna_image_break_quiet_room',
@@ -270,109 +270,6 @@ export const EXPERIENCE_BREAKS = [
     ],
   },
 ];
-
-export const BIG_FIVE_INTERSTITIAL_RESPONSES = {
-  tdna_b5_extraversion_1: {
-    low: 'You keep it quieter',
-    mid: 'You bring some energy',
-    high: 'You bring visible energy',
-  },
-  tdna_b5_agreeableness_1: {
-    low: 'You prioritize the work',
-    mid: 'You balance people and task',
-    high: 'You watch the room',
-  },
-  tdna_b5_conscientiousness_1: {
-    low: 'You can start loose',
-    mid: 'You like a light plan',
-    high: 'You want a clear plan',
-  },
-  tdna_b5_neuroticism_1: {
-    low: 'You scan less upfront',
-    mid: 'You notice some signals',
-    high: 'You spot risks early',
-  },
-  tdna_b5_openness_1: {
-    low: 'You trust proven ideas',
-    mid: 'You stay somewhat curious',
-    high: 'You open new doors',
-  },
-  tdna_b5_extraversion_2: {
-    low: 'You think out loud',
-    mid: 'You choose your moment',
-    high: 'You draft inside first',
-  },
-  tdna_b5_agreeableness_2: {
-    low: 'You support before testing',
-    mid: 'You test ideas gently',
-    high: 'You challenge ideas early',
-  },
-  tdna_b5_conscientiousness_2: {
-    low: 'You close the details',
-    mid: 'You leave some room',
-    high: 'You allow open loops',
-  },
-  tdna_b5_neuroticism_2: {
-    low: 'Uncertainty gets your attention',
-    mid: 'You stay mostly steady',
-    high: 'You stay calm there',
-  },
-  tdna_b5_openness_2: {
-    low: 'You try new angles',
-    mid: 'You remix what works',
-    high: 'You trust familiar paths',
-  },
-  tdna_b5_extraversion_3: {
-    low: 'You process inside first',
-    mid: 'You take some airtime',
-    high: 'You think out loud',
-  },
-  tdna_b5_agreeableness_3: {
-    low: 'You keep a clear edge',
-    mid: 'You look for bridges',
-    high: 'You find common ground',
-  },
-  tdna_b5_conscientiousness_3: {
-    low: 'Follow-through feels looser',
-    mid: 'You mostly land it',
-    high: 'You follow through carefully',
-  },
-  tdna_b5_neuroticism_3: {
-    low: 'You can close the loop',
-    mid: 'It stays a little open',
-    high: 'It stays on your mind',
-  },
-  tdna_b5_openness_3: {
-    low: 'You stay close to ground',
-    mid: 'You make some links',
-    high: 'You connect distant ideas',
-  },
-  tdna_b5_extraversion_4: {
-    low: 'You share without much pause',
-    mid: 'You take a short pause',
-    high: 'You need quiet first',
-  },
-  tdna_b5_agreeableness_4: {
-    low: 'You soften the edge',
-    mid: 'You name it clearly',
-    high: 'You spot the issue',
-  },
-  tdna_b5_conscientiousness_4: {
-    low: 'You need more structure',
-    mid: 'Light structure is enough',
-    high: 'You can move loose',
-  },
-  tdna_b5_neuroticism_4: {
-    low: 'Risks stay present for you',
-    mid: 'Risk checks make cameos',
-    high: 'Worry stays pretty low',
-  },
-  tdna_b5_openness_4: {
-    low: 'You explore beyond proven',
-    mid: 'You like some novelty',
-    high: 'You keep what works',
-  },
-};
 
 export const ROLE_BY_TRAIT_POLE = {
   extraversion_high: {

@@ -129,7 +129,7 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
       ? {
           id: `${scopeId}-meeting-behavior`,
           kind: 'meetingBehavior',
-          label: 'In meetings...',
+          label: 'Meeting behavior',
           data: { meetingBehavior },
         }
       : null,
@@ -138,7 +138,7 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
         ? `${scopeId}-watch-out`
         : 'team-watch-out',
       kind: 'watchOut',
-      label: 'Look out for...',
+      label: 'Potential blind spots',
       data: { watchOut },
     },
   ];

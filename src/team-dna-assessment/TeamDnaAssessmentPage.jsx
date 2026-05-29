@@ -13,7 +13,6 @@ import { InsightPanel } from '../team-dna/components/InsightPanel.jsx';
 import { getInsightForSelection } from '../team-dna/data/teamDnaAdapter.js';
 import { useTeamDnaPressable } from '../team-dna/hooks/useTeamDnaPressable.js';
 import {
-  BIG_FIVE_INTERSTITIAL_RESPONSES,
   IMAGE_BREAK_URLS,
   LIKERT_OPTIONS,
   TEAM_DNA_ASSESSMENT_STORAGE_KEY,
@@ -346,21 +345,6 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
   const playCardSelect = useAssessmentSound(SOUNDS.cardSelect, 0.4);
   const playClick = useAssessmentSound(SOUNDS.click, 0.25);
   const currentQuestion = assessmentSteps[questionIndex];
-  const previousScoredAnswer = useMemo(() => {
-    for (let index = questionIndex - 1; index >= 0; index -= 1) {
-      const previousStep = assessmentSteps[index];
-      if (!previousStep || previousStep.nonScored) continue;
-      const previousValue = responses[previousStep.id];
-      if (previousValue === undefined) continue;
-
-      return {
-        step: previousStep,
-        value: previousValue,
-      };
-    }
-
-    return null;
-  }, [assessmentSteps, questionIndex, responses]);
   const answeredCount = assessmentSteps.filter((step) =>
     responses[step.id] !== undefined
   ).length;
@@ -650,7 +634,6 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
             </button>
             <QuestionStep
               step={currentQuestion}
-              previousScoredAnswer={previousScoredAnswer}
               value={responses[currentQuestion.id]}
               onChange={(value) => setResponse(currentQuestion.id, value)}
               onInterstitialSeen={(id) => seenInterstitialIdsRef.current.add(id)}
@@ -847,7 +830,6 @@ function AssessmentProgress({ current, total, progress }) {
 
 function QuestionStep({
   step,
-  previousScoredAnswer,
   value,
   onChange,
   onInterstitialSeen,
@@ -862,7 +844,6 @@ function QuestionStep({
     return (
       <InterstitialBreak
         item={step.item}
-        previousScoredAnswer={previousScoredAnswer}
         onNext={onNext}
         onSeen={onInterstitialSeen}
       />
@@ -944,30 +925,9 @@ function QuestionStep({
   );
 }
 
-function getInterstitialTone(value) {
-  const numberValue = Number(value);
-  if (!Number.isFinite(numberValue)) return 'mid';
-  if (numberValue <= 2) return 'low';
-  if (numberValue >= 4) return 'high';
-  return 'mid';
-}
-
-function getInterstitialText(item, previousScoredAnswer) {
-  const previousStep = previousScoredAnswer?.step;
-  if (previousStep?.kind !== 'bigFive') return item.text;
-
-  const responseSet = BIG_FIVE_INTERSTITIAL_RESPONSES[previousStep.id];
-  if (!responseSet) return item.text;
-
-  return responseSet[getInterstitialTone(previousScoredAnswer.value)] ?? item.text;
-}
-
-function InterstitialBreak({ item, previousScoredAnswer, onNext, onSeen }) {
+function InterstitialBreak({ item, onNext, onSeen }) {
   const [isLeaving, setIsLeaving] = useState(false);
-  const text = useMemo(
-    () => getInterstitialText(item, previousScoredAnswer),
-    [item, previousScoredAnswer]
-  );
+  const text = item.text;
   const letters = useMemo(() => Array.from(text), [text]);
 
   useEffect(() => {
@@ -1971,7 +1931,7 @@ function ProfileLoader({ readyToExit, onExitComplete }) {
   const [completionStarted, setCompletionStarted] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
   const messages = useMemo(
-    () => ['Reading signals', 'Mapping strengths', 'Shaping profile'],
+    () => ['Reading the signals', "You're quite the character", 'Almost there'],
     []
   );
   const message = showCheckmark ? 'All set' : messages[statusIndex % messages.length];
