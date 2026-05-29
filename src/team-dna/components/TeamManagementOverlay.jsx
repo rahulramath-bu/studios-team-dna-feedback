@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, LayoutGroup, motion } from 'motion/react';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
+import { TEAM_TYPE_OPTIONS } from '../data/teamManagementMock.js';
 
 function getEmployeeName(employee) {
   return [employee.firstName, employee.lastName].filter(Boolean).join(' ')
@@ -29,6 +30,7 @@ function getInitials(value) {
 const EMPTY_TEAM_RECORD = {
   id: null,
   name: '',
+  teamType: 'Direct reports',
   memberEmployeeIds: [],
   invitedEmails: [],
   sample: false,
@@ -80,6 +82,9 @@ export function TeamManagementOverlay({
   const sourceRecord = teamRecord ?? EMPTY_TEAM_RECORD;
   const [isClosing, setIsClosing] = useState(false);
   const [teamName, setTeamName] = useState(sourceRecord.name);
+  const [teamType, setTeamType] = useState(
+    sourceRecord.teamType || 'Direct reports'
+  );
   const [selectedEmployeeIds, setSelectedEmployeeIds] = useState(
     sourceRecord.memberEmployeeIds
   );
@@ -392,6 +397,7 @@ export function TeamManagementOverlay({
       onSave?.({
         id: sourceRecord.id,
         name: teamName,
+        teamType,
         memberEmployeeIds: selectedEmployeeIds,
         invitedEmails,
         sample: sourceRecord.sample,
@@ -497,6 +503,36 @@ export function TeamManagementOverlay({
               placeholder="Name this team"
             />
           </label>
+
+          <div className="team-management-field team-management-field--type">
+            <span>Team type</span>
+            <div
+              className="team-type-grid"
+              role="radiogroup"
+              aria-label="Team type"
+            >
+              {TEAM_TYPE_OPTIONS.map((option) => {
+                const isActive = teamType === option;
+                return (
+                  <button
+                    key={option}
+                    type="button"
+                    role="radio"
+                    aria-checked={isActive}
+                    className="team-type-chip"
+                    data-active={isActive || undefined}
+                    onClick={() => setTeamType(option)}
+                  >
+                    {option}
+                  </button>
+                );
+              })}
+            </div>
+            <p className="team-management-field-helper">
+              You can use Team DNA, Pulse, and Coaching with any group you work
+              with — not just direct reports.
+            </p>
+          </div>
 
           <section className="team-management-section team-management-section--members">
             <div className="team-management-selected-heading">

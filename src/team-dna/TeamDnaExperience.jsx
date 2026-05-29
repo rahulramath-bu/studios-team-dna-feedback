@@ -3,7 +3,6 @@ import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
 import { TeamDnaChatInputBridge } from './components/TeamDnaChatInputBridge.jsx';
-import { TeamContextSwitcher } from './components/TeamContextSwitcher.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
@@ -98,6 +97,7 @@ export function TeamDnaExperience({
   onGenerationTargetChange,
   onInsightLifecycleAction,
   onProfileCopySave,
+  onStartAssessment,
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
@@ -257,18 +257,9 @@ export function TeamDnaExperience({
       data-intro={isIntroGateActive || undefined}
       data-layout-debug={showLayoutOutlines || undefined}
     >
-      {canManageTeam ? (
-        <TeamContextSwitcher
-          teamOptions={resolvedTeamOptions}
-          selectedTeamId={resolvedSelectedTeamId}
-          selectedTeamName={dataset.team.name}
-          introHidden={isIntroChromeHidden}
-          topOffset={teamSwitcherTopOffset}
-          onAddTeam={onAddTeam}
-          onEditTeam={handleEditTeam}
-          onTeamChange={onTeamChange}
-        />
-      ) : null}
+      {/* Team context switcher moved into the left rail (see TeamLeftRail).
+          We still accept the related props so TeamDnaPage's contract stays
+          stable, but render no chrome here. */}
       <div className="team-dna-people-pane">
         <TeamFaceField
           teamId={dataset.team.id}
@@ -279,6 +270,7 @@ export function TeamDnaExperience({
           entityTitle={insight.entityTitle ?? insight.title}
           introActive={isIntroGateActive}
           showIntroHint={isIntroGateActive}
+          currentViewerMemberId={currentViewerMemberId}
           onSelectMember={handleSelectMember}
           onSelectTeam={handleSelectTeam}
         />
@@ -289,9 +281,12 @@ export function TeamDnaExperience({
         preserveScroll={preserveInsightScroll}
         canManageTeam={canManageTeam}
         currentViewerMemberId={currentViewerMemberId}
+        members={dataset.members}
+        teamName={dataset.team?.name}
         onSelectMember={handleSelectMember}
         onLifecycleAction={onInsightLifecycleAction}
         onProfileCopySave={onProfileCopySave}
+        onStartAssessment={onStartAssessment}
       />
       <TeamDnaChatInputBridge
         scope={questionScope}

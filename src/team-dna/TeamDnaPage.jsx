@@ -2,6 +2,9 @@ import React, { useMemo, useState } from 'react';
 import { TeamDnaExperience } from './TeamDnaExperience.jsx';
 import { TeamDnaEmptyPreview } from './components/TeamDnaEmptyPreview.jsx';
 import { TeamManagementOverlay } from './components/TeamManagementOverlay.jsx';
+import { LifecycleStrip } from './components/LifecycleStrip.jsx';
+import { TeamLeftRail } from './components/TeamLeftRail.jsx';
+import { TeamSurfacePanel } from './components/TeamSurfacePanel.jsx';
 import {
   buildTeamDnaDatasetFromTeamRecord,
   mockOrganizationEmployees,
@@ -266,6 +269,7 @@ export function TeamDnaPage() {
   });
   const [teamManagementOverlay, setTeamManagementOverlay] = useState(null);
   const [activeGenerationTarget, setActiveGenerationTarget] = useState(null);
+  const [activeSurface, setActiveSurface] = useState(null); // 'pulse' | 'coaching' | null
   const [profileCopyEditsByMemberId, setProfileCopyEditsByMemberId] = useState(
     {}
   );
@@ -317,6 +321,7 @@ export function TeamDnaPage() {
       Object.values(teamRecords).map(({ teamRecord }) => ({
         id: teamRecord.id,
         name: teamRecord.name,
+        teamType: teamRecord.teamType,
         memberCount: teamRecord.memberEmployeeIds.length + teamRecord.invitedEmails.length,
         sample: teamRecord.sample,
       })),
@@ -451,6 +456,16 @@ export function TeamDnaPage() {
     setGenerationStatusForTarget(action.target, nextStatus, action.type);
   };
 
+  // Prototype-only navigation seam. In the monolith, replace with a real
+  // router call; here we keep the App-level useRoute() loop happy by pushing
+  // a history entry and emitting popstate so App re-reads the path.
+  const handleStartAssessment = () => {
+    if (typeof window === 'undefined') return;
+    if (window.location.pathname === '/assessment') return;
+    window.history.pushState({}, '', '/assessment');
+    window.dispatchEvent(new PopStateEvent('popstate'));
+  };
+
   const handleProfileCopySave = ({
     memberId,
     overview,
@@ -469,6 +484,20 @@ export function TeamDnaPage() {
         meetingBehaviorSections,
       },
     }));
+  };
+
+  // When a team is newly created, default everyone (including the viewer) to
+  // "assessment not started" so the page lands in the waiting / "Your turn"
+  // state rather than skipping ahead to a ready insight using mock scores.
+  const resetMembersForFreshTeam = (teamRecord) => {
+    const dataset = getDatasetForTeamRecord(
+      teamRecord,
+      organizationEmployees,
+      teamDnaResultsByEmployeeId
+    );
+    setMemberAssessmentStates(
+      dataset.members.map((m) => ({ memberId: m.id, assessmentComplete: false }))
+    );
   };
 
   const saveTeamRecord = (draftTeamRecord) => {
@@ -493,6 +522,7 @@ export function TeamDnaPage() {
           ),
       },
     }));
+    resetMembersForFreshTeam(nextTeamRecord);
     setActiveTeamId(teamId);
     setTeamManagementOverlay(null);
   };
@@ -660,27 +690,69 @@ export function TeamDnaPage() {
       ...current,
       [sampleTeamRecord.id]: sampleRecordState,
     }));
+    resetMembersForFreshTeam(sampleTeamRecord);
     setActiveTeamId(sampleTeamRecord.id);
+  };
+
+  const lifecycleStatus =
+    activeGenerationTarget &&
+    (generationStatusByTargetId[activeGenerationTarget.id] ?? activeGenerationTarget.status);
+
+  const activeTeamRecord = activeRecord?.teamRecord ?? null;
+  const handleRailSelect = (id) => {
+    if (id === 'pulse' || id === 'coaching') {
+      setActiveSurface(id);
+      return;
+    }
+    // 'home' and 'dna' are placeholders for now — close any open surface.
+    setActiveSurface(null);
   };
 
   return (
     <>
       <MonolithTeamShell enabled={devState.showMonolithShell}>
-        <main className="team-dna-page" aria-label="Team DNA">
-          {isTrueEmptyState ? (
-            <TeamDnaEmptyState
+        <div
+          className="team-dna-shell"
+          data-has-rail={!isTrueEmptyState || undefined}
+        >
+          {!isTrueEmptyState ? (
+            <TeamLeftRail
+              activeId={activeSurface ?? 'dna'}
+              teamName={activeTeamRecord?.name}
+              teamType={activeTeamRecord?.teamType}
+              teamOptions={teamOptions}
+              selectedTeamId={activeTeamId}
               canManageTeam={canManageTeam}
-              currentViewerMemberId={currentViewerMemberId}
+              onSelect={handleRailSelect}
               onAddTeam={openCreateTeam}
-              onTrySample={trySampleTeam}
+              onEditTeam={openEditTeam}
+              onTeamChange={switchTeam}
             />
-          ) : (
+          ) : null}
+          <main className="team-dna-page" aria-label="Team DNA">
+            {!isTrueEmptyState && activeGenerationTarget ? (
+              <LifecycleStrip
+                target={activeGenerationTarget}
+                status={lifecycleStatus}
+                dataset={scenarioDataset}
+                onSetStatus={setGenerationScenarioForTarget}
+              />
+            ) : null}
+            {isTrueEmptyState ? (
+              <TeamDnaEmptyState
+                canManageTeam={canManageTeam}
+                currentViewerMemberId={currentViewerMemberId}
+                onAddTeam={openCreateTeam}
+                onTrySample={trySampleTeam}
+                onOpenSurface={setActiveSurface}
+              />
+            ) : (
             <TeamDnaExperience
               dataset={scenarioDataset}
               generationStatusByTargetId={generationStatusByTargetId}
               teamOptions={teamOptions}
               selectedTeamId={activeTeamId}
-              teamSwitcherTopOffset={devState.showMonolithShell ? 104 : 34}
+              teamSwitcherTopOffset={(devState.showMonolithShell ? 104 : 34) + (activeGenerationTarget ? 52 : 0)}
               canManageTeam={canManageTeam}
               currentViewerMemberId={currentViewerMemberId}
               onAddTeam={openCreateTeam}
@@ -690,9 +762,16 @@ export function TeamDnaPage() {
               onGenerationTargetChange={setActiveGenerationTarget}
               onInsightLifecycleAction={handleInsightLifecycleAction}
               onProfileCopySave={handleProfileCopySave}
+              onStartAssessment={handleStartAssessment}
             />
-          )}
-        </main>
+            )}
+          </main>
+          <TeamSurfacePanel
+            surface={activeSurface}
+            onClose={() => setActiveSurface(null)}
+            onOpenSurface={setActiveSurface}
+          />
+        </div>
       </MonolithTeamShell>
       {teamManagementOverlay && (
         <TeamManagementOverlay
@@ -720,30 +799,31 @@ export function TeamDnaPage() {
   );
 }
 
-function TeamDnaEmptyState({ canManageTeam, onAddTeam, onTrySample }) {
+function TeamDnaEmptyState({ canManageTeam, onAddTeam, onTrySample, onOpenSurface }) {
   return (
-    <section
-      className="team-dna-empty-state"
-      aria-label="Team DNA empty state"
-    >
-      <div className="team-dna-empty-copy">
-        <p className="team-dna-empty-eyebrow">Team DNA</p>
-        <h1>Work better together.</h1>
-        <p className="team-dna-empty-body">
-          Team DNA uses the research-backed <strong>Big Five</strong>
-          <a
-            href="https://doi.org/10.1037/0022-3514.59.6.1216"
-            target="_blank"
-            rel="noreferrer"
-            aria-label="Goldberg 1990 Big Five factor structure source"
-            title="Goldberg, L. R. (1990). An alternative description of personality: The Big-Five factor structure."
-          >
-            [1]
-          </a>{' '}
-          framework to reveal how people work, what brings out their best, and
-          where teammates can multiply each other’s impact.
-        </p>
-        {canManageTeam ? (
+    <section className="team-tooling-home" aria-label="Team tooling home">
+      <div className="team-dna-empty-state">
+        <div className="team-dna-empty-copy">
+          <p className="team-dna-empty-eyebrow">
+            Team DNA
+            <span className="team-dna-empty-new">New</span>
+          </p>
+          <h1>Work better together.</h1>
+          <p className="team-dna-empty-body">
+            Team DNA uses the research-backed <strong>Big Five</strong>
+            <a
+              href="https://doi.org/10.1037/0022-3514.59.6.1216"
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Goldberg 1990 Big Five factor structure source"
+              title="Goldberg, L. R. (1990). An alternative description of personality: The Big-Five factor structure."
+            >
+              [1]
+            </a>{' '}
+            framework to reveal how people work, what brings out their best, and
+            where teammates can multiply each other’s impact.
+          </p>
+          {canManageTeam ? (
             <div className="team-dna-empty-actions">
               <button
                 type="button"
@@ -760,16 +840,75 @@ function TeamDnaEmptyState({ canManageTeam, onAddTeam, onTrySample }) {
                 Try with sample data
               </button>
             </div>
-        ) : (
-          <div className="team-dna-empty-actions">
-            <p className="team-dna-empty-note">
-              After a manager or admin adds you to a team, you’ll see your team
-              summary here.
-            </p>
-          </div>
-        )}
+          ) : (
+            <div className="team-dna-empty-actions">
+              <p className="team-dna-empty-note">
+                After a manager or admin adds you to a team, you’ll see your team
+                summary here.
+              </p>
+            </div>
+          )}
+        </div>
+        <TeamDnaEmptyPreview />
       </div>
-      <TeamDnaEmptyPreview />
+
+      <div className="team-tooling-more">
+        <div className="team-tooling-divider" aria-hidden="true" />
+        <div className="team-tooling-tools">
+          <TeamToolingEntry
+            surface="pulse"
+            eyebrow="Team Pulse"
+            title="See how the team’s really doing."
+            body="Quick, anonymous check-ins on energy, overwhelm, and support — so you catch what matters early."
+            cta="Run a quick pulse"
+            onOpenSurface={onOpenSurface}
+          />
+          <TeamToolingEntry
+            surface="coaching"
+            eyebrow="Team Coaching"
+            title="Grow with a coach."
+            body="Live, coach-led sessions built around your team’s real challenges."
+            cta="Explore coaching topics"
+            onOpenSurface={onOpenSurface}
+          />
+        </div>
+      </div>
     </section>
+  );
+}
+
+function TeamToolingEntry({ surface, eyebrow, title, body, cta, onOpenSurface }) {
+  const open = () => onOpenSurface?.(surface);
+  return (
+    <article
+      className="team-tooling-tool"
+      data-surface={surface}
+      role="button"
+      tabIndex={0}
+      onClick={open}
+      onKeyDown={(event) => {
+        if (event.key === 'Enter' || event.key === ' ') {
+          event.preventDefault();
+          open();
+        }
+      }}
+    >
+      <p className="team-tooling-tool-eyebrow">{eyebrow}</p>
+      <h2 className="team-tooling-tool-title">{title}</h2>
+      <p className="team-tooling-tool-body">{body}</p>
+      <span className="team-tooling-tool-cta">
+        {cta}
+        <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true">
+          <path
+            d="M5 12h14M13 6l6 6-6 6"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </span>
+    </article>
   );
 }

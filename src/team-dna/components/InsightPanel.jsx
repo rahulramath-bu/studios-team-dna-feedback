@@ -34,9 +34,12 @@ export function InsightPanel({
   preserveScroll = false,
   canManageTeam = true,
   currentViewerMemberId,
+  members = [],
+  teamName,
   onSelectMember,
   onLifecycleAction,
   onProfileCopySave,
+  onStartAssessment,
 }) {
   const scrollRef = useRef(null);
   const resetScrollAfterExit = () => {
@@ -69,9 +72,12 @@ export function InsightPanel({
                   insight={insight}
                   canManageTeam={canManageTeam}
                   currentViewerMemberId={currentViewerMemberId}
+                  members={members}
+                  teamName={teamName}
                   onSelectMember={onSelectMember}
                   onLifecycleAction={onLifecycleAction}
                   onProfileCopySave={onProfileCopySave}
+                  onStartAssessment={onStartAssessment}
                 />
               </AnimatePresence>
             </div>
@@ -86,9 +92,12 @@ function InsightPage({
   insight,
   canManageTeam,
   currentViewerMemberId,
+  members,
+  teamName,
   onSelectMember,
   onLifecycleAction,
   onProfileCopySave,
+  onStartAssessment,
 }) {
   return (
     <motion.article
@@ -112,9 +121,12 @@ function InsightPage({
         insight={insight}
         canManageTeam={canManageTeam}
         currentViewerMemberId={currentViewerMemberId}
+        members={members}
+        teamName={teamName}
         onSelectMember={onSelectMember}
         onLifecycleAction={onLifecycleAction}
         onProfileCopySave={onProfileCopySave}
+        onStartAssessment={onStartAssessment}
       />
     </motion.article>
   );
@@ -124,9 +136,12 @@ function InsightPageContent({
   insight,
   canManageTeam,
   currentViewerMemberId,
+  members,
+  teamName,
   onSelectMember,
   onLifecycleAction,
   onProfileCopySave,
+  onStartAssessment,
 }) {
   const lifecycle = insight.generationLifecycle;
   const editableMemberId =
@@ -168,7 +183,11 @@ function InsightPageContent({
       {isHardNotReady ? (
         <InsightWaitingState
           lifecycle={lifecycle}
+          members={members}
+          currentViewerMemberId={currentViewerMemberId}
+          teamName={teamName}
           onLifecycleAction={onLifecycleAction}
+          onStartAssessment={onStartAssessment}
         />
       ) : null}
       {isHardNotReady ? null : (
@@ -398,14 +417,36 @@ function InsightLifecycleStatus({
   );
 }
 
-function InsightWaitingState({ lifecycle, onLifecycleAction }) {
+function InsightWaitingState({
+  lifecycle,
+  members = [],
+  currentViewerMemberId,
+  teamName,
+  onLifecycleAction,
+  onStartAssessment,
+}) {
   const target = lifecycle?.target;
   const canGenerateTeam = target?.scope === 'team' && target.canGenerateTeam;
   const copy = getWaitingStateCopy(target);
+  const viewer = members.find((m) => m.id === currentViewerMemberId);
+  const viewerNeedsAssessment = viewer && viewer.assessmentComplete === false;
+  const completed = target?.completedCount ?? 0;
+  const total = target?.totalCount ?? 0;
+  const minimum = target?.minimumCompletedCount ?? 0;
+  const pendingMembers = members.filter((m) => m.assessmentComplete === false);
+  const pendingCount = pendingMembers.length;
+  const progressPct =
+    total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+  const isTeamScope = target?.scope === 'team';
+  const tagLabel = isTeamScope
+    ? `${completed} of ${total} assessments`
+    : copy.eyebrow;
+  const headerLabel = isTeamScope
+    ? teamName || copy.eyebrow
+    : copy.eyebrow;
 
   const handleGenerate = () => {
     if (!canGenerateTeam) return;
-
     onLifecycleAction?.({
       type: 'teamDnaInsightGenerationRequested',
       target,
@@ -413,20 +454,83 @@ function InsightWaitingState({ lifecycle, onLifecycleAction }) {
     });
   };
 
+  const handleStartAssessment = () => {
+    onStartAssessment?.();
+  };
+
   return (
-    <section className="insight-waiting-state" aria-label="Assessment waiting state">
-      <p className="insight-waiting-kicker">{copy.eyebrow}</p>
-      <h2>{copy.title}</h2>
-      <p>{copy.text}</p>
-      {canGenerateTeam ? (
-        <button
-          className="insight-waiting-action"
-          type="button"
-          onClick={handleGenerate}
-        >
-          {copy.actionLabel ?? 'Generate now'}
-        </button>
+    <section
+      className="insight-waiting-state"
+      data-scope={target?.scope ?? 'team'}
+      aria-label="Assessment waiting state"
+    >
+      <header className="insight-waiting-header">
+        <div className="insight-waiting-header-text">
+          <span className="insight-waiting-eyebrow">{headerLabel}</span>
+          <h2>{copy.title}</h2>
+        </div>
+        <span className="insight-waiting-tag" data-tone="waiting">
+          {tagLabel}
+        </span>
+      </header>
+
+      <p className="insight-waiting-body">{copy.text}</p>
+
+      {isTeamScope && total > 0 ? (
+        <div className="insight-waiting-progress" aria-hidden="true">
+          <div className="insight-waiting-progress-track">
+            <div
+              className="insight-waiting-progress-fill"
+              style={{ width: `${progressPct}%` }}
+            />
+          </div>
+          <div className="insight-waiting-progress-meta">
+            <span>Unlocks at {minimum}/{total}</span>
+            <span>{completed}/{total} done</span>
+          </div>
+        </div>
       ) : null}
+
+      {viewerNeedsAssessment ? (
+        <div className="insight-waiting-callout">
+          <div className="insight-waiting-callout-text">
+            <span className="insight-waiting-callout-eyebrow">Your turn</span>
+            <p>
+              You haven&rsquo;t shared your DNA yet. Your read is the missing piece
+              for {teamName ? <strong>{teamName}</strong> : 'this team'}.
+            </p>
+          </div>
+          <button
+            className="bu-button bu-button--primary"
+            type="button"
+            onClick={handleStartAssessment}
+          >
+            Start your assessment
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+        </div>
+      ) : null}
+
+      <div className="insight-waiting-footer">
+        {!viewerNeedsAssessment && pendingCount > 0 && isTeamScope ? (
+          <span className="insight-waiting-footer-note">
+            Waiting on{' '}
+            <strong>
+              {pendingCount} {pendingCount === 1 ? 'teammate' : 'teammates'}
+            </strong>{' '}
+            to finish.
+          </span>
+        ) : null}
+        {canGenerateTeam ? (
+          <button
+            className="bu-button bu-button--secondary"
+            type="button"
+            onClick={handleGenerate}
+          >
+            {copy.actionLabel ?? 'Generate now'}
+          </button>
+        ) : null}
+      </div>
     </section>
   );
 }

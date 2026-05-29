@@ -961,6 +961,68 @@ button {
   box-shadow: 0 0 0 3px rgba(var(--team-dna-primary-rgb), 0.12);
 }
 
+.team-management-field--type {
+  margin-top: 18px;
+}
+
+.team-type-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.team-type-chip {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 12px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  background: var(--white);
+  color: var(--team-dna-ink);
+  font-family: 'Söhne', system-ui, sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 140ms ease, background 140ms ease, color 140ms ease;
+}
+
+.team-type-chip:hover {
+  border-color: rgba(var(--team-dna-ink-rgb), 0.28);
+  background: rgba(var(--team-dna-ink-rgb), 0.02);
+}
+
+.team-type-chip[data-active] {
+  border-color: transparent;
+  background: var(--midnight);
+  color: var(--white);
+}
+
+.team-management-field-helper {
+  margin: 4px 2px 0;
+  color: rgba(var(--team-dna-ink-rgb), 0.55);
+  font-size: 12.5px;
+  line-height: 1.45;
+}
+
+.team-context-team-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.team-context-team-type {
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: rgba(var(--team-dna-ink-rgb), 0.5);
+  line-height: 1.2;
+}
+
 .team-management-member-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -1886,6 +1948,170 @@ button.team-management-row {
   outline-offset: 3px;
 }
 
+/* --- Team tooling home (empty-state hero + equal-weight tool cards) --- */
+.team-tooling-home {
+  /* Shared so the hero, the divider, and the tool row all line up to the
+     same content box: left edge of the headline → right edge of the preview. */
+  --empty-copy-width: 620px;
+  --empty-preview-width: 300px;
+  --empty-pane-gap: 80px;
+  --empty-experience-width: calc(
+    var(--empty-copy-width) + var(--empty-preview-width) + var(--empty-pane-gap)
+  );
+  width: 100%;
+  min-height: 100vh;
+}
+
+.monolith-shell-preview .team-tooling-home {
+  min-height: calc(100vh - var(--monolith-shell-chrome));
+}
+
+/* Hero is shorter now so the three products read as one page, not a scroll */
+.team-tooling-home .team-dna-empty-state {
+  --empty-preview-width: 300px;
+  --empty-pane-gap: 80px;
+  min-height: auto;
+  align-items: center;
+  padding: 64px 0 36px;
+}
+
+.monolith-shell-preview .team-tooling-home .team-dna-empty-state {
+  min-height: auto;
+  padding: 44px 0 32px;
+  transform: none;
+}
+
+/* Smaller hero headline so the three products read closer to equal weight */
+.team-tooling-home .team-dna-empty-copy h1 {
+  font-size: clamp(38px, 4vw, 52px);
+}
+
+.team-tooling-home .team-dna-empty-body {
+  max-width: 480px;
+  font-size: 16px;
+  margin-top: 18px;
+}
+
+.team-tooling-home .team-dna-empty-actions {
+  margin-top: 30px;
+}
+
+/* "New" badge on the Team DNA eyebrow — quiet white tier, not a heavy pill */
+.team-dna-empty-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.team-dna-empty-new {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #fff;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
+  color: var(--rubine, #d01e50);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+/* Blended "other tools" band — no boxes; a hairline gives it weight,
+   identical type + color as the hero, aligned to the same content width. */
+.team-tooling-more {
+  width: min(calc(100% - 48px), var(--empty-experience-width, 1000px));
+  margin: 0 auto;
+  padding: 0 0 80px;
+  animation: team-dna-empty-fade 1500ms cubic-bezier(0.22, 1, 0.36, 1) 1100ms both;
+}
+
+.team-tooling-divider {
+  height: 1px;
+  margin: 0 0 36px;
+  background: rgba(var(--team-dna-ink-rgb), 0.12);
+}
+
+.team-tooling-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+}
+
+/* Each tool mirrors the hero exactly: mono eyebrow → serif title → body → CTA.
+   A vertical hairline separates the two. */
+.team-tooling-tool {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  padding: 2px 64px 2px 0;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.team-tooling-tool + .team-tooling-tool {
+  padding: 2px 0 2px 64px;
+  border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+}
+
+.team-tooling-tool:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+
+/* identical to .team-dna-empty-eyebrow so all three product labels match */
+.team-tooling-tool-eyebrow {
+  margin: 0 0 16px;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 1.1px;
+  line-height: 1.4;
+  text-transform: uppercase;
+  color: var(--label-color);
+}
+
+.team-tooling-tool-title {
+  margin: 0;
+  font-family: var(--heading-display-font);
+  font-size: 26px;
+  font-weight: 400;
+  letter-spacing: var(--heading-display-tracking);
+  line-height: 1.1;
+  color: var(--foreground-heading);
+}
+
+.team-tooling-tool-body {
+  margin: 16px 0 0;
+  font-size: 16px;
+  line-height: 1.55;
+  color: rgba(var(--team-dna-copy-rgb), 0.74);
+  max-width: 40ch;
+}
+
+.team-tooling-tool-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 22px;
+  color: var(--rubine, #d01e50);
+  font-size: 14px;
+  font-weight: 500;
+  transition: gap 180ms ease;
+}
+
+.team-tooling-tool:hover .team-tooling-tool-cta {
+  gap: 11px;
+}
+
+.team-tooling-tool-cta svg {
+  fill: none;
+  stroke: currentColor;
+}
+
 .team-dna-empty-note {
   max-width: 360px;
   margin: 0;
@@ -2286,6 +2512,866 @@ button.team-management-row {
   }
 }
 
+/* --- Team-scoped left nav (monolith PartnerLeftNav pattern) ---
+   white card · subtle ink border · 12px corners · 36px → 240px on hover. */
+.team-dna-shell {
+  position: relative;
+  min-height: 100vh;
+}
+
+.team-dna-shell[data-has-rail] {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0;
+  padding: 0;
+  align-items: stretch;
+  background: var(--page-background);
+}
+
+.team-dna-shell[data-has-rail] .team-dna-page {
+  min-width: 0;
+}
+
+.team-left-nav {
+  --team-nav-collapsed-width: 64px;
+  --team-nav-expanded-width: 248px;
+  --team-nav-ink: #1d1925;
+  --team-nav-ink-soft: #4d4d4d;
+  --team-nav-divider: rgba(29, 25, 37, 0.08);
+  --team-nav-active-bg: rgba(208, 30, 80, 0.06);
+  --team-nav-active-fg: #b00b3c;
+  position: sticky;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  width: var(--team-nav-collapsed-width);
+  max-height: 100vh;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-right: 1px solid var(--team-nav-divider);
+  border-radius: 0;
+  box-shadow: none;
+  color: var(--team-nav-ink-soft);
+  font-family: 'Söhne', system-ui, sans-serif;
+  overflow: visible;
+  transition: width 220ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+.team-left-nav[data-hover],
+.team-left-nav[data-menu-open] {
+  width: var(--team-nav-expanded-width);
+}
+
+.monolith-shell-preview .team-left-nav {
+  top: var(--monolith-shell-chrome);
+  max-height: calc(100vh - var(--monolith-shell-chrome));
+}
+
+/* --- Team header (drawer top: clickable switcher) --- */
+.team-left-nav-team {
+  position: relative;
+  border-bottom: 1px solid var(--team-nav-divider);
+}
+
+.team-left-nav-team-trigger {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 18px 12px;
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--team-nav-ink);
+  text-align: left;
+  transition: background 160ms ease;
+}
+
+.team-left-nav-team-trigger:hover,
+.team-left-nav[data-menu-open] .team-left-nav-team-trigger {
+  background: rgba(29, 25, 37, 0.03);
+}
+
+.team-left-nav-team-trigger:focus-visible {
+  outline: 2px solid var(--rubine, #d01e50);
+  outline-offset: -2px;
+}
+
+.team-left-nav-team-caret {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  color: rgba(29, 25, 37, 0.45);
+  opacity: 0;
+  transition: opacity 150ms ease, transform 180ms ease;
+}
+
+.team-left-nav-team-caret svg {
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.team-left-nav[data-hover] .team-left-nav-team-caret,
+.team-left-nav[data-menu-open] .team-left-nav-team-caret {
+  opacity: 1;
+  transition-delay: 80ms;
+}
+
+.team-left-nav[data-menu-open] .team-left-nav-team-caret {
+  transform: rotate(180deg);
+}
+
+/* --- Team switcher popover (anchored to the team header) --- */
+.team-left-nav-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 8px;
+  right: 8px;
+  z-index: 80;
+  display: none;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  background: #fff;
+  border: 1px solid rgba(29, 25, 37, 0.1);
+  border-radius: 10px;
+  box-shadow: 0 18px 48px -20px rgba(29, 25, 37, 0.22),
+    0 2px 8px -4px rgba(29, 25, 37, 0.08);
+}
+
+.team-left-nav-menu[data-open] {
+  display: flex;
+}
+
+.team-left-nav-menu-section {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 4px 0;
+}
+
+.team-left-nav-menu-section + .team-left-nav-menu-section {
+  border-top: 1px solid rgba(29, 25, 37, 0.06);
+  margin-top: 4px;
+  padding-top: 8px;
+}
+
+.team-left-nav-menu-eyebrow {
+  padding: 0 8px 4px;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9.5px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: rgba(29, 25, 37, 0.45);
+}
+
+.team-left-nav-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--team-nav-ink);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  transition: background 140ms ease;
+}
+
+.team-left-nav-menu-item:hover {
+  background: rgba(29, 25, 37, 0.04);
+}
+
+.team-left-nav-menu-item-mark {
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: rgba(29, 25, 37, 0.06);
+  color: rgba(29, 25, 37, 0.7);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 11px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-left-nav-menu-item-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.team-left-nav-menu-item-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--team-nav-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-left-nav-menu-item-type {
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(29, 25, 37, 0.5);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-left-nav-menu-action {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 8px 10px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--team-nav-ink);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  transition: background 140ms ease;
+}
+
+.team-left-nav-menu-action:hover:not(:disabled) {
+  background: rgba(29, 25, 37, 0.04);
+}
+
+.team-left-nav-menu-action:disabled {
+  color: rgba(29, 25, 37, 0.4);
+  cursor: default;
+}
+
+.team-left-nav-team-mark {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--rubine, #d01e50);
+  color: #fff;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-left-nav-team-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+  flex: 1 1 auto;
+  opacity: 0;
+  transition: opacity 160ms ease;
+  pointer-events: none;
+}
+
+.team-left-nav[data-hover] .team-left-nav-team-copy,
+.team-left-nav[data-menu-open] .team-left-nav-team-copy {
+  opacity: 1;
+  pointer-events: auto;
+  transition-delay: 70ms;
+}
+
+.team-left-nav-team-eyebrow {
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  color: rgba(29, 25, 37, 0.5);
+}
+
+.team-left-nav-team-name {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  letter-spacing: -0.005em;
+  color: var(--team-nav-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-left-nav-team-type {
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: rgba(29, 25, 37, 0.46);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-left-nav-items {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 8px;
+}
+
+.team-left-nav-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 8px;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  color: var(--team-nav-ink-soft);
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+  width: 100%;
+  transition: background 180ms ease, color 180ms ease;
+}
+
+.team-left-nav-item:hover:not([data-active]) {
+  background: rgba(29, 25, 37, 0.03);
+  color: var(--team-nav-ink);
+}
+
+.team-left-nav-item[data-active] {
+  background: var(--team-nav-active-bg);
+  color: var(--team-nav-active-fg);
+}
+
+.team-left-nav-item[data-active]::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 6px;
+  bottom: 6px;
+  width: 2px;
+  border-radius: 2px;
+  background: var(--rubine, #d01e50);
+}
+
+.team-left-nav-item:focus-visible {
+  outline: 2px solid var(--rubine, #d01e50);
+  outline-offset: 1px;
+}
+
+.team-left-nav-item-icon {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.team-left-nav-item-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.team-left-nav-item-label {
+  flex-grow: 1;
+  font-size: 14px;
+  line-height: 18px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  opacity: 0;
+  transition: opacity 150ms ease;
+}
+
+.team-left-nav[data-hover] .team-left-nav-item-label {
+  opacity: 1;
+  transition-delay: 70ms;
+}
+
+/* --- Slide-over surfaces (pulse / coaching) ---
+   slides over the content column from the rail's right edge. */
+.team-surface-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(29, 25, 37, 0.32);
+  z-index: 78;
+}
+
+.team-surface-panel {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: min(480px, 100vw);
+  z-index: 79;
+  display: flex;
+  flex-direction: column;
+  background: #fff;
+  border-right: 1px solid rgba(29, 25, 37, 0.08);
+  box-shadow: 24px 0 64px -28px rgba(29, 25, 37, 0.22);
+  font-family: 'Söhne', system-ui, sans-serif;
+  color: var(--team-dna-ink);
+}
+
+.monolith-shell-preview .team-surface-panel {
+  top: var(--monolith-shell-chrome);
+}
+
+.team-surface-panel-header {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 36px 32px 4px;
+}
+
+.team-surface-panel-eyebrow {
+  align-self: flex-start;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(var(--team-dna-ink-rgb), 0.55);
+}
+
+.team-surface-panel-title {
+  margin: 0;
+  font-family: var(--heading-display-font);
+  font-size: 32px;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: var(--heading-display-tracking);
+  line-height: 1.08;
+  color: var(--foreground-heading);
+}
+
+.team-surface-panel-tagline {
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(var(--team-dna-ink-rgb), 0.5);
+}
+
+.team-surface-panel-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(var(--team-dna-ink-rgb), 0.04);
+  border: 0;
+  border-radius: 999px;
+  color: var(--team-dna-ink);
+  cursor: pointer;
+  transition: background 140ms ease;
+  z-index: 2;
+}
+
+.team-surface-panel-close:hover {
+  background: rgba(var(--team-dna-ink-rgb), 0.1);
+}
+
+.team-surface-panel-body {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 16px 32px 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.team-surface-panel-body > * + * {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.team-surface-panel-body-copy {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(var(--team-dna-ink-rgb), 0.74);
+  max-width: 38ch;
+}
+
+.team-surface-panel-footer {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  padding: 18px 32px 28px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.06);
+}
+
+/* --- Hairline-row content (matches DNA experience hierarchy) --- */
+.team-surface-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.team-surface-rows-eyebrow {
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.4px;
+  text-transform: uppercase;
+  color: rgba(var(--team-dna-ink-rgb), 0.5);
+  padding-bottom: 6px;
+}
+
+.team-surface-rows-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.team-surface-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 14px 0;
+  border-bottom: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.team-surface-row--stack {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+}
+
+.team-surface-row-name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--foreground-heading);
+  line-height: 1.3;
+}
+
+.team-surface-row-aside {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-shrink: 0;
+}
+
+.team-surface-row-meta {
+  font-size: 12px;
+  color: rgba(var(--team-dna-ink-rgb), 0.5);
+}
+
+.team-surface-row-meta--empty {
+  font-style: italic;
+}
+
+.team-surface-row-score {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 13px;
+  font-weight: 500;
+  color: rgba(var(--team-dna-ink-rgb), 0.85);
+  min-width: 64px;
+  justify-content: flex-end;
+}
+
+.team-surface-row-delta {
+  font-size: 11px;
+  letter-spacing: 0.4px;
+}
+
+.team-surface-row-delta[data-tone='up'] {
+  color: #047857;
+}
+
+.team-surface-row-delta[data-tone='down'] {
+  color: #b91c1c;
+}
+
+/* Tertiary cross-link between Pulse and Coaching */
+.team-surface-panel-crosslink {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  background: none;
+  border: 0;
+  color: var(--rubine, #d01e50);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+
+.team-surface-panel-crosslink:hover {
+  text-decoration: underline;
+}
+
+.team-surface-panel-crosslink svg {
+  fill: none;
+  stroke: currentColor;
+}
+
+@media (max-width: 720px) {
+  .team-left-nav,
+  .team-left-nav[data-hover],
+  .team-left-nav[data-menu-open] {
+    --team-nav-collapsed-width: 52px;
+    --team-nav-expanded-width: 220px;
+  }
+  .team-surface-panel {
+    width: 100vw;
+  }
+}
+
+/* --- AI lifecycle strip (productized version of debug states) --- */
+.team-dna-lifecycle-strip {
+  position: sticky;
+  top: 0;
+  z-index: 60;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 22px;
+  background: color-mix(in srgb, var(--page-background) 88%, transparent);
+  border-bottom: 1px solid color-mix(in srgb, var(--team-dna-ink) 8%, transparent);
+  backdrop-filter: saturate(140%) blur(8px);
+  -webkit-backdrop-filter: saturate(140%) blur(8px);
+  font-family: 'Söhne', system-ui, sans-serif;
+  color: var(--team-dna-ink);
+}
+
+.monolith-shell-preview .team-dna-lifecycle-strip {
+  top: var(--monolith-shell-chrome);
+}
+
+.team-dna-lifecycle-strip-status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.team-dna-lifecycle-strip-dot {
+  --strip-dot-color: color-mix(in srgb, var(--team-dna-ink) 32%, transparent);
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--strip-dot-color);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--strip-dot-color) 60%, transparent);
+  flex-shrink: 0;
+}
+
+.team-dna-lifecycle-strip[data-tone='waiting'] .team-dna-lifecycle-strip-dot {
+  --strip-dot-color: color-mix(in srgb, var(--team-dna-ink) 28%, transparent);
+}
+.team-dna-lifecycle-strip[data-tone='pending'] .team-dna-lifecycle-strip-dot {
+  --strip-dot-color: var(--data-series-five);
+  animation: team-dna-lifecycle-pulse 1.6s ease-out infinite;
+}
+.team-dna-lifecycle-strip[data-tone='ready'] .team-dna-lifecycle-strip-dot {
+  --strip-dot-color: var(--green);
+}
+.team-dna-lifecycle-strip[data-tone='failed'] .team-dna-lifecycle-strip-dot {
+  --strip-dot-color: var(--red);
+}
+.team-dna-lifecycle-strip[data-tone='stale'] .team-dna-lifecycle-strip-dot {
+  --strip-dot-color: var(--data-series-two);
+}
+
+@keyframes team-dna-lifecycle-pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--strip-dot-color) 55%, transparent);
+  }
+  70% {
+    box-shadow: 0 0 0 10px color-mix(in srgb, var(--strip-dot-color) 0%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--strip-dot-color) 0%, transparent);
+  }
+}
+
+.team-dna-lifecycle-strip-scope {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  line-height: 1.15;
+  min-width: 0;
+}
+
+.team-dna-lifecycle-strip-eyebrow {
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--team-dna-ink) 52%, transparent);
+}
+
+.team-dna-lifecycle-strip-scope strong {
+  font-weight: 500;
+  font-size: 13px;
+  letter-spacing: -0.005em;
+  color: var(--team-dna-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-dna-lifecycle-strip-divider {
+  width: 1px;
+  height: 22px;
+  background: color-mix(in srgb, var(--team-dna-ink) 12%, transparent);
+}
+
+.team-dna-lifecycle-strip-label {
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--team-dna-ink);
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--team-dna-ink) 6%, transparent);
+}
+
+.team-dna-lifecycle-strip-label[data-tone='pending'] {
+  color: var(--data-series-five);
+  background: color-mix(in srgb, var(--data-series-five) 14%, transparent);
+}
+.team-dna-lifecycle-strip-label[data-tone='ready'] {
+  color: var(--green);
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+}
+.team-dna-lifecycle-strip-label[data-tone='failed'] {
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 14%, transparent);
+}
+.team-dna-lifecycle-strip-label[data-tone='stale'] {
+  color: color-mix(in srgb, var(--data-series-two) 60%, var(--team-dna-ink) 40%);
+  background: color-mix(in srgb, var(--data-series-two) 22%, transparent);
+}
+
+.team-dna-lifecycle-strip-detail {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--team-dna-ink) 64%, transparent);
+  letter-spacing: -0.005em;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.team-dna-lifecycle-strip-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
+.team-dna-lifecycle-strip-controls-label {
+  font-family: 'Söhne Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--team-dna-ink) 38%, transparent);
+  margin-right: 4px;
+}
+
+.team-dna-lifecycle-strip-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--team-dna-ink) 12%, transparent);
+  background: transparent;
+  color: color-mix(in srgb, var(--team-dna-ink) 64%, transparent);
+  font-size: 11px;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, color 120ms ease;
+}
+
+.team-dna-lifecycle-strip-pill:hover {
+  border-color: color-mix(in srgb, var(--team-dna-ink) 22%, transparent);
+  color: var(--team-dna-ink);
+}
+
+.team-dna-lifecycle-strip-pill[data-active] {
+  border-color: transparent;
+  color: var(--team-dna-ink);
+  background: color-mix(in srgb, var(--team-dna-ink) 8%, transparent);
+}
+
+.team-dna-lifecycle-strip-pill-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--team-dna-ink) 32%, transparent);
+}
+.team-dna-lifecycle-strip-pill[data-tone='pending'] .team-dna-lifecycle-strip-pill-dot {
+  background: var(--data-series-five);
+}
+.team-dna-lifecycle-strip-pill[data-tone='ready'] .team-dna-lifecycle-strip-pill-dot {
+  background: var(--green);
+}
+.team-dna-lifecycle-strip-pill[data-tone='failed'] .team-dna-lifecycle-strip-pill-dot {
+  background: var(--red);
+}
+.team-dna-lifecycle-strip-pill[data-tone='stale'] .team-dna-lifecycle-strip-pill-dot {
+  background: var(--data-series-two);
+}
+
+@media (max-width: 880px) {
+  .team-dna-lifecycle-strip {
+    padding: 10px 16px;
+    gap: 10px;
+  }
+  .team-dna-lifecycle-strip-detail {
+    display: none;
+  }
+  .team-dna-lifecycle-strip-controls-label {
+    display: none;
+  }
+}
+
 .team-dna-experience {
   --people-pane-width: 410px;
   --detail-pane-width: 620px;
@@ -2679,6 +3765,38 @@ button.team-management-row {
   font-size: 10px;
   letter-spacing: 0.72px;
   pointer-events: none;
+}
+
+/* --- "You" marker on the viewer's face --- */
+.team-face-viewer-pill {
+  position: absolute;
+  left: 50%;
+  bottom: 11px;
+  z-index: 4;
+  display: inline-flex;
+  height: 19px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 9px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: var(--rubine);
+  color: var(--white);
+  font-family: 'Söhne Mono', monospace;
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.85px;
+  line-height: 1;
+  text-transform: uppercase;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.04);
+}
+
+.team-face-button[data-viewer] .team-face-ring {
+  box-shadow:
+    0 0 0 2px var(--page-background),
+    0 0 0 4px var(--rubine);
 }
 
 @keyframes team-face-tap-hint-linger {
@@ -3243,56 +4361,229 @@ button.team-management-row {
   background: rgba(var(--team-dna-focus-rgb), 0.08);
 }
 
+/* --- Upgraded waiting state (post-creation / not-enough-data) --- */
 .insight-waiting-state {
-  padding: 58px 52px;
+  position: relative;
+  padding: 36px 36px 32px;
   border: 1px solid var(--card-subtle-border);
-  border-radius: 8px;
-  background: var(--card-subtle-bg);
+  border-radius: 12px;
+  background: var(--page-background);
+  box-shadow: 0 1px 0 rgba(var(--team-dna-ink-rgb), 0.02);
 }
 
-.insight-waiting-kicker {
-  margin: 0 0 14px;
-  color: var(--team-dna-focus);
+.insight-waiting-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.insight-waiting-header-text {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.insight-waiting-eyebrow {
   font-family: 'Söhne Mono', monospace;
   font-size: 11px;
-  font-weight: 600;
+  font-weight: 500;
   letter-spacing: 1.4px;
   text-transform: uppercase;
+  color: rgba(var(--team-dna-ink-rgb), 0.6);
 }
 
 .insight-waiting-state h2 {
   margin: 0;
   color: var(--foreground-heading);
   font-family: var(--heading-display-font);
-  font-size: 36px;
+  font-size: 32px;
   font-style: italic;
   font-weight: 400;
   letter-spacing: var(--heading-display-tracking);
   line-height: 1.1;
 }
 
-.insight-waiting-state > p:not(.insight-waiting-kicker) {
-  margin: 18px 0 0;
-  color: var(--foreground-body);
-  font-size: 16px;
-  line-height: 1.65;
-}
-
-.insight-waiting-action {
-  height: 38px;
-  margin-top: 26px;
-  padding: 0 18px;
-  border: 1px solid var(--card-subtle-border);
+.insight-waiting-tag {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 11px;
   border-radius: 999px;
-  background: var(--page-background);
+  background: rgba(var(--team-dna-focus-rgb), 0.1);
   color: var(--team-dna-focus);
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 1.1px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.insight-waiting-action:hover {
-  background: rgba(var(--team-dna-focus-rgb), 0.08);
+.insight-waiting-tag[data-tone='ready'] {
+  background: color-mix(in srgb, var(--green) 14%, transparent);
+  color: var(--green-aa);
+}
+
+.insight-waiting-body {
+  margin: 16px 0 0;
+  max-width: 540px;
+  color: var(--foreground-body);
+  font-size: 15.5px;
+  line-height: 1.6;
+}
+
+.insight-waiting-progress {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.insight-waiting-progress-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.08);
+  overflow: hidden;
+}
+
+.insight-waiting-progress-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--rubine);
+  transition: width 480ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.insight-waiting-progress-meta {
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: rgba(var(--team-dna-ink-rgb), 0.55);
+}
+
+.insight-waiting-callout {
+  margin-top: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 18px 22px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--rubine) 6%, var(--page-background));
+  border: 1px solid color-mix(in srgb, var(--rubine) 16%, transparent);
+}
+
+.insight-waiting-callout-text {
+  min-width: 0;
+}
+
+.insight-waiting-callout-eyebrow {
+  display: block;
+  font-family: 'Söhne Mono', monospace;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+  color: var(--rubine);
+  margin-bottom: 4px;
+}
+
+.insight-waiting-callout-text p {
+  margin: 0;
+  color: var(--foreground-body);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.insight-waiting-callout-text strong {
+  color: var(--foreground-heading);
+  font-weight: 500;
+}
+
+.insight-waiting-footer {
+  margin-top: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.insight-waiting-footer-note {
+  font-size: 13.5px;
+  color: rgba(var(--team-dna-ink-rgb), 0.58);
+}
+
+.insight-waiting-footer-note strong {
+  color: var(--foreground-heading);
+  font-weight: 500;
+}
+
+/* --- BetterUp button (canonical primary + secondary pill) --- */
+.bu-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 22px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  font-family: 'Söhne', system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.2;
+  cursor: pointer;
+  transition: background 140ms ease, transform 120ms ease, border-color 140ms ease, color 140ms ease;
+  white-space: nowrap;
+}
+
+.bu-button:focus-visible {
+  outline: 2px solid var(--ring, var(--team-dna-focus));
+  outline-offset: 3px;
+}
+
+.bu-button--primary {
+  background: var(--rubine);
+  color: var(--white);
+}
+
+.bu-button--primary:hover {
+  background: color-mix(in srgb, var(--rubine) 88%, black);
+  transform: translateY(-1px);
+}
+
+.bu-button--secondary {
+  background: transparent;
+  border-color: rgba(var(--team-dna-ink-rgb), 0.18);
+  color: var(--foreground-heading);
+}
+
+.bu-button--secondary:hover {
+  background: rgba(var(--team-dna-ink-rgb), 0.04);
+  border-color: rgba(var(--team-dna-ink-rgb), 0.32);
+}
+
+@media (max-width: 720px) {
+  .insight-waiting-state {
+    padding: 28px 24px 26px;
+  }
+  .insight-waiting-state h2 {
+    font-size: 27px;
+  }
+  .insight-waiting-callout {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .insight-waiting-callout .bu-button {
+    width: 100%;
+  }
 }
 
 .insight-summary {
@@ -4497,6 +5788,31 @@ button.team-management-row {
     min-height: calc(100vh - var(--monolith-shell-chrome));
     padding: 92px 0 72px;
     transform: none;
+  }
+
+  .team-tooling-home .team-dna-empty-state,
+  .monolith-shell-preview .team-tooling-home .team-dna-empty-state {
+    min-height: auto;
+    padding: 96px 0 40px;
+  }
+
+  .team-tooling-more {
+    width: min(100% - 48px, 680px);
+  }
+
+  .team-tooling-tools {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+
+  .team-tooling-tool {
+    padding: 24px 0;
+  }
+
+  .team-tooling-tool + .team-tooling-tool {
+    padding: 24px 0 0;
+    border-left: 0;
+    border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
   }
 
   .team-dna-empty-copy h1 {

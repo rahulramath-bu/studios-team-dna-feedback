@@ -127,6 +127,11 @@ export function TeamContextSwitcher({
                     </span>
                     <span className="team-context-team-copy">
                       <span className="team-context-team-name">{team.name}</span>
+                      {team.teamType ? (
+                        <span className="team-context-team-type">
+                          {team.teamType}
+                        </span>
+                      ) : null}
                     </span>
                     {hasMemberCount(team.memberCount) && (
                       <span
