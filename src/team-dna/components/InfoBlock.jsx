@@ -77,6 +77,9 @@ function getDisplayLabel(card) {
   if (card.kind === 'guidance' && card.id.endsWith('-where-shines')) {
     return 'Strengths';
   }
+  if (card.kind === 'guidance' && card.id === 'team-work-with') {
+    return 'Collaboration Tips';
+  }
 
   return card.label;
 }

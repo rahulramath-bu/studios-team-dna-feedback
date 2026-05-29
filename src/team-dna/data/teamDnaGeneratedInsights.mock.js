@@ -1057,7 +1057,7 @@ export function makeMockTeamDnaGeneratedInsights({ team, members }) {
       cards: [
         makeGuidanceCard(
           'team-work-with',
-          'Try this as a team',
+          'Collaboration Tips',
           makeTeamTrySections()
         ),
         makeGuidanceCard('team-where-shines', 'Where this team shines', {
