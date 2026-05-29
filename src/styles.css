@@ -2060,10 +2060,6 @@ button.team-management-row {
   color: var(--team-dna-ink);
 }
 
-.monolith-shell-preview .team-surface-panel {
-  top: var(--monolith-shell-chrome);
-}
-
 .team-surface-panel-close {
   position: absolute;
   top: 18px;
