@@ -1931,16 +1931,20 @@ button.team-management-row {
 .team-tooling-home {
   width: 100%;
   min-height: 100vh;
+  display: grid;
+  align-content: center;
+  padding: clamp(32px, 6vh, 72px) 0;
+  box-sizing: border-box;
 }
 
 .team-tooling-home .team-dna-empty-state {
   min-height: auto;
-  padding: 64px 0 36px;
+  padding: 0 0 36px;
 }
 
 .monolith-shell-preview .team-tooling-home .team-dna-empty-state {
   min-height: auto;
-  padding: 44px 0 32px;
+  padding: 0 0 32px;
   transform: none;
 }
 
@@ -1972,7 +1976,7 @@ button.team-management-row {
 .team-tooling-more {
   width: min(calc(100% - 48px), 1000px);
   margin: 0 auto;
-  padding: 0 0 80px;
+  padding: 0;
   animation: team-dna-empty-fade 1500ms cubic-bezier(0.22, 1, 0.36, 1) 800ms both;
 }
 
