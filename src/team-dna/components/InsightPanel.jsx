@@ -294,6 +294,7 @@ function orderSupportingCards(cards) {
     if (card.kind === 'teamShapeContributions') return 10;
     if (card.kind === 'guidance' && card.id.endsWith('-where-shines')) return 20;
     if (card.kind === 'guidance' && card.id.endsWith('-work-with')) return 30;
+    if (card.kind === 'guidance' && card.id.endsWith('-pairing-manual')) return 30;
     if (card.kind === 'meetingBehavior') return 35;
     if (card.kind === 'watchOut') return 40;
     if (card.kind === 'bigFiveSpectrumList') return 90;
@@ -469,8 +470,12 @@ function InsightWaitingState({
   const completed = target?.completedCount ?? 0;
   const total = target?.totalCount ?? 0;
   const minimum = target?.minimumCompletedCount ?? 0;
-  const pendingCount = members.filter(
-    (member) => member.assessmentComplete === false
+  // Count teammates other than the viewer so the "lots of people are pending"
+  // context can show alongside the viewer's own "Your turn" call to action,
+  // instead of the two being mutually exclusive.
+  const otherPendingCount = members.filter(
+    (member) =>
+      member.assessmentComplete === false && member.id !== currentViewerMemberId
   ).length;
   const progressPct =
     total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
@@ -544,11 +549,13 @@ function InsightWaitingState({
       ) : null}
 
       <div className="insight-waiting-footer">
-        {!viewerNeedsAssessment && pendingCount > 0 && isTeamScope ? (
+        {otherPendingCount > 0 && isTeamScope ? (
           <span className="insight-waiting-footer-note">
-            Waiting on{' '}
+            {viewerNeedsAssessment ? 'And waiting on ' : 'Waiting on '}
             <strong>
-              {pendingCount} {pendingCount === 1 ? 'teammate' : 'teammates'}
+              {otherPendingCount}{' '}
+              {viewerNeedsAssessment ? 'other ' : ''}
+              {otherPendingCount === 1 ? 'teammate' : 'teammates'}
             </strong>{' '}
             to finish.
           </span>
