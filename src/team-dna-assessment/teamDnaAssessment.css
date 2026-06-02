@@ -387,6 +387,17 @@
   color: var(--rubine);
 }
 
+/* Onboarding steps stack the back control on the left, above the brand mark. */
+.tdna-fixed-back--lead {
+  top: clamp(40px, 4.6vw, 80px);
+  left: clamp(40px, 4.6vw, 80px);
+}
+
+/* Make room above the TEAM DNA brand so the back control sits cleanly above it. */
+.tdna-onboarding--account .tdna-onboarding-aside-top {
+  top: calc(clamp(40px, 4.6vw, 80px) + 58px);
+}
+
 .tdna-question-shell,
 .tdna-break-shell,
 .tdna-processing {

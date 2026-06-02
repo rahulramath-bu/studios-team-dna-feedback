@@ -6,7 +6,6 @@ import { AssessmentOverlay } from './components/AssessmentOverlay.jsx';
 import { AssessmentResultsOverlay } from './components/AssessmentResultsOverlay.jsx';
 import { CoachOnboardingOverlay } from './components/CoachOnboardingOverlay.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
-import { TeamLeftRail } from './components/TeamLeftRail.jsx';
 import { TeamSurfacePanel } from './components/TeamSurfacePanel.jsx';
 import {
   buildTeamDnaDatasetFromTeamRecord,
@@ -1071,37 +1070,10 @@ export function TeamDnaPage() {
     setActiveTeamId(sampleTeamRecord.id);
   };
 
-  const activeTeamRecord = activeRecord?.teamRecord ?? null;
-  const handleRailSelect = (id) => {
-    if (id === 'pulse' || id === 'coaching') {
-      setActiveSurface(id);
-      return;
-    }
-
-    setActiveSurface(null);
-  };
-
   return (
     <>
       <MonolithTeamShell enabled={devState.showMonolithShell}>
-        <div
-          className="team-dna-shell"
-          data-has-rail={!isTrueEmptyState || undefined}
-        >
-          {!isTrueEmptyState ? (
-            <TeamLeftRail
-              activeId={activeSurface ?? 'dna'}
-              teamName={activeTeamRecord?.name}
-              teamType={activeTeamRecord?.teamType}
-              teamOptions={teamOptions}
-              selectedTeamId={activeTeamId}
-              canManageTeam={canManageTeam}
-              onSelect={handleRailSelect}
-              onAddTeam={openCreateTeam}
-              onEditTeam={openEditTeam}
-              onTeamChange={switchTeam}
-            />
-          ) : null}
+        <div className="team-dna-shell">
           <main className="team-dna-page" aria-label="Team DNA">
             {isTrueEmptyState ? (
               <TeamDnaEmptyState

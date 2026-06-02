@@ -592,8 +592,21 @@ export function TeamFaceField({
             Team
           </button>
         ) : (
-          <p className="team-face-context-eyebrow">
-            {entityEyebrow}
+          <p className="team-face-context-eyebrow team-face-context-breadcrumb">
+            <span className="team-face-context-breadcrumb-root">Team DNA</span>
+            {entityEyebrow ? (
+              <>
+                <span
+                  className="team-face-context-breadcrumb-sep"
+                  aria-hidden="true"
+                >
+                  /
+                </span>
+                <span className="team-face-context-breadcrumb-current">
+                  {entityEyebrow}
+                </span>
+              </>
+            ) : null}
           </p>
         )}
         <h2 className="team-face-context-title" ref={entityTitleRef}>

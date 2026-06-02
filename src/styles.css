@@ -3583,6 +3583,24 @@ button.team-management-row {
   margin: 0 0 18px;
 }
 
+.team-face-context-breadcrumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.team-face-context-breadcrumb-root {
+  color: var(--label-color);
+}
+
+.team-face-context-breadcrumb-sep {
+  color: rgba(var(--team-dna-ink-rgb), 0.3);
+}
+
+.team-face-context-breadcrumb-current {
+  color: rgba(var(--team-dna-ink-rgb), 0.42);
+}
+
 .team-face-context-back {
   display: inline-flex;
   width: fit-content;

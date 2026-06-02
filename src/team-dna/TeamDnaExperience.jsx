@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
+import { TeamContextSwitcher } from './components/TeamContextSwitcher.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
@@ -429,6 +430,16 @@ export function TeamDnaExperience({
       data-layout-debug={showLayoutOutlines || undefined}
       data-people-selector={isPeopleSelectorScaled ? 'scaled' : undefined}
     >
+      <TeamContextSwitcher
+        teamOptions={teamOptions.length > 0 ? teamOptions : [dataset.team]}
+        selectedTeamId={selectedTeamId ?? dataset.team.id}
+        selectedTeamName={dataset.team.name}
+        introHidden={isIntroChromeHidden}
+        topOffset={teamSwitcherTopOffset}
+        onAddTeam={canManageTeam ? onAddTeam : undefined}
+        onEditTeam={canManageTeam ? handleEditTeam : undefined}
+        onTeamChange={onTeamChange}
+      />
       <div className="team-dna-people-pane">
         <TeamFaceField
           teamId={dataset.team.id}

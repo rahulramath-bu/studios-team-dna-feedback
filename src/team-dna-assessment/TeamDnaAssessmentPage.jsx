@@ -650,6 +650,27 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
         />
       )}
 
+      {(flowStep === FLOW_STEPS.ACCOUNT ||
+        flowStep === FLOW_STEPS.VALUE ||
+        flowStep === FLOW_STEPS.WELCOME) && (
+        <button
+          type="button"
+          className="tdna-fixed-back tdna-fixed-back--lead"
+          onClick={() => {
+            if (flowStep === FLOW_STEPS.VALUE) {
+              setFlowStep(FLOW_STEPS.ACCOUNT);
+            } else if (flowStep === FLOW_STEPS.WELCOME) {
+              setFlowStep(FLOW_STEPS.VALUE);
+            } else {
+              onNavigate('/');
+            }
+          }}
+        >
+          <BetterUpIcon name="ChevronLeft" size={18} strokeWidth={2.2} />
+          <span>Back</span>
+        </button>
+      )}
+
       <AnimatePresence mode="wait">
         {flowStep === FLOW_STEPS.ACCOUNT && (
           <AccountStep

@@ -10,9 +10,13 @@ const primaryLinks = [
   },
   {
     label: 'Team',
-    href: '/platform/member/team-tooling',
+    // Active product tab. Inside the demo iframe this resets the tour back to
+    // the prototype hub (manager vs direct-report flows), targeting the top
+    // window just like the BetterUp logo / Home links.
+    href: '/',
     icon: 'Users',
     active: true,
+    top: true,
   },
   { label: 'Discover', href: '/platform/member/discover', icon: 'Globe' },
   { label: 'Schedule', href: '/platform/member/schedule', icon: 'Calendar' },
