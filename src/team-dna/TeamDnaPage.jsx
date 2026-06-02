@@ -1055,6 +1055,14 @@ export function TeamDnaPage() {
     setActiveSurface(null);
   };
 
+  // Breadcrumb "Team" crumb: drop the active selection so the Team tooling home
+  // (Team DNA / Pulse / Coaching landing) renders as the parent of this read.
+  const exitToTeamHome = () => {
+    setTeamManagementOverlay(null);
+    setActiveSurface(null);
+    setActiveTeamId(null);
+  };
+
   const trySampleTeam = () => {
     const sampleRecordState = createTeamRecordState(
       sampleTeamRecord,
@@ -1097,6 +1105,7 @@ export function TeamDnaPage() {
                 onAddTeam={openCreateTeam}
                 onEditTeam={openEditTeam}
                 onTeamChange={switchTeam}
+                onExitToTeamHome={exitToTeamHome}
                 onGrowChatPrompt={handleGrowChatPrompt}
                 onGenerationTargetChange={setActiveGenerationTarget}
                 onInsightLifecycleAction={handleInsightLifecycleAction}

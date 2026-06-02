@@ -109,6 +109,7 @@ export function TeamDnaExperience({
   onAddTeam,
   onEditTeam,
   onTeamChange,
+  onExitToTeamHome,
   onGrowChatPrompt,
   generationStatusByTargetId,
   onGenerationTargetChange,
@@ -453,6 +454,7 @@ export function TeamDnaExperience({
           }}
           onSelectMember={handleSelectMember}
           onSelectTeam={handleSelectTeam}
+          onExitToTeamHome={onExitToTeamHome}
         />
       </div>
       <InsightPanel

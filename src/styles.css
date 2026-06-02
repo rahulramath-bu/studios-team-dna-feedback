@@ -3590,7 +3590,21 @@ button.team-management-row {
 }
 
 .team-face-context-breadcrumb-root {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
   color: var(--label-color);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 160ms ease;
+}
+
+.team-face-context-breadcrumb-root:hover {
+  color: var(--team-dna-ink);
 }
 
 .team-face-context-breadcrumb-sep {
@@ -4350,6 +4364,12 @@ button.team-management-row {
 .team-dna-insight-content {
   width: 100%;
   padding: 26vh 0 24vh;
+}
+
+/* Team experience: lift the insight read up so its top sits at the team title
+   line (one breadcrumb row below the top of the people column). */
+.team-dna-experience .team-dna-insight-content {
+  padding-top: calc(16vh + 32px);
 }
 
 .team-dna-insight-page {

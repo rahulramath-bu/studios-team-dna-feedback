@@ -332,6 +332,7 @@ export function TeamFaceField({
   currentViewerMemberId,
   onSelectMember,
   onSelectTeam,
+  onExitToTeamHome,
 }) {
   const hasSelection = selectedIds.length > 0;
   const fieldRef = useRef(null);
@@ -593,20 +594,17 @@ export function TeamFaceField({
           </button>
         ) : (
           <p className="team-face-context-eyebrow team-face-context-breadcrumb">
-            <span className="team-face-context-breadcrumb-root">Team DNA</span>
-            {entityEyebrow ? (
-              <>
-                <span
-                  className="team-face-context-breadcrumb-sep"
-                  aria-hidden="true"
-                >
-                  /
-                </span>
-                <span className="team-face-context-breadcrumb-current">
-                  {entityEyebrow}
-                </span>
-              </>
-            ) : null}
+            <button
+              type="button"
+              className="team-face-context-breadcrumb-root"
+              onClick={onExitToTeamHome}
+            >
+              Team
+            </button>
+            <span className="team-face-context-breadcrumb-sep" aria-hidden="true">
+              /
+            </span>
+            <span className="team-face-context-breadcrumb-current">Team DNA</span>
           </p>
         )}
         <h2 className="team-face-context-title" ref={entityTitleRef}>
