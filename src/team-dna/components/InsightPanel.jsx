@@ -11,6 +11,136 @@ const BASELINE_REVEAL_TRANSITION = {
   ease: PAGE_EASE,
 };
 
+// When someone views their OWN profile, the copy should address them directly
+// ("you") instead of in the third person. The generated/authored copy is written
+// about a named person, so we convert the prominent reads (overview, Big Five
+// reads, strengths) to second person at render time. Work-with notes are already
+// written in first person ("Bring me…") and are left untouched.
+const SECOND_PERSON_IRREGULAR = {
+  is: 'are',
+  was: 'were',
+  has: 'have',
+  does: 'do',
+  goes: 'go',
+};
+const SECOND_PERSON_ES_VERBS = {
+  focuses: 'focus',
+  pushes: 'push',
+  catches: 'catch',
+  watches: 'watch',
+  fixes: 'fix',
+  misses: 'miss',
+  passes: 'pass',
+  reaches: 'reach',
+};
+
+function toBaseVerb(verb) {
+  const lower = verb.toLowerCase();
+  if (SECOND_PERSON_IRREGULAR[lower]) return SECOND_PERSON_IRREGULAR[lower];
+  if (SECOND_PERSON_ES_VERBS[lower]) return SECOND_PERSON_ES_VERBS[lower];
+  if (lower.endsWith('s')) return lower.slice(0, -1);
+  return lower;
+}
+
+function escapeRegExp(value) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function capitalizeFirst(value) {
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function toSecondPersonText(text, firstName, pronouns = {}) {
+  if (!text || !firstName) return text;
+  const fn = escapeRegExp(firstName);
+  let out = text;
+  // Possessive name: "Jordan's" -> "your"
+  out = out.replace(new RegExp(`\\b${fn}'s\\b`, 'g'), 'your');
+  out = out.replace(new RegExp(`\\b${fn}’s\\b`, 'g'), 'your');
+  // Name as subject + verb: "Jordan helps" -> "You help", "Jordan is" -> "You are"
+  out = out.replace(
+    new RegExp(`\\b${fn}\\s+([A-Za-z]+)`, 'g'),
+    (match, verb) => `You ${toBaseVerb(verb)}`
+  );
+  // Any remaining bare name -> "you"
+  out = out.replace(new RegExp(`\\b${fn}\\b`, 'g'), 'you');
+  // Subject pronoun + verb: "She is" -> "You are"
+  const subject = pronouns.subject;
+  if (subject) {
+    out = out.replace(
+      new RegExp(`\\b${capitalizeFirst(subject)}\\s+([A-Za-z]+)`, 'g'),
+      (match, verb) => `You ${toBaseVerb(verb)}`
+    );
+    out = out.replace(
+      new RegExp(`\\b${subject}\\s+([A-Za-z]+)`, 'g'),
+      (match, verb) => `you ${toBaseVerb(verb)}`
+    );
+  }
+  // Possessive pronoun -> "your" (skip the ambiguous "her", which is also an object)
+  const possessive = pronouns.possessive;
+  if (possessive && possessive !== 'her') {
+    out = out.replace(new RegExp(`\\b${possessive}\\b`, 'g'), 'your');
+    out = out.replace(
+      new RegExp(`\\b${capitalizeFirst(possessive)}\\b`, 'g'),
+      'Your'
+    );
+  }
+  // Re-capitalize at sentence starts.
+  out = out.replace(/(^|[.!?]\s+)you\b/g, (match, lead) => `${lead}You`);
+  out = out.replace(/(^|[.!?]\s+)your\b/g, (match, lead) => `${lead}Your`);
+  return out;
+}
+
+function buildOwnProfileInsight(insight, viewerMember) {
+  if (!insight || !viewerMember) return insight;
+  const firstName = (insight.entityTitle ?? viewerMember.name ?? '').split(' ')[0];
+  if (!firstName) return insight;
+  const pronouns = viewerMember.pronouns ?? {};
+  const transform = (text) => toSecondPersonText(text, firstName, pronouns);
+
+  return {
+    ...insight,
+    summary: insight.summary?.map((segment) => ({
+      ...segment,
+      text: transform(segment.text),
+    })),
+    cards: insight.cards?.map((card) => {
+      if (card.kind === 'strengthsList') {
+        return {
+          ...card,
+          data: {
+            ...card.data,
+            strengths: {
+              ...card.data?.strengths,
+              items: card.data?.strengths?.items?.map((item) => ({
+                ...item,
+                body: transform(item.body),
+              })),
+            },
+          },
+        };
+      }
+
+      if (card.kind === 'bigFiveSpectrumList' && card.data?.reads) {
+        return {
+          ...card,
+          data: {
+            ...card.data,
+            reads: Object.fromEntries(
+              Object.entries(card.data.reads).map(([key, value]) => [
+                key,
+                transform(value),
+              ])
+            ),
+          },
+        };
+      }
+
+      return card;
+    }),
+  };
+}
+
 /**
  * Right-side insight read.
  *
@@ -195,8 +325,19 @@ function InsightPageContent({
     !canManageTeam &&
     editableMemberId &&
     editableMemberId === currentViewerMemberId;
-  const imageCard = insight.cards.find((card) => card.kind === 'archetypeImage');
-  const bloomHeroCard = insight.cards.find((card) => card.kind === 'bloomHero');
+  // Address the reader directly when they're looking at their own profile,
+  // regardless of whether they can edit it (managers can't edit, but should
+  // still read "you").
+  const isOwnProfile =
+    Boolean(editableMemberId) && editableMemberId === currentViewerMemberId;
+  const ownProfileViewer = isOwnProfile
+    ? members.find((member) => member.id === currentViewerMemberId)
+    : null;
+  const displayInsight = isOwnProfile
+    ? buildOwnProfileInsight(insight, ownProfileViewer)
+    : insight;
+  const imageCard = displayInsight.cards.find((card) => card.kind === 'archetypeImage');
+  const bloomHeroCard = displayInsight.cards.find((card) => card.kind === 'bloomHero');
   // The hero aside is the small Big Five bloom: the self-review page supplies its
   // own; individual profiles get one from the `bloomHero` card the adapter adds.
   const heroAside =
@@ -206,18 +347,17 @@ function InsightPageContent({
         ? (
             <div className="self-results-bloom" aria-hidden="true">
               <BigFiveBloom subjects={bloomHeroCard.data?.subjects ?? []} />
-              <span className="self-results-bloom-note">Visual placeholder</span>
             </div>
           )
         : null;
   // The team view folds its bloom + role distribution into the big hero box, so
   // it is pulled out of the supporting stack and rendered inside the hero.
-  const teamCompositionCard = insight.cards.find(
+  const teamCompositionCard = displayInsight.cards.find(
     (card) => card.kind === 'teamShapeContributions'
   );
   const coachSubject = insight.entityTitle ?? insight.title ?? teamName;
   const supportingCards = orderSupportingCards(
-    insight.cards.filter(
+    displayInsight.cards.filter(
       (card) =>
         card.kind !== 'archetypeImage' &&
         card.kind !== 'bloomHero' &&
@@ -350,7 +490,7 @@ function InsightPageContent({
             ) : null}
             <div className="insight-primary-copy">
               <div className="insight-heading-group">
-                <InsightHeading insight={insight} />
+                <InsightHeading insight={displayInsight} />
               </div>
               {editingTarget === 'overview' ? (
                 <InlineTextEditor
@@ -361,10 +501,11 @@ function InsightPageContent({
                 />
               ) : (
                 <>
-                  <InsightSummary insight={insight} />
+                  <InsightSummary insight={displayInsight} />
                   <InsightRoleRead
-                    roles={insight.roleRead}
-                    name={insight.entityTitle}
+                    roles={displayInsight.roleRead}
+                    name={displayInsight.entityTitle}
+                    isOwnProfile={isOwnProfile}
                   />
                 </>
               )}
@@ -755,20 +896,25 @@ function InsightHeading({ insight }) {
   );
 }
 
-function InsightRoleRead({ roles, name }) {
+function InsightRoleRead({ roles, name, isOwnProfile = false }) {
   if (!roles?.primary || !roles?.secondary) {
     return null;
   }
 
   const firstName = name ? name.split(' ')[0] : 'They';
+  const lead = isOwnProfile
+    ? 'In team meetings, your primary role is the '
+    : `In team meetings, ${firstName}'s primary role is the `;
 
   return (
     <p className="insight-summary insight-role-read">
-      {`In team meetings, ${firstName}'s primary role is the `}
+      {lead}
       <strong className="insight-role-name--primary">
         {roles.primary.name}
       </strong>
-      {`, who ${roles.primary.blurb}, and the secondary role is the `}
+      {`, who ${roles.primary.blurb}, and ${
+        isOwnProfile ? 'your' : 'the'
+      } secondary role is the `}
       <strong className="insight-role-name--secondary">
         {roles.secondary.name}
       </strong>

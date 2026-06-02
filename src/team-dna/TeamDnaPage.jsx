@@ -4,6 +4,7 @@ import { TeamDnaEmptyPreview } from './components/TeamDnaEmptyPreview.jsx';
 import { TeamManagementOverlay } from './components/TeamManagementOverlay.jsx';
 import { AssessmentOverlay } from './components/AssessmentOverlay.jsx';
 import { AssessmentResultsOverlay } from './components/AssessmentResultsOverlay.jsx';
+import { CoachOnboardingOverlay } from './components/CoachOnboardingOverlay.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { TeamLeftRail } from './components/TeamLeftRail.jsx';
 import { TeamSurfacePanel } from './components/TeamSurfacePanel.jsx';
@@ -497,6 +498,11 @@ export function TeamDnaPage() {
   const demoGenerationTimerRef = useRef(null);
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
   const [isSelfResultsOpen, setIsSelfResultsOpen] = useState(false);
+  // GROW AI coach onboarding stand-in. Opened when the per-section coach CTA is
+  // triggered from a single-person profile so the demo visibly moves into the
+  // coach with a "setup needed" moment. Holds the subject name for personalized
+  // copy.
+  const [coachOnboarding, setCoachOnboarding] = useState(null);
   const [activeSurface, setActiveSurface] = useState(null);
   const [profileCopyEditsByMemberId, setProfileCopyEditsByMemberId] = useState(
     {}
@@ -671,6 +677,15 @@ export function TeamDnaPage() {
 
     if (import.meta.env.DEV) {
       console.info('[Team DNA Grow Chat prompt]', action);
+    }
+
+    // When the coach CTA fires from a single-person profile, move the user into
+    // the AI coach: surface the GROW onboarding stand-in. Other scopes (team /
+    // duo) keep the existing pass-the-prompt behavior only.
+    if (action?.payload?.scope === 'person') {
+      setCoachOnboarding({
+        subjectName: action.payload.selection?.names?.[0] ?? null,
+      });
     }
   };
 
@@ -1143,6 +1158,13 @@ export function TeamDnaPage() {
           viewerAvatarUrl={viewerMember?.avatarUrl ?? null}
           viewerBigFive={viewerMember?.bigFive ?? null}
           onBackToTeam={handleCloseSelfResults}
+        />
+      )}
+      {coachOnboarding && (
+        <CoachOnboardingOverlay
+          subjectName={coachOnboarding.subjectName}
+          onStart={() => setCoachOnboarding(null)}
+          onClose={() => setCoachOnboarding(null)}
         />
       )}
       {teamManagementOverlay && (

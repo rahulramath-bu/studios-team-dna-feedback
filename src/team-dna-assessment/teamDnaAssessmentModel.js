@@ -202,72 +202,28 @@ export const WORKING_STYLE_ITEMS = [
   },
 ];
 
+// Short, plain encouragements between question blocks. Image-choice "vibe"
+// questions were removed: they implied a picture could map to a working-style
+// score, which is not something we can defend. Interstitials are non-scored
+// pacing beats only.
 export const EXPERIENCE_BREAKS = [
   {
-    id: 'tdna_break_shape_forming',
+    id: 'tdna_break_1',
     kind: 'interstitial',
     nonScored: true,
-    text: 'Reading the signals.',
+    text: 'Nice — keep going.',
   },
   {
-    id: 'tdna_image_break_stuck_team',
-    kind: 'imageChoice',
-    nonScored: true,
-    text: 'What pulls you in more?',
-    options: [
-      {
-        id: 'open_desert',
-        label: 'Open desert',
-        imageUrl: IMAGE_BREAK_ASSETS.desert,
-      },
-      {
-        id: 'moody_forest',
-        label: 'Moody forest',
-        imageUrl: IMAGE_BREAK_ASSETS.moodyForest,
-      },
-    ],
-  },
-  {
-    id: 'tdna_break_signal_coming',
+    id: 'tdna_break_2',
     kind: 'interstitial',
     nonScored: true,
-    text: "You're quite the character.",
+    text: 'You’re about halfway.',
   },
   {
-    id: 'tdna_image_break_quiet_room',
-    kind: 'imageChoice',
+    id: 'tdna_break_3',
+    kind: 'interstitial',
     nonScored: true,
-    text: 'What vibe feels right?',
-    options: [
-      {
-        id: 'quiet_room',
-        label: 'Quiet room',
-        imageUrl: IMAGE_BREAK_ASSETS.quietMeetingRoom,
-      },
-      {
-        id: 'open_room',
-        label: 'Open room',
-        imageUrl: IMAGE_BREAK_ASSETS.communalInterior,
-      },
-    ],
-  },
-  {
-    id: 'tdna_image_break_plan_forming',
-    kind: 'imageChoice',
-    nonScored: true,
-    text: 'Which do you prefer?',
-    options: [
-      {
-        id: 'shelf_wall',
-        label: 'Shelf wall',
-        imageUrl: IMAGE_BREAK_ASSETS.bookshelf,
-      },
-      {
-        id: 'soft_seat',
-        label: 'Soft seat',
-        imageUrl: IMAGE_BREAK_ASSETS.takeASeat,
-      },
-    ],
+    text: 'Last few questions.',
   },
 ];
 
@@ -356,11 +312,9 @@ export function buildAssessmentSteps() {
     [19, 6],
   ]);
   const experienceBreakInsertions = new Map([
-    [2, [1]],
     [6, [0]],
-    [9, [3]],
-    [13, [2]],
-    [16, [4]],
+    [11, [1]],
+    [16, [2]],
   ]);
 
   BIG_FIVE_ITEMS.forEach((item, index) => {

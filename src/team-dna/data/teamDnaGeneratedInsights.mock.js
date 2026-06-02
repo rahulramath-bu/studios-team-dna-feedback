@@ -698,7 +698,7 @@ const PAIR_SYNTHESIS = {
   ),
 };
 
-function makeGuidanceCard(id, label, sections) {
+function makeGuidanceCard(id, label, sections, options = {}) {
   const normalizedSections = Array.isArray(sections) ? sections : [sections];
 
   return {
@@ -707,9 +707,12 @@ function makeGuidanceCard(id, label, sections) {
     label,
     data: {
       guidance: {
+        ...(options.layout ? { layout: options.layout } : {}),
+        ...(options.discussion ? { discussion: options.discussion } : {}),
         sections: normalizedSections.map((section) => ({
           label: section.label,
           body: section.body,
+          ...(section.bullets ? { bullets: section.bullets } : {}),
         })),
       },
     },
@@ -783,42 +786,40 @@ function getBestForShort(value) {
 function makePairTrySections(first, second, pairSynthesis) {
   return [
     {
-      body: getFirstSentence(pairSynthesis.pairingManual),
-    },
-    {
-      body: pairSynthesis.watchOut,
-    },
-    {
-      body: 'Before starting, agree on what each person owns.',
-    },
-    {
-      body: 'If it feels tense, ask what each person is trying to protect.',
-    },
-    {
-      body: 'End with one owner, one next step, and one check-in.',
+      bullets: [
+        getFirstSentence(pairSynthesis.pairingManual),
+        pairSynthesis.watchOut,
+        'Agree up front on who owns what.',
+        'End with one owner, one next step, and one check-in.',
+      ],
     },
   ];
 }
 
+// Collaboration tips render as the scrolling boxes; discussion questions sit
+// underneath as a quiet subsection (see makeGuidanceCard `discussion` option).
 function makeTeamTrySections() {
   return [
     {
-      body: 'Open the frame first, then name the exact thing the team is committing to now.',
+      body: 'End every discussion by writing down the one thing the team actually decided.',
     },
     {
-      body: 'Give invention, proof, delivery, taste, and care each a visible role.',
+      body: 'Give each strength a clear job — who explores, who builds, who pressure-tests.',
     },
     {
-      body: 'Before a handoff, say what “done” means in one concrete sentence.',
-    },
-    {
-      body: 'Invite one quiet read before the room treats momentum as agreement.',
-    },
-    {
-      body: 'Do not treat range as messiness; turn different instincts into named jobs.',
+      body: 'Before a handoff, say what "done" means in one plain sentence.',
     },
   ];
 }
+
+const TEAM_DISCUSSION_QUESTIONS = {
+  label: 'Discussion questions',
+  bullets: [
+    'Where do we most often lose a decision after the meeting ends?',
+    'Whose working style is hardest for the rest of us, and what would help?',
+    'What is one handoff that keeps going wrong, and how do we fix it?',
+  ],
+};
 
 function makePersonWorkWithSections(member, synthesis) {
   const notes = PERSON_WORK_WITH_NOTES[member.id] ?? [
@@ -827,20 +828,7 @@ function makePersonWorkWithSections(member, synthesis) {
     getFirstSentence(synthesis.misread),
   ];
 
-  return notes.map((body) => ({ body }));
-}
-
-function makePersonWatchOutSections(synthesis) {
-  return makeWatchOut([
-    {
-      title: 'When the strength gets misread.',
-      body: `${synthesis.misread} When that happens, name the useful job this pattern is trying to do before the room reacts only to the style.`,
-    },
-    {
-      title: 'When the useful version needs a cue.',
-      body: `${synthesis.workWith} Try making the ask visible before expecting the best version of this strength to show up.`,
-    },
-  ]);
+  return [{ bullets: notes.slice(0, 3) }];
 }
 
 function getScoreBand(member, trait) {
@@ -862,10 +850,10 @@ function getPersonSpectrumReads(member) {
   return {
     openness:
       openness === 'high'
-        ? `${capitalize(subject)} is **inventive**, often pushing past the obvious answer toward a more alive frame.`
+        ? `${capitalize(subject)} is **explorative**, often pushing past the obvious answer toward a stronger option.`
         : openness === 'low'
           ? `${capitalize(subject)} is **practical**, often testing new ideas against what is already proven and usable.`
-          : `${capitalize(subject)} is **practical / inventive**, testing new angles against what will actually hold.`,
+          : `${capitalize(subject)} is **practical / explorative**, testing new angles against what will actually hold.`,
     conscientiousness:
       conscientiousness === 'high'
         ? `${capitalize(subject)} is **structured**, turning intent into owners, standards, and next steps.`
@@ -886,10 +874,10 @@ function getPersonSpectrumReads(member) {
           : `${capitalize(subject)} is **skeptical / cooperative**, pairing useful challenge with care for how it lands.`,
     neuroticism:
       neuroticism === 'high'
-        ? `${capitalize(subject)} is **vigilant**, noticing risk signals early and looking for what needs protection.`
+        ? `${capitalize(subject)} is **vigilant**, noticing risk early and looking for what needs protection.`
         : neuroticism === 'low'
-          ? `${capitalize(subject)} is **steady**, helping the room stay regulated and keep perspective under pressure.`
-          : `${capitalize(subject)} is **steady / vigilant**, reading pressure without letting it run the room.`,
+          ? `${capitalize(subject)} is **calm**, helping the room keep perspective under pressure.`
+          : `${capitalize(subject)} is **calm / vigilant**, reading pressure without letting it run the room.`,
   };
 }
 
@@ -909,7 +897,9 @@ function makePersonInsight(member) {
     title: synthesis.title,
     summary: [{ text: synthesis.summary }],
     spectrumReads: getPersonSpectrumReads(member),
-    watchOut: makePersonWatchOutSections(synthesis),
+    // Blind spots intentionally come from the deterministic, trait-based
+    // generator (see teamDnaWatchOuts.js) so they read as real, specific blind
+    // spots instead of a reworded version of "how to work with this person."
     cards: [
       makeGuidanceCard(
         `${member.id}-work-with`,
@@ -973,7 +963,7 @@ function makePairInsight(first, second) {
       { text: pairSynthesis.summary },
     ],
     spectrumReads: {
-      openness: `${higherOpenness} is more **inventive** here, stretching the frame while ${lowerOpenness} keeps the idea more practical.`,
+      openness: `${higherOpenness} is more **explorative** here, stretching the frame while ${lowerOpenness} keeps the idea more practical.`,
       conscientiousness: `${higherStructure} is more **structured** here, wanting the path clear while ${lowerStructure} keeps more flexibility.`,
       extraversion: `${higherEnergy} is more **expressive** here, while ${lowerEnergy} brings a more reflective first pass.`,
       agreeableness: `${warmer} is more **cooperative** here, while ${moreDirect} brings a more skeptical test of the idea.`,
@@ -1034,31 +1024,32 @@ export function makeMockTeamDnaGeneratedInsights({ team, members }) {
       isEditable: true,
       summary: [
         {
-          text: `${team.name} reads like a high-possibility team with a wide range in how people turn ideas into finished work. The team will see more possibilities than most groups, but it will need unusually explicit handoffs so that creative motion becomes shared progress.`,
+          text: `${team.name} is an ideas-first team with a wide range in how people like to work. It will see more options than most groups — the trade-off is that it needs clear decisions and clean handoffs so all that idea-generation actually turns into finished work.`,
         },
       ],
       spectrumReads: {
-        openness: 'This team is **inventive**, opening many possible paths before choosing which one deserves a real test.',
-        conscientiousness: 'This team is **structured**, but works best when “done” is named early and handoffs are made explicit.',
-        extraversion: 'This team is **reflective / expressive**, so quiet reads should be invited before decisions close.',
-        agreeableness: 'This team is **skeptical / cooperative**, so challenge and trust both need a visible role.',
-        neuroticism: 'This team is **vigilant**, and works best when risk signals are sorted before they spread.',
+        openness: 'This team is **explorative**, generating lots of options before settling on one to test.',
+        conscientiousness: 'This team is **structured**, and works best when "done" is named early and handoffs are explicit.',
+        extraversion: 'This team is **reflective / expressive**, so quieter people should be asked before decisions close.',
+        agreeableness: 'This team is **skeptical / cooperative**, so honest challenge and trust both need room.',
+        neuroticism: 'This team is **vigilant**, and works best when risks are turned into decisions early.',
       },
       watchOut: makeWatchOut([
         {
-          title: 'When creative motion outruns the handoff.',
-          body: 'This team can open a lot of doors quickly. The watch-out is leaving too many people with different pictures of what was actually chosen.',
+          title: 'Decisions can get lost in the options.',
+          body: 'This team generates ideas fast. The risk is leaving a meeting without one clear answer, so people walk away with different versions of what was decided.',
         },
         {
-          title: 'When range gets mistaken for messiness.',
-          body: 'The team has many useful instincts. It works best when those instincts are named as roles instead of treated as competing personalities.',
+          title: 'Big range needs clear roles.',
+          body: 'People here work in very different ways. That is a strength when everyone has a clear job, and a source of friction when those differences get treated as personality clashes.',
         },
       ]),
       cards: [
         makeGuidanceCard(
           'team-work-with',
           'Collaboration Tips',
-          makeTeamTrySections()
+          makeTeamTrySections(),
+          { discussion: TEAM_DISCUSSION_QUESTIONS }
         ),
         makeGuidanceCard('team-where-shines', 'Where this team shines', {
           body: 'This team shines in fuzzy product bets, new experience directions, research-to-product synthesis, and work that needs both imagination and a real path into the product.',

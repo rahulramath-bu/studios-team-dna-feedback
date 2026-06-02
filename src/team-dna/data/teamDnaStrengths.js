@@ -14,52 +14,52 @@ import {
 const STRENGTHS = {
   openness: {
     high: {
-      title: 'Quick to find new angles.',
-      lead: "opens fresh directions and reframes problems easily, so the obvious answer rarely wins by default — there's usually a stronger option on the table before a decision lands.",
+      title: 'Finds new options fast.',
+      lead: 'comes up with fresh approaches quickly, so the team rarely gets stuck on the first idea and usually has a stronger option to compare before committing.',
     },
     low: {
-      title: 'Grounded in what works.',
-      lead: 'keeps ideas tied to what is realistic and proven, so plans stay buildable and energy goes toward the options that can actually ship.',
+      title: 'Keeps ideas grounded.',
+      lead: 'stays close to what has actually worked before, so plans stay realistic and effort goes to options that can really ship.',
     },
   },
   conscientiousness: {
     high: {
       title: 'Turns plans into finished work.',
-      lead: 'brings real structure and follow-through, so decisions become owned, finished outcomes instead of good intentions.',
+      lead: 'sets clear owners, steps, and standards, so decisions actually get done instead of stalling as good intentions.',
     },
     low: {
       title: 'Adapts fast when plans change.',
-      lead: 'stays loose and improvises well, so momentum holds and the work keeps moving even when priorities shift.',
+      lead: 'adjusts quickly when priorities shift, so the work keeps moving instead of getting stuck on a plan that no longer fits.',
     },
   },
   extraversion: {
     high: {
-      title: 'Creates momentum and energy.',
-      lead: 'brings energy and gets people moving, so discussion turns into action instead of stalling.',
+      title: 'Creates energy and momentum.',
+      lead: 'gets people talking and moving, so conversations turn into action instead of sitting unresolved.',
     },
     low: {
-      title: 'Brings depth and a considered read.',
-      lead: 'listens and synthesizes before reacting, so the thinking goes deeper instead of defaulting to the fastest take in the room.',
+      title: 'Thinks before reacting.',
+      lead: 'listens and works things through before responding, so the team gets a more considered read, not just the fastest take in the room.',
     },
   },
   agreeableness: {
     high: {
-      title: 'Builds trust and keeps people engaged.',
-      lead: 'builds trust and draws in quieter voices, so collaboration stays smooth and people stay bought in, even under pressure.',
+      title: 'Builds trust and keeps people in.',
+      lead: 'keeps people included and the tone constructive, so the team stays aligned and bought in, even when the work gets hard.',
     },
     low: {
-      title: 'Willing to challenge the logic.',
-      lead: 'names the hard tradeoffs and tests weak logic, so easy, false agreement gets caught before it becomes expensive.',
+      title: 'Tests the thinking.',
+      lead: 'questions weak assumptions and names the hard tradeoffs, so problems get caught before the team agrees too quickly.',
     },
   },
   neuroticism: {
     low: {
       title: 'Steady under pressure.',
-      lead: 'holds composure when things get tense, so judgment stays clear and the work keeps moving under pressure.',
+      lead: 'keeps a level head when things get tense, so decisions stay clear and the work keeps moving under stress.',
     },
     high: {
-      title: 'Catches risk early.',
-      lead: 'reads risk early and notices weak signals, so problems get seen while there is still time to act on them.',
+      title: 'Spots risk early.',
+      lead: 'notices what could go wrong before it grows, so the team can deal with problems while there is still time to fix them.',
     },
   },
 };

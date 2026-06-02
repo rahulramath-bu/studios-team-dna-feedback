@@ -938,6 +938,31 @@ button {
   margin-top: 0;
 }
 
+.team-management-consent {
+  flex: 0 0 auto;
+  padding: 16px 32px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.team-management-consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  cursor: pointer;
+  color: rgba(var(--team-dna-copy-rgb), 0.82);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.team-management-consent-row input {
+  margin-top: 2px;
+  flex: 0 0 auto;
+  width: 16px;
+  height: 16px;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
 .team-management-field {
   display: grid;
   gap: 8px;
@@ -5202,9 +5227,9 @@ button.team-management-row {
 .big-five-bloom-label {
   fill: rgba(var(--team-dna-ink-rgb), 0.54);
   font-family: var(--label-font);
-  font-size: 9px;
+  font-size: 7px;
   font-weight: var(--label-weight);
-  letter-spacing: 0.9px;
+  letter-spacing: 0.3px;
   line-height: 1;
   text-transform: uppercase;
 }
@@ -5652,6 +5677,23 @@ button.team-management-row {
 .guidance-card {
   display: grid;
   gap: 28px;
+}
+
+.guidance-discussion {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+  display: grid;
+  gap: 14px;
+}
+
+.guidance-discussion-label {
+  margin: 0;
+  color: var(--foreground-body);
+  font-family: 'Söhne', sans-serif;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 1.45;
 }
 
 .guidance-card--carousel {

@@ -107,6 +107,10 @@ export function TeamManagementOverlay({
     seedSelectedEmployeeIds(sourceRecord)
   );
   const [invitedEmails, setInvitedEmails] = useState(sourceRecord.invitedEmails);
+  // Managers are part of the teams they create, so they must consent to their
+  // own Big Five results being processed, the same as everyone else. Required to
+  // create a team; treated as already-granted for existing teams being edited.
+  const [managerConsent, setManagerConsent] = useState(mode !== 'create');
   const [isAddingTeammate, setIsAddingTeammate] = useState(false);
   const [isAddCardWaiting, setIsAddCardWaiting] = useState(false);
   const [recentlyAddedMemberKey, setRecentlyAddedMemberKey] = useState(null);
@@ -165,6 +169,7 @@ export function TeamManagementOverlay({
   );
   const teamMemberCount = selectedEmployees.length + invitedEmails.length;
   const hasEnoughMembers = teamMemberCount >= MIN_TEAM_MEMBERS;
+  const canSave = hasEnoughMembers && managerConsent;
   const membersNeeded = Math.max(0, MIN_TEAM_MEMBERS - teamMemberCount);
   const newPendingEmployeeCount = selectedEmployees.filter(
     (employee) =>
@@ -207,6 +212,7 @@ export function TeamManagementOverlay({
     setTeamName(sourceRecord.name);
     setSelectedEmployeeIds(seedSelectedEmployeeIds(sourceRecord));
     setInvitedEmails(sourceRecord.invitedEmails);
+    setManagerConsent(mode !== 'create');
     setIsAddingTeammate(Boolean(initialDemoState?.isAddingTeammate));
     setIsAddCardWaiting(false);
     setRecentlyAddedMemberKey(null);
@@ -392,7 +398,7 @@ export function TeamManagementOverlay({
 
   const saveTeam = () => {
     if (isClosing) return;
-    if (!hasEnoughMembers) return;
+    if (!canSave) return;
     setIsClosing(true);
     window.setTimeout(() => {
       onSave?.({
@@ -781,6 +787,20 @@ export function TeamManagementOverlay({
           </section>
         </div>
 
+        <div className="team-management-consent">
+          <label className="team-management-consent-row">
+            <input
+              type="checkbox"
+              checked={managerConsent}
+              onChange={(event) => setManagerConsent(event.target.checked)}
+            />
+            <span>
+              I consent to my own Big Five results being processed and shown to
+              this team, the same way my teammates&rsquo; results are.
+            </span>
+          </label>
+        </div>
+
         <footer className="team-management-footer">
           <button
             type="button"
@@ -793,16 +813,20 @@ export function TeamManagementOverlay({
             type="button"
             className="team-management-primary"
             onClick={saveTeam}
-            disabled={!hasEnoughMembers}
+            disabled={!canSave}
             title={
-              hasEnoughMembers
-                ? undefined
-                : `Add at least ${MIN_TEAM_MEMBERS} members to save`
+              !hasEnoughMembers
+                ? `Add at least ${MIN_TEAM_MEMBERS} members to save`
+                : !managerConsent
+                  ? 'Consent to processing your own Big Five results to continue'
+                  : undefined
             }
           >
-            {hasEnoughMembers
-              ? saveLabel
-              : `Add ${membersNeeded} more`}
+            {!hasEnoughMembers
+              ? `Add ${membersNeeded} more`
+              : !managerConsent
+                ? 'Consent to continue'
+                : saveLabel}
           </button>
         </footer>
       </div>

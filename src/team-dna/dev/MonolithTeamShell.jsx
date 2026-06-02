@@ -1,7 +1,7 @@
 import React from 'react';
 
 const primaryLinks = [
-  { label: 'Home', href: '/platform/member/home', icon: 'Home' },
+  { label: 'Home', href: '/', icon: 'Home', top: true },
   { label: 'Insights', href: '/frontend/grow/insights/me', icon: 'TrendingUp' },
   {
     label: 'AI Coaching',
@@ -55,7 +55,12 @@ function MonolithPrimaryNav() {
   return (
     <header className="monolith-primary-nav" data-test-primary-nav>
       <div className="monolith-primary-nav-inner">
-        <a className="monolith-primary-logo" href="/frontend/" aria-label="BetterUp">
+        <a
+          className="monolith-primary-logo"
+          href="/"
+          target="_top"
+          aria-label="BetterUp"
+        >
           <img
             src="/team-dna/monolith/betterup-logotype-rebrand.svg"
             alt="BetterUp"
@@ -66,6 +71,7 @@ function MonolithPrimaryNav() {
             <a
               key={link.label}
               href={link.href}
+              target={link.top ? '_top' : undefined}
               className={link.active ? 'monolith-primary-link-active' : undefined}
               aria-current={link.active ? 'page' : undefined}
             >

@@ -17,8 +17,8 @@ const TRAIT_LANGUAGE = {
   openness: {
     label: 'ideas',
     poleLabel: {
-      high: 'inventive',
-      middle: 'practical / inventive',
+      high: 'explorative',
+      middle: 'practical / explorative',
       low: 'practical',
     },
     personTitle: {
@@ -122,8 +122,8 @@ const TRAIT_LANGUAGE = {
     label: 'pressure',
     poleLabel: {
       high: 'vigilant',
-      middle: 'steady / vigilant',
-      low: 'steady',
+      middle: 'calm / vigilant',
+      low: 'calm',
     },
     personTitle: {
       high: 'The Sentinel',
@@ -407,11 +407,11 @@ function buildComplementInsight(first, second, complement) {
     summary: [
       { text: firstName, emphasis: true },
       {
-        text: ` brings ${getTraitGift(trait, firstDirection)}: ${getTraitLine(trait, firstDirection)}; `,
+        text: ` ${getTraitLine(trait, firstDirection)}, while `,
       },
       { text: secondName, emphasis: true },
       {
-        text: ` brings ${getTraitGift(trait, secondDirection)}: ${getTraitLine(trait, secondDirection)}. Together, ${firstName} and ${secondName} are useful when the team needs both poles visible before it decides.`,
+        text: ` ${getTraitLine(trait, secondDirection)}. Used well, this pair can do both at once — one pushes while the other keeps it grounded — so the team gets the full picture before it commits.`,
       },
     ],
   };
@@ -431,7 +431,7 @@ function buildSharedInsight(first, second, shared) {
       { text: ` and ` },
       { text: secondName, emphasis: true },
       {
-        text: ` both bring ${getTraitGift(trait, direction)}. That shared ${language.label} means they may spot the same signal quickly and help the team move with less explanation.`,
+        text: ` both ${getTraitLine(trait, direction)}. Because they share that instinct, this pair tends to agree fast and move with little back-and-forth — just make sure a different angle still gets into the room.`,
       },
     ],
   };
@@ -448,11 +448,11 @@ function buildBalancedInsight(first, second) {
     summary: [
       { text: firstName, emphasis: true },
       {
-        text: ` brings ${getTraitGift(firstTrait.trait, firstTrait.direction)}; `,
+        text: ` tends to ${getTraitLine(firstTrait.trait, firstTrait.direction)}, while `,
       },
       { text: secondName, emphasis: true },
       {
-        text: ` brings ${getTraitGift(secondTrait.trait, secondTrait.direction)}. This pair is useful because each person can notice something the other may not lead with.`,
+        text: ` tends to ${getTraitLine(secondTrait.trait, secondTrait.direction)}. They cover different ground, so together they catch things neither would alone.`,
       },
     ],
   };

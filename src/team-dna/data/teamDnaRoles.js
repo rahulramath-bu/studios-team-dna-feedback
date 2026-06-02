@@ -202,7 +202,7 @@ export function getPairGuidanceCards(first, second) {
         `Decide up front who owns the final call so two similar instincts don't quietly compete.`,
       ]
     : [
-        `Lean on ${a} when the work needs ${firstRoles.primary.gift}, and on ${b} when it needs ${secondRoles.primary.gift}.`,
+        `Use this pair on the same problem when it needs both ${firstRoles.primary.gift} and ${secondRoles.primary.gift} — putting those two strengths together is the point of pairing ${a} and ${b}.`,
         `Decide up front who owns the final call so your different instincts don't pull the work in two directions.`,
         `Treat the moments you disagree as coverage, not friction — it usually means both angles are finally on the table.`,
       ];

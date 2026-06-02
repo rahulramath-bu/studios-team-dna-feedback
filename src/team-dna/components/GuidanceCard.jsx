@@ -1,6 +1,6 @@
 import React from 'react';
 
-const GUIDANCE_MARQUEE_PIXELS_PER_SECOND = 18;
+const GUIDANCE_MARQUEE_PIXELS_PER_SECOND = 38;
 const GUIDANCE_MARQUEE_MANUAL_PAUSE_MS = 3500;
 
 /**
@@ -23,8 +23,11 @@ export function GuidanceCard({ guidance }) {
       ? [{ body: guidance.body }]
       : [];
   // A single section that carries a `bullets` array renders as a quiet list
-  // rather than the multi-section marquee.
-  const isCarousel = sections.length > 1;
+  // rather than the multi-section marquee. `layout: 'stacked'` opts a
+  // multi-section card out of the marquee so it renders as labeled groups
+  // (e.g. collaboration tips + discussion questions).
+  const isStacked = guidance?.layout === 'stacked';
+  const isCarousel = sections.length > 1 && !isStacked;
 
   React.useEffect(() => {
     if (!isCarousel || !scrollRef.current) {
@@ -94,23 +97,43 @@ export function GuidanceCard({ guidance }) {
     </section>
   );
 
-  if (sections.length === 0) {
+  const discussion = guidance?.discussion;
+
+  if (sections.length === 0 && !discussion) {
     return null;
   }
 
   return (
-    <div
-      className={[
-        'guidance-card',
-        isCarousel ? 'guidance-card--carousel' : '',
-      ].filter(Boolean).join(' ')}
-      onPointerDown={isCarousel ? pauseMarquee : undefined}
-      onWheel={isCarousel ? pauseMarquee : undefined}
-      ref={isCarousel ? scrollRef : null}
-    >
-      {sections.map((section, index) => renderSection(section, index))}
-      {isCarousel &&
-        sections.map((section, index) => renderSection(section, index, true))}
-    </div>
+    <>
+      {sections.length > 0 ? (
+        <div
+          className={[
+            'guidance-card',
+            isCarousel ? 'guidance-card--carousel' : '',
+          ].filter(Boolean).join(' ')}
+          onPointerDown={isCarousel ? pauseMarquee : undefined}
+          onWheel={isCarousel ? pauseMarquee : undefined}
+          ref={isCarousel ? scrollRef : null}
+        >
+          {sections.map((section, index) => renderSection(section, index))}
+          {isCarousel &&
+            sections.map((section, index) => renderSection(section, index, true))}
+        </div>
+      ) : null}
+      {discussion ? (
+        <div className="guidance-discussion">
+          {discussion.label ? (
+            <p className="guidance-discussion-label">{discussion.label}</p>
+          ) : null}
+          {discussion.bullets?.length ? (
+            <ul className="guidance-section-bullets">
+              {discussion.bullets.map((bullet, bulletIndex) => (
+                <li key={bulletIndex}>{bullet}</li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+    </>
   );
 }

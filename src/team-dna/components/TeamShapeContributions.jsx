@@ -118,7 +118,6 @@ export function TeamShapeContributions({
               hideLegend={hideLegend}
               onSelectMember={onSelectMember}
             />
-            <span className="team-shape-bloom-note">Visual placeholder</span>
           </div>
           <hr className="team-shape-divider" aria-hidden="true" />
           <p className="team-shape-sublabel">Role distribution</p>

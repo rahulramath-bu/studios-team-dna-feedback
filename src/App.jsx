@@ -143,7 +143,7 @@ function PrototypeHub({ onNavigate }) {
           <SurfaceLink
             eyebrow="For the manager"
             title="Manager Flow"
-            body="Start the manager journey — explore the team, person, and pair reads for working together."
+            body="Start the manager journey — explore the team, individual, and pair reads for working together."
             href={`${DEMO_FLOW_PATH}?journey=manager`}
             icon="team"
             onNavigate={onNavigate}

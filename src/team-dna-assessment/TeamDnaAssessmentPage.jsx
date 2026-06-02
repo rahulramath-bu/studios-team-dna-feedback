@@ -1095,7 +1095,7 @@ function WelcomeStep({ onStart }) {
           </p>
           <div className="tdna-welcome-actions">
             <button type="button" className="tdna-primary-action" onClick={onStart}>
-              Begin quiz <span>3 min</span>
+              Begin assessment <span>10 min</span>
             </button>
           </div>
         </div>
@@ -2265,7 +2265,7 @@ function ProfileLoader({ readyToExit, onExitComplete }) {
   const [completionStarted, setCompletionStarted] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
   const messages = useMemo(
-    () => ['Reading the signals', "You're quite the character", 'Almost there'],
+    () => ['Scoring your answers', 'Building your profile', 'Almost there'],
     []
   );
   const message = showCheckmark ? 'All set' : messages[statusIndex % messages.length];
