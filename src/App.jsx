@@ -9,10 +9,14 @@ const TEAM_DNA_PATH = '/team-dna';
 const ASSESSMENT_PATH = '/assessment';
 
 function getRoute(pathname) {
-  if (pathname === TEAM_DNA_PATH) return 'team-dna';
-  if (pathname === ASSESSMENT_PATH) return 'assessment';
-  if (pathname === DEMO_FLOW_PATH) return 'flow-demo';
-  if (pathname === '/') return 'hub';
+  // Static hosts (S3/CloudFront/Amplify) often 301 a path like `/team-dna` to
+  // `/team-dna/`, so match against a trailing-slash-normalized path.
+  const normalized =
+    pathname !== '/' ? pathname.replace(/\/+$/, '') : pathname;
+  if (normalized === TEAM_DNA_PATH) return 'team-dna';
+  if (normalized === ASSESSMENT_PATH) return 'assessment';
+  if (normalized === DEMO_FLOW_PATH) return 'flow-demo';
+  if (normalized === '/' || normalized === '') return 'hub';
   return 'unknown';
 }
 
