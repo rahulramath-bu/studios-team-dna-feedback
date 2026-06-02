@@ -70,9 +70,9 @@ const userJourneyMoments = [
   {
     id: 'surface-1-review',
     phase: 'Profile',
-    label: 'Review',
-    title: 'Review before sharing',
-    note: 'The user can edit their read and choose how it appears to their teams.',
+    label: 'Profile',
+    title: 'See your Team DNA profile',
+    note: 'The user sees their finished read — strengths, blind spots, and how teammates can work with them — before it appears to their teams.',
     surfaceUrl: '/assessment?demo=review',
   },
   {

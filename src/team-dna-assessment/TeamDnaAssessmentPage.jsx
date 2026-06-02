@@ -16,6 +16,7 @@ import {
 import { BetterUpIcon } from '../team-dna/components/BetterUpIcon.jsx';
 import { InsightPanel } from '../team-dna/components/InsightPanel.jsx';
 import { getInsightForSelection } from '../team-dna/data/teamDnaAdapter.js';
+import { teamDnaDataset } from '../team-dna/data/teamDnaMock.js';
 import { useTeamDnaPressable } from '../team-dna/hooks/useTeamDnaPressable.js';
 import {
   IMAGE_BREAK_URLS,
@@ -105,19 +106,6 @@ const BIG_FIVE_HIGHLIGHTS = {
   tdna_b5_conscientiousness_4: 'without much structure',
   tdna_b5_neuroticism_4: 'rarely worry',
   tdna_b5_openness_4: 'already works',
-};
-
-const ROLE_IMAGE_SIGNALS = {
-  Mobilizer: ['extraversion', 'high'],
-  'Reflective Synthesizer': ['extraversion', 'low'],
-  Innovator: ['openness', 'high'],
-  'Practical Stabilizer': ['openness', 'low'],
-  Implementer: ['conscientiousness', 'high'],
-  'Adaptive Responder': ['conscientiousness', 'low'],
-  Harmonizer: ['agreeableness', 'high'],
-  'Candid Challenger': ['agreeableness', 'low'],
-  'Steadying Presence': ['neuroticism', 'low'],
-  'Vigilant Sentinel': ['neuroticism', 'high'],
 };
 
 function useAssessmentSound(src, volume = 0.35) {
@@ -243,23 +231,6 @@ function collectInsightImageUrls(insight) {
 
     return images.map((entry) => entry.imageUrl).filter(Boolean);
   });
-}
-
-function buildArchetypeImageScores(roles, bigFive) {
-  const imageScores = { ...bigFive };
-  const roleNames = [roles?.primary, roles?.secondary].filter(Boolean);
-
-  roleNames.forEach((roleName, index) => {
-    const [traitKey, pole] = ROLE_IMAGE_SIGNALS[roleName] ?? [];
-    if (!traitKey || !pole) return;
-
-    imageScores[traitKey] =
-      pole === 'high'
-        ? index === 0 ? 86 : 74
-        : index === 0 ? 14 : 26;
-  });
-
-  return imageScores;
 }
 
 /**
@@ -734,9 +705,6 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
           <ReviewStep
             key="review"
             avatarDataUrl={avatarDataUrl}
-            bigFive={bigFive}
-            profile={profile}
-            profileCopy={profileCopy}
             onAvatarChange={setAvatarDataUrl}
             onSave={saveAndContinue}
           />
@@ -2393,98 +2361,24 @@ function ProcessingStep({ readyToExit, onExitComplete }) {
   );
 }
 
-function makeReviewInsight({ profile, profileCopy, bigFive, avatarDataUrl }) {
-  const member = {
-    id: 'you',
-    name: 'Jordan',
-    avatarUrl: avatarDataUrl,
-    assessmentComplete: true,
-    bigFive,
-    archetypeImageBigFive: buildArchetypeImageScores(profile.roles, bigFive),
-    roles: profile.roles,
-    meta: profile.meta,
-  };
-  const copy = profileCopy ?? profile.copy ?? {};
+// Viewer member in the canonical demo dataset. The post-assessment review
+// reuses this person so it renders the same rich read (archetype title, role
+// summary, structured strengths/blind spots) as the team view, rather than a
+// thinner bespoke profile.
+const REVIEW_VIEWER_MEMBER_ID = 'sergio';
+
+function makeReviewInsight({ avatarDataUrl }) {
   const dataset = {
-    team: {
-      id: 'surface-1-review',
-      name: 'Team DNA',
-    },
-    members: [member],
-    insights: {
-      team: undefined,
-      people: {
-        you: {
-          id: 'person-you-profile-review',
-          source: 'ai',
-          eyebrow: 'Your profile',
-          title: profile.roles?.primary ?? 'Your Team DNA',
-          summary: [
-            {
-              text:
-                copy.overview ??
-                'Your profile is ready to review.',
-            },
-          ],
-          cards: [
-            {
-              id: 'you-where-shines',
-              kind: 'guidance',
-              label: 'Where I shine',
-              data: {
-                guidance: {
-                  sections: [
-                    {
-                      body: copy.strengths ?? '',
-                    },
-                  ],
-                },
-              },
-            },
-            {
-              id: 'you-work-with',
-              kind: 'guidance',
-              label: 'How to work with me',
-              data: {
-                guidance: {
-                  sections: [
-                    copy.workingStyle
-                      ? { body: copy.workingStyle }
-                      : null,
-                    copy.coaching ? { body: copy.coaching } : null,
-                  ].filter(Boolean),
-                },
-              },
-            },
-          ],
-          meetingBehavior: {
-            items: [
-              {
-                traitKey: 'surface-1-meeting-behavior',
-                type: 'generated',
-                title: 'How I tend to show up',
-                body: copy.meetingBehavior ?? '',
-              },
-            ],
-          },
-          watchOut: {
-            items: [
-              {
-                traitKey: 'surface-1-watch-out',
-                type: 'generated',
-                title: 'When to watch the pattern',
-                body: copy.watchOuts ?? '',
-              },
-            ],
-          },
-        },
-      },
-      pairs: {},
-    },
+    ...teamDnaDataset,
+    members: teamDnaDataset.members.map((member) =>
+      member.id === REVIEW_VIEWER_MEMBER_ID && avatarDataUrl
+        ? { ...member, avatarUrl: avatarDataUrl }
+        : member
+    ),
   };
 
-  const insight = getInsightForSelection(dataset, ['you'], {
-    'person:you': 'ready',
+  const insight = getInsightForSelection(dataset, [REVIEW_VIEWER_MEMBER_ID], {
+    [`person:${REVIEW_VIEWER_MEMBER_ID}`]: 'ready',
   });
 
   return {
@@ -2497,9 +2391,6 @@ function makeReviewInsight({ profile, profileCopy, bigFive, avatarDataUrl }) {
 
 function ReviewStep({
   avatarDataUrl,
-  bigFive,
-  profile,
-  profileCopy,
   onAvatarChange,
   onSave,
 }) {
@@ -2515,14 +2406,8 @@ function ReviewStep({
   }, []);
 
   const reviewInsight = useMemo(
-    () =>
-      makeReviewInsight({
-        profile,
-        profileCopy,
-        bigFive,
-        avatarDataUrl,
-      }),
-    [avatarDataUrl, bigFive, profile, profileCopy]
+    () => makeReviewInsight({ avatarDataUrl }),
+    [avatarDataUrl]
   );
   const reviewImageUrls = useMemo(
     () => collectInsightImageUrls(reviewInsight),
@@ -2582,10 +2467,10 @@ function ReviewStep({
         <InsightPanel
           canManageTeam={false}
           allowProfileEditing={false}
-          currentViewerMemberId="you"
+          currentViewerMemberId={REVIEW_VIEWER_MEMBER_ID}
           members={[
             {
-              id: 'you',
+              id: REVIEW_VIEWER_MEMBER_ID,
               name: 'Jordan',
               pronouns: { subject: 'she', object: 'her', possessive: 'her' },
               avatarUrl: avatarDataUrl,
