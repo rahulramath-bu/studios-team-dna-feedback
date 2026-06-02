@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { TeamDnaPage } from './team-dna/TeamDnaPage.jsx';
 import { TeamDnaAssessmentPage } from './team-dna-assessment/TeamDnaAssessmentPage.jsx';
 import { DemoFlowPage } from './demo-flow/DemoFlowPage.jsx';
@@ -16,22 +16,35 @@ function getRoute(pathname) {
   return 'unknown';
 }
 
+function readLocation() {
+  return {
+    pathname: window.location.pathname,
+    search: window.location.search,
+  };
+}
+
 function useRoute() {
-  const [pathname, setPathname] = useState(() => window.location.pathname);
+  const [location, setLocation] = useState(readLocation);
 
   useEffect(() => {
-    const handlePopState = () => setPathname(window.location.pathname);
+    const handlePopState = () => setLocation(readLocation());
     window.addEventListener('popstate', handlePopState);
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
   const navigate = (nextPath) => {
-    if (window.location.pathname === nextPath) return;
+    const current = `${window.location.pathname}${window.location.search}`;
+    if (current === nextPath) return;
     window.history.pushState({}, '', nextPath);
-    setPathname(window.location.pathname);
+    setLocation(readLocation());
   };
 
-  return { pathname, route: getRoute(pathname), navigate };
+  return {
+    pathname: location.pathname,
+    search: location.search,
+    route: getRoute(location.pathname),
+    navigate,
+  };
 }
 
 function useDemoOnlyWireframeFlag() {
@@ -71,6 +84,19 @@ function SurfaceIcon({ type }) {
     );
   }
 
+  if (type === 'person') {
+    return (
+      <svg
+        className="team-dna-hub-card-icon"
+        viewBox="0 0 24 24"
+        aria-hidden="true"
+      >
+        <circle cx="12" cy="8" r="3.6" />
+        <path d="M5.5 20c.6-4 3.2-6 6.5-6s5.9 2 6.5 6" />
+      </svg>
+    );
+  }
+
   return (
     <svg
       className="team-dna-hub-card-icon"
@@ -106,235 +132,38 @@ function SurfaceLink({ eyebrow, title, body, href, icon, onNavigate }) {
 }
 
 function PrototypeHub({ onNavigate }) {
-  const [showDemoIntro, setShowDemoIntro] = useState(false);
-  const [showEngineerIntro, setShowEngineerIntro] = useState(false);
-  const [isEngineerIntroClosing, setIsEngineerIntroClosing] = useState(false);
-  const [demoView, setDemoView] = useState('full');
-  const engineerVideoRef = useRef(null);
-  const engineerCloseTimeoutRef = useRef(null);
-
-  useEffect(
-    () => () => {
-      if (engineerCloseTimeoutRef.current) {
-        window.clearTimeout(engineerCloseTimeoutRef.current);
-      }
-    },
-    []
-  );
-
-  const openEngineerIntro = () => {
-    if (engineerCloseTimeoutRef.current) {
-      window.clearTimeout(engineerCloseTimeoutRef.current);
-      engineerCloseTimeoutRef.current = null;
-    }
-
-    setIsEngineerIntroClosing(false);
-    setShowEngineerIntro(true);
-  };
-
-  const closeEngineerIntro = () => {
-    setIsEngineerIntroClosing(true);
-    engineerCloseTimeoutRef.current = window.setTimeout(() => {
-      setShowEngineerIntro(false);
-      setIsEngineerIntroClosing(false);
-      engineerCloseTimeoutRef.current = null;
-    }, 360);
-  };
-
-  useEffect(() => {
-    const video = engineerVideoRef.current;
-
-    if (!showEngineerIntro || !video) return;
-
-    video.muted = true;
-    video.defaultMuted = true;
-    video.volume = 0;
-    video.play?.().catch(() => {});
-  }, [showEngineerIntro]);
-
-  const startDemoFlow = (journey) => {
-    const params = new URLSearchParams({ journey });
-    if (demoView === 'wireframe') {
-      params.set('view', 'wireframe');
-    }
-
-    onNavigate(`${DEMO_FLOW_PATH}?${params.toString()}`);
-  };
-
   return (
     <main className="team-dna-hub" aria-label="Team DNA prototype hub">
       <section className="team-dna-hub-inner">
         <div className="team-dna-hub-grid">
           <SurfaceLink
-            eyebrow="Surface 1"
-            title="The DNA Finder"
-            body="Capture your work-style signals, Big Five shape, and context for the profile."
-            href="/assessment"
-            icon="dna"
-            onNavigate={onNavigate}
-          />
-          <SurfaceLink
-            eyebrow="Surface 2"
-            title="Team Page"
-            body="See those signals become team, person, and pair reads for working together."
-            href={TEAM_DNA_PATH}
+            eyebrow="For the manager"
+            title="Manager Flow"
+            body="Start the manager journey — explore the team, person, and pair reads for working together."
+            href={`${DEMO_FLOW_PATH}?journey=manager`}
             icon="team"
             onNavigate={onNavigate}
           />
-        </div>
-        <div className="team-dna-hub-secondary-actions">
-          <a
-            className="team-dna-hub-demo-link"
-            href={DEMO_FLOW_PATH}
-            onClick={(event) => {
-              event.preventDefault();
-              setShowDemoIntro(true);
-            }}
-          >
-            Demo The Flow
-          </a>
-          <button
-            type="button"
-            className="team-dna-hub-demo-link"
-            onClick={openEngineerIntro}
-          >
-            Hey There Engineers
-          </button>
+          <SurfaceLink
+            eyebrow="For the individual"
+            title="Direct Report Flow"
+            body="Start the user journey — sign up, take the assessment, and build a Team DNA profile."
+            href={`${DEMO_FLOW_PATH}?journey=user`}
+            icon="person"
+            onNavigate={onNavigate}
+          />
         </div>
       </section>
-
-      {showDemoIntro && (
-        <section
-          className="team-dna-hub-demo-intro"
-          aria-label="Prototype framing"
-        >
-          <button
-            type="button"
-            className="team-dna-hub-overlay-close"
-            onClick={() => setShowDemoIntro(false)}
-            aria-label="Close demo intro"
-          >
-            ×
-          </button>
-          <div className="team-dna-hub-demo-intro-copy">
-            <h2>A concept prototype</h2>
-            <p>
-              This is a working preview, shaped to be changed with your team.
-              As we walk through it, your feedback can directly shape what it
-              becomes.
-            </p>
-            <div className="team-dna-hub-demo-intro-actions">
-              <button
-                type="button"
-                onClick={() => startDemoFlow('user')}
-              >
-                Start user journey
-              </button>
-              <button
-                type="button"
-                onClick={() => startDemoFlow('manager')}
-              >
-                Start manager journey
-              </button>
-            </div>
-            <div className="team-dna-hub-demo-wireframe-row">
-              <span>Wireframe view</span>
-              <button
-                type="button"
-                className="team-dna-hub-demo-wireframe-switch"
-                role="switch"
-                aria-label="Wireframe view"
-                aria-checked={demoView === 'wireframe'}
-                data-active={demoView === 'wireframe' || undefined}
-                onClick={() =>
-                  setDemoView((current) =>
-                    current === 'wireframe' ? 'full' : 'wireframe'
-                  )
-                }
-              >
-                <i />
-              </button>
-            </div>
-          </div>
-        </section>
-      )}
-
-      {showEngineerIntro && (
-        <section
-          className="team-dna-hub-demo-intro"
-          data-exiting={isEngineerIntroClosing || undefined}
-          aria-label="Engineering handoff"
-        >
-          <button
-            type="button"
-            className="team-dna-hub-overlay-close"
-            onClick={closeEngineerIntro}
-            aria-label="Close engineering note"
-          >
-            ×
-          </button>
-          <div
-            className="team-dna-hub-engineer-video"
-            aria-label="Preetoshi video note"
-          >
-            <video
-              ref={engineerVideoRef}
-              autoPlay
-              loop
-              muted
-              defaultMuted
-              playsInline
-              preload="auto"
-              onLoadedMetadata={(event) => {
-                event.currentTarget.muted = true;
-                event.currentTarget.defaultMuted = true;
-                event.currentTarget.volume = 0;
-              }}
-            >
-              <source src="/preetoshi.webm" type="video/webm" />
-            </video>
-          </div>
-          <div className="team-dna-hub-demo-intro-copy team-dna-hub-engineer-copy">
-            <h2>Hope this makes your life easier</h2>
-            <p>
-              This prototype was built to be portable at the seams, but it is
-              not a perfect drop-in. The real work will be stitching the
-              assessment, Team DNA data, AI generation, profile photo,
-              permissions, routing, responsiveness, and design-system seams
-              into the monolith.
-            </p>
-            <p>
-              There will likely be refactoring too, especially as you decide
-              what should become shared production components versus what
-              should be rebuilt or replaced. At the very least, I hope this
-              repo gives you something useful to pull from piece by piece:
-              keep what helps, replace what needs to change, and build what
-              the monolith actually needs.
-            </p>
-            <p className="team-dna-hub-engineer-readme-note">
-              The README is the map. Please have Claude read the README first
-              and cross-reference it with the code, because it explains what
-              should port cleanly, what is prototype-only, and where the
-              remaining seams are.
-            </p>
-            <a
-              className="team-dna-hub-engineer-cta"
-              href="https://github.com/betterup/studios-team-dna"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Open GitHub README
-            </a>
-          </div>
-        </section>
-      )}
     </main>
   );
 }
 
 export function App() {
-  const { pathname, route, navigate } = useRoute();
-  const routeKey = useMemo(() => `${route}:${pathname}`, [pathname, route]);
+  const { pathname, search, route, navigate } = useRoute();
+  const routeKey = useMemo(
+    () => `${route}:${pathname}${search}`,
+    [pathname, search, route]
+  );
   useDemoOnlyWireframeFlag();
 
   if (route === 'team-dna') {

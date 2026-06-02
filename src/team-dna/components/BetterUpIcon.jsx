@@ -76,6 +76,12 @@ const paths = {
       <path d="m5 12 7-7 7 7" />
     </>
   ),
+  ArrowUpRight: (
+    <>
+      <path d="M7 17 17 7" />
+      <path d="M7 7h10v10" />
+    </>
+  ),
   Info: (
     <>
       <circle cx="12" cy="12" r="9" />

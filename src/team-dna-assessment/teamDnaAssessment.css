@@ -222,8 +222,8 @@
 
 .tdna-welcome-copy {
   width: 100%;
-  max-width: 480px;
-  transform: translateX(55%);
+  max-width: 540px;
+  transform: translateX(50%);
   text-align: left;
 }
 
@@ -276,6 +276,7 @@
   font-weight: 400;
   letter-spacing: 0;
   line-height: 1.2;
+  text-wrap: balance;
 }
 
 .tdna-welcome-copy p:not(.tdna-kicker),
@@ -1448,17 +1449,29 @@
   padding-bottom: 0;
 }
 
+/* Text hierarchy on the results read: a small eyebrow + a small "You are the…"
+   lead-in, both deferring to the large archetype title beneath them. */
+.tdna-review--single .self-results-kicker {
+  margin: 0 0 14px;
+  color: var(--primary);
+  font-family: var(--label-font);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
 .tdna-review--single .insight-self-review-line {
   width: 100%;
   max-width: 100%;
-  margin: 0 0 18px;
-  color: rgba(var(--team-dna-ink-rgb), 0.68);
+  margin: 0 0 6px;
+  color: rgba(var(--team-dna-ink-rgb), 0.55);
   font-family: var(--heading-display-font);
-  font-size: clamp(24px, 2.6vw, 34px);
-  font-style: normal;
+  font-size: 17px;
+  font-style: italic;
   font-weight: 400;
   letter-spacing: 0;
-  line-height: 1;
+  line-height: 1.2;
 }
 
 .tdna-review-avatar-control--floating {
@@ -1778,5 +1791,640 @@
     display: grid;
     grid-template-columns: 1fr 1fr;
     width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Onboarding (Create account + Value/Get started) — shown before the quiz.
+   Split layout: dark brand panel on the left, content on the right, matching
+   the BetterUp onboarding pattern.
+--------------------------------------------------------------------------- */
+.tdna-onboarding {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.02fr 0.98fr;
+  min-height: 100vh;
+  width: 100%;
+}
+
+.tdna-onboarding-aside {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 36px;
+  padding: clamp(40px, 4.6vw, 80px);
+  background:
+    radial-gradient(
+      120% 120% at 12% 0%,
+      rgba(var(--team-dna-primary-rgb), 0.22),
+      transparent 52%
+    ),
+    var(--midnight);
+  color: var(--white);
+  overflow: hidden;
+}
+
+.tdna-onboarding-aside-top {
+  position: absolute;
+  top: clamp(40px, 4.6vw, 80px);
+  left: clamp(40px, 4.6vw, 80px);
+}
+
+.tdna-onboarding-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--white);
+  font-family: var(--label-font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+/* --- Account left carousel --- */
+.tdna-onboarding-carousel {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 380px;
+}
+
+.tdna-onboarding-slide {
+  display: flex;
+  flex-direction: column;
+  gap: 26px;
+}
+
+.tdna-onboarding-slide-visual {
+  display: flex;
+  align-items: center;
+  min-height: 158px;
+}
+
+.tdna-onboarding-chat {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+
+.tdna-onboarding-bubble {
+  align-self: flex-start;
+  max-width: 84%;
+  padding: 12px 16px;
+  border-radius: 16px 16px 16px 4px;
+  background: rgba(var(--white-rgb), 0.08);
+  color: rgba(var(--white-rgb), 0.82);
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.tdna-onboarding-bubble--reply {
+  align-self: flex-end;
+  border-radius: 16px 16px 4px 16px;
+  background: rgba(var(--team-dna-primary-rgb), 0.38);
+  color: var(--white);
+}
+
+.tdna-face-cluster {
+  display: flex;
+  align-items: center;
+  padding-left: 8px;
+}
+
+.tdna-face-cluster-face {
+  width: 74px;
+  height: 74px;
+  margin-left: -18px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid var(--midnight);
+  box-shadow: 0 8px 22px -10px rgba(0, 0, 0, 0.6);
+  background: rgba(var(--white-rgb), 0.1);
+}
+
+.tdna-face-cluster-face:first-child {
+  margin-left: 0;
+}
+
+.tdna-face-cluster-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tdna-onboarding-slide-copy h2 {
+  margin: 0 0 8px;
+  font-family: var(--heading-display-font);
+  font-size: clamp(24px, 2.3vw, 32px);
+  font-weight: 400;
+  line-height: 1.14;
+}
+
+.tdna-onboarding-slide-copy p {
+  margin: 0;
+  max-width: 360px;
+  color: rgba(var(--white-rgb), 0.66);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+.tdna-onboarding-stage {
+  position: relative;
+}
+
+.tdna-onboarding-dots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+
+.tdna-onboarding-dot {
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: rgba(var(--white-rgb), 0.26);
+  cursor: pointer;
+  transition: width 200ms ease, background 200ms ease;
+}
+
+.tdna-onboarding-dot[data-active='true'] {
+  width: 22px;
+  background: var(--white);
+}
+
+.tdna-onboarding-nav-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 1px solid rgba(var(--white-rgb), 0.22);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.32);
+  color: rgba(var(--white-rgb), 0.78);
+  cursor: pointer;
+  transition: border-color 180ms ease, color 180ms ease, background 180ms ease;
+}
+
+.tdna-onboarding-nav-arrow--prev {
+  left: -42px;
+}
+
+.tdna-onboarding-nav-arrow--next {
+  right: -42px;
+}
+
+.tdna-onboarding-nav-arrow:hover {
+  border-color: rgba(var(--white-rgb), 0.5);
+  color: var(--white);
+  background: rgba(var(--white-rgb), 0.08);
+}
+
+.tdna-onboarding-traits {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  max-width: 312px;
+}
+
+.tdna-onboarding-trait-row {
+  display: grid;
+  grid-template-columns: 74px 1fr;
+  align-items: center;
+  gap: 14px;
+}
+
+.tdna-onboarding-trait-label {
+  font-family: var(--label-font);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(var(--white-rgb), 0.5);
+}
+
+.tdna-onboarding-trait-track {
+  position: relative;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(var(--white-rgb), 0.12);
+}
+
+.tdna-onboarding-trait-fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(var(--team-dna-primary-rgb), 0.55),
+    var(--rubine)
+  );
+}
+
+.tdna-onboarding-trait-dot {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--white);
+  border: 3px solid var(--rubine);
+  transform: translate(-50%, -50%);
+  box-shadow: 0 2px 6px -1px rgba(0, 0, 0, 0.45);
+}
+
+.tdna-onboarding-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(28px, 4vw, 64px);
+  background: var(--page-background);
+}
+
+/* --- Create account card --- */
+.tdna-onboarding-card {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(456px, 100%);
+  padding: clamp(28px, 3vw, 44px);
+  border-radius: 24px;
+  background: var(--white);
+  box-shadow: 0 28px 64px -42px rgba(var(--team-dna-ink-rgb), 0.5);
+}
+
+.tdna-onboarding-card h1 {
+  margin: 0;
+  font-family: var(--heading-display-font);
+  font-size: clamp(26px, 2.6vw, 32px);
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.tdna-onboarding-card-head {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tdna-onboarding-card-sub {
+  margin: 0;
+  color: rgba(var(--team-dna-ink-rgb), 0.6);
+  font-size: 14px;
+}
+
+.tdna-field {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.tdna-field-label {
+  font-family: var(--label-font);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: rgba(var(--team-dna-ink-rgb), 0.66);
+}
+
+.tdna-field input {
+  width: 100%;
+  height: 46px;
+  padding: 0 14px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.16);
+  border-radius: 12px;
+  background: rgba(var(--team-dna-ink-rgb), 0.02);
+  color: var(--team-dna-ink);
+  font-family: var(--body-font);
+  font-size: 15px;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.tdna-field input:focus {
+  outline: none;
+  border-color: var(--rubine);
+  box-shadow: 0 0 0 3px rgba(var(--team-dna-primary-rgb), 0.16);
+}
+
+.tdna-field-hint {
+  font-size: 12px;
+  color: rgba(var(--team-dna-ink-rgb), 0.5);
+  line-height: 1.4;
+}
+
+.tdna-consent {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 2px;
+}
+
+.tdna-consent-row {
+  display: grid;
+  grid-template-columns: 18px 1fr;
+  gap: 11px;
+  align-items: start;
+  font-size: 13px;
+  line-height: 1.5;
+  color: rgba(var(--team-dna-ink-rgb), 0.74);
+  cursor: pointer;
+}
+
+.tdna-consent-row input {
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  margin-top: 1px;
+  border: 1.5px solid rgba(var(--team-dna-ink-rgb), 0.28);
+  border-radius: 5px;
+  background: var(--white);
+  cursor: pointer;
+  transition: background 140ms ease, border-color 140ms ease;
+}
+
+.tdna-consent-row input:checked {
+  border-color: var(--rubine);
+  background: var(--rubine)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'/%3E%3C/svg%3E")
+    center / 12px no-repeat;
+}
+
+.tdna-consent-row input:focus-visible {
+  outline: 2px solid rgba(var(--team-dna-primary-rgb), 0.5);
+  outline-offset: 2px;
+}
+
+.tdna-consent-row a {
+  color: var(--rubine);
+  font-weight: 500;
+  text-decoration: underline;
+}
+
+.tdna-consent-row strong {
+  color: var(--team-dna-ink);
+  font-weight: 600;
+}
+
+.tdna-onboarding-submit {
+  margin-top: 6px;
+  gap: 8px;
+  align-self: flex-start;
+}
+
+.tdna-onboarding--account .tdna-onboarding-submit,
+.tdna-onboarding--value .tdna-onboarding-submit {
+  min-height: 46px;
+  padding: 0 22px;
+}
+
+/* --- Value / Get started --- */
+.tdna-onboarding-aside--value {
+  justify-content: center;
+}
+
+.tdna-onboarding-value-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+  max-width: 560px;
+}
+
+.tdna-onboarding-invite {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  align-self: flex-start;
+  padding: 6px 15px 6px 6px;
+  border: 1px solid rgba(var(--white-rgb), 0.16);
+  border-radius: 999px;
+  background: rgba(var(--white-rgb), 0.04);
+}
+
+.tdna-onboarding-invite-avatar {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  overflow: hidden;
+}
+
+.tdna-onboarding-invite-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tdna-onboarding-invite-text {
+  color: rgba(var(--white-rgb), 0.72);
+  font-size: 13.5px;
+}
+
+.tdna-onboarding-invite-text strong {
+  color: var(--white);
+  font-weight: 600;
+}
+
+.tdna-onboarding-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: rgba(var(--white-rgb), 0.7);
+  font-family: var(--label-font);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.2px;
+  text-transform: uppercase;
+}
+
+.tdna-onboarding-new {
+  display: inline-flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 9px;
+  border-radius: 999px;
+  background: var(--rubine);
+  color: var(--white);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+}
+
+.tdna-onboarding-value-copy h1 {
+  margin: 0;
+  font-family: var(--heading-display-font);
+  font-size: clamp(38px, 3.8vw, 50px);
+  font-weight: 400;
+  line-height: 1.06;
+  text-wrap: balance;
+  white-space: nowrap;
+}
+
+.tdna-onboarding-value-lede {
+  margin: 0;
+  color: rgba(var(--white-rgb), 0.74);
+  font-size: 17px;
+  line-height: 1.6;
+}
+
+.tdna-onboarding-value-points {
+  list-style: none;
+  margin: -4px 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.tdna-onboarding-value-points li {
+  position: relative;
+  padding-left: 26px;
+  color: rgba(var(--white-rgb), 0.86);
+  font-size: 15px;
+  line-height: 1.5;
+}
+
+.tdna-onboarding-value-points li::before {
+  content: '';
+  position: absolute;
+  left: 3px;
+  top: 8px;
+  width: 7px;
+  height: 7px;
+  border-radius: 2px;
+  background: var(--rubine);
+  transform: rotate(45deg);
+}
+
+.tdna-onboarding-value-actions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 6px;
+}
+
+.tdna-onboarding-value-meta {
+  color: rgba(var(--white-rgb), 0.5);
+  font-size: 13px;
+}
+
+.tdna-onboarding-value-footnote {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0 0;
+  color: rgba(var(--white-rgb), 0.5);
+  font-size: 12.5px;
+}
+
+/* Beige half: connects visually to the (beige) quiz screen that follows. */
+.tdna-onboarding-main--value {
+  background: var(--team-dna-canvas);
+}
+
+/* The animated home-page preview ships at a fixed 432px stage; keep it from
+   being squeezed by the flex column and give it a little breathing room. */
+.tdna-onboarding-main--value .team-dna-empty-preview {
+  flex: none;
+  transform: scale(0.9);
+  transform-origin: center;
+}
+
+/* Pair hero — two ringed faces joined by a dashed line + insight card. */
+.tdna-pair-visual {
+  position: relative;
+  width: min(420px, 100%);
+  aspect-ratio: 380 / 360;
+}
+
+.tdna-pair-line {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.tdna-pair-card {
+  position: absolute;
+  top: 5%;
+  left: 42%;
+  display: inline-flex;
+  align-items: center;
+  padding: 14px 18px;
+  border-radius: 16px;
+  background: var(--white);
+  box-shadow: 0 20px 44px -26px rgba(var(--team-dna-ink-rgb), 0.55);
+  color: var(--team-dna-ink);
+  font-family: var(--heading-display-font);
+  font-size: 20px;
+}
+
+.tdna-pair-face {
+  position: absolute;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 5px solid var(--rubine);
+  background: var(--white);
+  box-shadow: 0 18px 40px -22px rgba(var(--team-dna-ink-rgb), 0.55);
+}
+
+.tdna-pair-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.tdna-pair-face--left {
+  left: 8%;
+  top: 22%;
+  width: 36%;
+  aspect-ratio: 1;
+}
+
+.tdna-pair-face--right {
+  right: 6%;
+  top: 36%;
+  width: 36%;
+  aspect-ratio: 1;
+}
+
+.tdna-pair-face--small {
+  left: 40%;
+  bottom: 2%;
+  width: 17%;
+  aspect-ratio: 1;
+  border-width: 3px;
+  border-color: rgba(var(--team-dna-ink-rgb), 0.12);
+  opacity: 0.7;
+}
+
+@media (max-width: 860px) {
+  .tdna-onboarding {
+    grid-template-columns: 1fr;
+  }
+
+  .tdna-onboarding--account .tdna-onboarding-aside {
+    display: none;
+  }
+
+  .tdna-onboarding-main--value {
+    display: none;
+  }
+
+  .tdna-onboarding-aside--value {
+    min-height: 100vh;
+    justify-content: center;
   }
 }

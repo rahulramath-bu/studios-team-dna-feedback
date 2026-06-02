@@ -2,6 +2,8 @@ import React, { useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { InfoBlock } from './InfoBlock.jsx';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
+import { BigFiveBloom } from './BigFiveBloom.jsx';
+import { TeamShapeContributions } from './TeamShapeContributions.jsx';
 
 const PAGE_EASE = [0.22, 1, 0.36, 1];
 const BASELINE_REVEAL_TRANSITION = {
@@ -35,13 +37,19 @@ export function InsightPanel({
   resetScrollTop = 0,
   revealMode = 'standard',
   canManageTeam = true,
+  allowProfileEditing = true,
+  selfReviewIntro = null,
+  selfReviewAside = null,
   currentViewerMemberId,
   members = [],
   teamName,
+  coachScope = 'team',
   onSelectMember,
+  onCoachPrompt,
   onLifecycleAction,
   onProfileCopySave,
   onStartAssessment,
+  onDemoAdvance,
 }) {
   const scrollRef = useRef(null);
   const resetScrollAfterExit = () => {
@@ -77,13 +85,19 @@ export function InsightPanel({
                   key={insight.id}
                   insight={insight}
                   canManageTeam={canManageTeam}
+                  allowProfileEditing={allowProfileEditing}
+                  selfReviewIntro={selfReviewIntro}
+                  selfReviewAside={selfReviewAside}
                   currentViewerMemberId={currentViewerMemberId}
                   members={members}
                   teamName={teamName}
+                  coachScope={coachScope}
                   onSelectMember={onSelectMember}
+                  onCoachPrompt={onCoachPrompt}
                   onLifecycleAction={onLifecycleAction}
                   onProfileCopySave={onProfileCopySave}
                   onStartAssessment={onStartAssessment}
+                  onDemoAdvance={onDemoAdvance}
                   revealMode={revealMode}
                 />
               </AnimatePresence>
@@ -98,13 +112,19 @@ export function InsightPanel({
 function InsightPage({
   insight,
   canManageTeam,
+  allowProfileEditing,
+  selfReviewIntro,
+  selfReviewAside,
   currentViewerMemberId,
   members,
   teamName,
+  coachScope,
   onSelectMember,
+  onCoachPrompt,
   onLifecycleAction,
   onProfileCopySave,
   onStartAssessment,
+  onDemoAdvance,
   revealMode,
 }) {
   return (
@@ -128,13 +148,19 @@ function InsightPage({
       <InsightPageContent
         insight={insight}
       canManageTeam={canManageTeam}
+      allowProfileEditing={allowProfileEditing}
+      selfReviewIntro={selfReviewIntro}
+      selfReviewAside={selfReviewAside}
       currentViewerMemberId={currentViewerMemberId}
       members={members}
       teamName={teamName}
+      coachScope={coachScope}
       onSelectMember={onSelectMember}
+      onCoachPrompt={onCoachPrompt}
       onLifecycleAction={onLifecycleAction}
       onProfileCopySave={onProfileCopySave}
       onStartAssessment={onStartAssessment}
+      onDemoAdvance={onDemoAdvance}
       revealMode={revealMode}
     />
     </motion.article>
@@ -144,13 +170,19 @@ function InsightPage({
 function InsightPageContent({
   insight,
   canManageTeam,
+  allowProfileEditing = true,
+  selfReviewIntro = null,
+  selfReviewAside = null,
   currentViewerMemberId,
   members,
   teamName,
+  coachScope = 'team',
   onSelectMember,
+  onCoachPrompt,
   onLifecycleAction,
   onProfileCopySave,
   onStartAssessment,
+  onDemoAdvance,
   revealMode,
 }) {
   const lifecycle = insight.generationLifecycle;
@@ -159,12 +191,38 @@ function InsightPageContent({
       ? lifecycle.target.memberIds?.[0]
       : null;
   const canEditOwnProfile =
+    allowProfileEditing &&
     !canManageTeam &&
     editableMemberId &&
     editableMemberId === currentViewerMemberId;
   const imageCard = insight.cards.find((card) => card.kind === 'archetypeImage');
+  const bloomHeroCard = insight.cards.find((card) => card.kind === 'bloomHero');
+  // The hero aside is the small Big Five bloom: the self-review page supplies its
+  // own; individual profiles get one from the `bloomHero` card the adapter adds.
+  const heroAside =
+    revealMode === 'selfReview' && selfReviewAside
+      ? selfReviewAside
+      : bloomHeroCard
+        ? (
+            <div className="self-results-bloom" aria-hidden="true">
+              <BigFiveBloom subjects={bloomHeroCard.data?.subjects ?? []} />
+              <span className="self-results-bloom-note">Visual placeholder</span>
+            </div>
+          )
+        : null;
+  // The team view folds its bloom + role distribution into the big hero box, so
+  // it is pulled out of the supporting stack and rendered inside the hero.
+  const teamCompositionCard = insight.cards.find(
+    (card) => card.kind === 'teamShapeContributions'
+  );
+  const coachSubject = insight.entityTitle ?? insight.title ?? teamName;
   const supportingCards = orderSupportingCards(
-    insight.cards.filter((card) => card.kind !== 'archetypeImage')
+    insight.cards.filter(
+      (card) =>
+        card.kind !== 'archetypeImage' &&
+        card.kind !== 'bloomHero' &&
+        card.kind !== 'teamShapeContributions'
+    )
   );
   const [editingTarget, setEditingTarget] = React.useState(null);
   React.useEffect(() => {
@@ -182,14 +240,36 @@ function InsightPageContent({
   };
   const isHardNotReady =
     lifecycle?.status === 'not_ready' && !lifecycle?.target?.canGenerateTeam;
+  // While generating, show a clean loading veil instead of the deterministic
+  // fallback copy. That keeps generating → ready reading off the same data, so
+  // the content never visibly swaps mid-demo.
+  const isGenerating = lifecycle?.status === 'pending';
+  // Demo fast-forward sits just below the waiting card, in the "you're done,
+  // waiting on the team" moment (viewer complete, teammates still pending).
+  const viewerMember = members.find(
+    (member) => member.id === currentViewerMemberId
+  );
+  const viewerDone = viewerMember && viewerMember.assessmentComplete !== false;
+  const othersPending = members.some(
+    (member) =>
+      member.id !== currentViewerMemberId && member.assessmentComplete === false
+  );
+  const showDemoAdvance =
+    Boolean(onDemoAdvance) &&
+    isHardNotReady &&
+    lifecycle?.target?.scope === 'team' &&
+    viewerDone &&
+    othersPending;
 
   return (
     <>
-      <InsightLifecycleStatus
-        lifecycle={lifecycle}
-        canManageTeam={canManageTeam}
-        onLifecycleAction={onLifecycleAction}
-      />
+      {isGenerating ? null : (
+        <InsightLifecycleStatus
+          lifecycle={lifecycle}
+          canManageTeam={canManageTeam}
+          onLifecycleAction={onLifecycleAction}
+        />
+      )}
       {isHardNotReady ? (
         <InsightWaitingState
           lifecycle={lifecycle}
@@ -200,8 +280,33 @@ function InsightPageContent({
           onStartAssessment={onStartAssessment}
         />
       ) : null}
-      {isHardNotReady ? null : (
+      {showDemoAdvance ? (
+        <button
+          type="button"
+          className="insight-demo-advance"
+          onClick={() => onDemoAdvance()}
+          title="Demo only: skip ahead as if everyone has finished"
+        >
+          <span className="insight-demo-advance-tag">Demo</span>
+          Skip to next state
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      ) : null}
+      {isGenerating ? (
+        <InsightGeneratingState lifecycle={lifecycle} teamName={teamName} />
+      ) : null}
+      {isHardNotReady || isGenerating ? null : (
         <>
+          {revealMode === 'selfReview' && selfReviewIntro ? (
+            <motion.div
+              className="insight-self-review-intro"
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.7, ease: PAGE_EASE }}
+            >
+              {selfReviewIntro}
+            </motion.div>
+          ) : null}
           {revealMode === 'selfReview' ? (
             <motion.p
               className="insight-self-review-line"
@@ -216,6 +321,8 @@ function InsightPageContent({
             className={[
               'insight-primary-read',
               imageCard ? 'insight-primary-read--with-image' : '',
+              heroAside ? 'insight-primary-read--with-aside' : '',
+              teamCompositionCard ? 'insight-primary-read--team-box' : '',
             ]
               .filter(Boolean)
               .join(' ')}
@@ -253,9 +360,28 @@ function InsightPageContent({
                   onSave={(overview) => saveProfileCopyPatch({ overview })}
                 />
               ) : (
-                <InsightSummary insight={insight} />
+                <>
+                  <InsightSummary insight={insight} />
+                  <InsightRoleRead
+                    roles={insight.roleRead}
+                    name={insight.entityTitle}
+                  />
+                </>
               )}
+              {teamCompositionCard ? (
+                <div className="insight-team-composition">
+                  <TeamShapeContributions
+                    contributions={teamCompositionCard.data?.contributions ?? []}
+                    subjects={teamCompositionCard.data?.subjects ?? []}
+                    hideLegend
+                    onSelectMember={onSelectMember}
+                  />
+                </div>
+              ) : null}
             </div>
+            {heroAside ? (
+              <div className="insight-primary-aside">{heroAside}</div>
+            ) : null}
             {canEditOwnProfile ? (
               editingTarget ? null : (
                 <button
@@ -277,8 +403,11 @@ function InsightPageContent({
             }
             canEditOwnProfile={canEditOwnProfile}
             editingTarget={editingTarget}
+            coachScope={coachScope}
+            coachSubject={coachSubject}
             onCancelEdit={() => setEditingTarget(null)}
             onEditTarget={setEditingTarget}
+            onCoachPrompt={onCoachPrompt}
             onSaveProfileCopyPatch={saveProfileCopyPatch}
             onSelectMember={onSelectMember}
             revealMode={revealMode}
@@ -292,13 +421,13 @@ function InsightPageContent({
 function orderSupportingCards(cards) {
   const getCardOrder = (card) => {
     if (card.kind === 'teamShapeContributions') return 10;
-    if (card.kind === 'guidance' && card.id.endsWith('-where-shines')) return 20;
-    if (card.kind === 'guidance' && card.id.endsWith('-work-with')) return 30;
-    if (card.kind === 'guidance' && card.id.endsWith('-pairing-manual')) return 30;
-    if (card.kind === 'meetingBehavior') return 35;
-    if (card.kind === 'watchOut') return 40;
+    if (card.kind === 'strengthsList') return 20;
+    if (card.kind === 'watchOut') return 30;
+    if (card.kind === 'guidance' && card.id.endsWith('-work-best')) return 40;
+    if (card.kind === 'guidance' && card.id.endsWith('-work-with')) return 50;
+    if (card.kind === 'guidance' && card.id.endsWith('-pairing-manual')) return 50;
     if (card.kind === 'bigFiveSpectrumList') return 90;
-    return 50;
+    return 70;
   };
 
   return [...cards].sort((first, second) => getCardOrder(first) - getCardOrder(second));
@@ -395,8 +524,8 @@ function getWaitingStateCopy(target) {
   if (target.completedCount < target.minimumCompletedCount) {
     return {
       eyebrow: 'More responses needed',
-      title: 'Almost there',
-      text: `${target.completedCount} of ${target.totalCount} assessments are complete. Team summaries need at least ${target.minimumCompletedCount} responses.`,
+      title: 'Building your team DNA',
+      text: 'Once enough teammates share their DNA, your team summary appears here.',
     };
   }
 
@@ -533,17 +662,17 @@ function InsightWaitingState({
           <div className="insight-waiting-callout-text">
             <span className="insight-waiting-callout-eyebrow">Your turn</span>
             <p>
-              You have not shared your DNA yet. Your read is the missing piece
-              for {teamName ? <strong>{teamName}</strong> : 'this team'}.
+              You haven&rsquo;t shared your DNA yet &mdash; your read is the
+              missing piece.
             </p>
           </div>
           <button
-            className="bu-button bu-button--primary"
+            className="bu-button bu-button--primary insight-waiting-callout-cta"
             type="button"
             onClick={() => onStartAssessment?.()}
           >
-            Start your assessment
-            <span aria-hidden="true">-&gt;</span>
+            Start assessment
+            <span aria-hidden="true">&rarr;</span>
           </button>
         </div>
       ) : null}
@@ -574,6 +703,48 @@ function InsightWaitingState({
   );
 }
 
+function InsightGeneratingState({ lifecycle, teamName }) {
+  const target = lifecycle?.target;
+  const isTeamScope = target?.scope === 'team';
+  const total = target?.totalCount ?? 0;
+  const eyebrow = isTeamScope ? teamName || 'Team DNA' : 'Team DNA';
+
+  return (
+    <section
+      className="insight-generating-state"
+      aria-live="polite"
+      aria-busy="true"
+      aria-label="Generating insight"
+    >
+      <header className="insight-waiting-header">
+        <div className="insight-waiting-header-text">
+          <span className="insight-waiting-eyebrow">{eyebrow}</span>
+          <h2>Generating your Team DNA</h2>
+        </div>
+        <span className="insight-waiting-tag" data-tone="working">
+          Generating
+        </span>
+      </header>
+
+      <p className="insight-waiting-body">
+        Synthesizing{' '}
+        {total > 0 ? (
+          <strong>
+            {total} assessment{total === 1 ? '' : 's'}
+          </strong>
+        ) : (
+          'the team’s assessments'
+        )}{' '}
+        into your team’s shape. This only takes a moment.
+      </p>
+
+      <div className="insight-generating-bar" aria-hidden="true">
+        <div className="insight-generating-bar-fill" />
+      </div>
+    </section>
+  );
+}
+
 function InsightHeading({ insight }) {
   return (
     <div className="insight-title-row">
@@ -581,6 +752,28 @@ function InsightHeading({ insight }) {
         {insight.title}
       </h1>
     </div>
+  );
+}
+
+function InsightRoleRead({ roles, name }) {
+  if (!roles?.primary || !roles?.secondary) {
+    return null;
+  }
+
+  const firstName = name ? name.split(' ')[0] : 'They';
+
+  return (
+    <p className="insight-summary insight-role-read">
+      {`In team meetings, ${firstName}'s primary role is the `}
+      <strong className="insight-role-name--primary">
+        {roles.primary.name}
+      </strong>
+      {`, who ${roles.primary.blurb}, and the secondary role is the `}
+      <strong className="insight-role-name--secondary">
+        {roles.secondary.name}
+      </strong>
+      {`, who ${roles.secondary.blurb}.`}
+    </p>
   );
 }
 
@@ -800,8 +993,11 @@ function InsightBlocks({
   cards,
   canEditOwnProfile,
   editingTarget,
+  coachScope,
+  coachSubject,
   onCancelEdit,
   onEditTarget,
+  onCoachPrompt,
   onSaveProfileCopyPatch,
   onSelectMember,
   revealMode,
@@ -831,6 +1027,9 @@ function InsightBlocks({
                 : undefined
             }
             onSelectMember={onSelectMember}
+            onCoachPrompt={onCoachPrompt}
+            coachScope={coachScope}
+            coachSubject={coachSubject}
           />
         );
 

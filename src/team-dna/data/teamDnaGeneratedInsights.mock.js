@@ -22,13 +22,13 @@ const PERSON_SYNTHESIS = {
   sergio: {
     title: 'The Landing Gear',
     summary:
-      'Sergio helps ambitious work touch the ground without losing its shape. He is useful when a team has enough ideas and needs someone to turn the next move into something people can actually build.',
+      'Jordan helps ambitious work touch the ground without losing its shape. She is useful when a team has enough ideas and needs someone to turn the next move into something people can actually build.',
     workWith:
-      'Bring Sergio the shape of the problem and the tradeoffs you already see. He will be more useful if the conversation has enough structure to land, but not so much that the answer is already decided.',
+      'Bring Jordan the shape of the problem and the tradeoffs you already see. She will be more useful if the conversation has enough structure to land, but not so much that the answer is already decided.',
     bestFor:
-      'Use Sergio when a fuzzy product idea needs a buildable first version. He helps name the tradeoffs, define the next step, and keep the work close to what can actually ship.',
+      'Use Jordan when a fuzzy product idea needs a buildable first version. She helps name the tradeoffs, define the next step, and keep the work close to what can actually ship.',
     misread:
-      'People may read his steadiness as low excitement. It is usually more accurate to read it as him testing whether the idea has legs.',
+      'People may read her steadiness as low excitement. It is usually more accurate to read it as her testing whether the idea has legs.',
     pairGift: 'grounded momentum',
     pairNeed: 'a clear handoff before the work moves from exploration to build',
   },
@@ -258,47 +258,47 @@ function pair(title, summary, pairingManual, bestFor, misread, watchOut) {
 const PAIR_SYNTHESIS = {
   [makePairId('sergio', 'justin')]: pair(
     'The Build Partners',
-    'Sergio and Justin turn uncertainty into something buildable. Sergio keeps the path connected to product reality; Justin gives it the technical backbone to hold.',
-    'Start with the tradeoffs, not the theater. Sergio can shape the practical path while Justin tests whether the system underneath can carry it.',
+    'Jordan and Justin turn uncertainty into something buildable. Jordan keeps the path connected to product reality; Justin gives it the technical backbone to hold.',
+    'Start with the tradeoffs, not the theater. Jordan can shape the practical path while Justin tests whether the system underneath can carry it.',
     'Architecture calls, implementation planning, and moments where the team needs ambition translated into durable engineering.',
     'This pair can look quieter than it is. A lot of the work is happening in constraint-sorting before anyone says the obvious answer.',
     'Do not wait until the end to name the tradeoff. Put the product need and the technical constraint in the same sentence early.'
   ),
   [makePairId('sergio', 'darshan')]: pair(
     'The Launch Rails',
-    'Darshan creates motion; Sergio keeps that motion on rails. Together they can move a group quickly without letting the practical path disappear.',
-    'Let Darshan sequence the room and Sergio pressure-test the landing. The pair works best when speed and feasibility are both treated as first-class signals.',
+    'Darshan creates motion; Jordan keeps that motion on rails. Together they can move a group quickly without letting the practical path disappear.',
+    'Let Darshan sequence the room and Jordan pressure-test the landing. The pair works best when speed and feasibility are both treated as first-class signals.',
     'Launch planning, cross-functional coordination, and decisions where momentum needs a buildable track.',
-    'People may read Sergio as slowing Darshan down. More often, he is helping the launch energy survive contact with reality.',
+    'People may read Jordan as slowing Darshan down. More often, she is helping the launch energy survive contact with reality.',
     'Make the landing criteria visible before the room gets excited. It keeps speed from turning into cleanup.'
   ),
   [makePairId('sergio', 'mae')]: pair(
     'The Grounded Story Pair',
-    'Mae finds the human shape of the work; Sergio helps it become something a team can actually build. The pair is useful when a feeling needs a path.',
-    'Give Mae room to name what the experience should feel like, then let Sergio turn that into constraints and next steps.',
+    'Mae finds the human shape of the work; Jordan helps it become something a team can actually build. The pair is useful when a feeling needs a path.',
+    'Give Mae room to name what the experience should feel like, then let Jordan turn that into constraints and next steps.',
     'Experience framing, product shaping, and turning user tension into an engineering path.',
     'This pair can look like it is moving between two languages. That is the point: one protects meaning, the other protects the path.',
     'Do not jump from feeling straight to tasks. Name the experience principle first, then decide what gets built.'
   ),
   [makePairId('sergio', 'sam')]: pair(
     'The Readiness Loop',
-    'Sam feels the risk signal; Sergio helps convert it into a buildable plan. Together they are strong at making readiness more concrete.',
-    'Ask Sam what feels exposed, then ask Sergio what change would make that risk easier to carry. The pair works when concern becomes design input.',
+    'Sam feels the risk signal; Jordan helps convert it into a buildable plan. Together they are strong at making readiness more concrete.',
+    'Ask Sam what feels exposed, then ask Jordan what change would make that risk easier to carry. The pair works when concern becomes design input.',
     'Launch readiness, product risk calls, and moments where the team needs care translated into a practical next step.',
-    'Sam may sound like she is adding friction, while Sergio may sound like he is narrowing. Together they are usually trying to make the work safer to ship.',
+    'Sam may sound like she is adding friction, while Jordan may sound like she is narrowing. Together they are usually trying to make the work safer to ship.',
     'Do not leave risk as a mood. Turn it into one decision, one owner, or one test.'
   ),
   [makePairId('sergio', 'scott')]: pair(
     'The Teaching Bridge',
-    'Scott sees what people need to understand; Sergio helps create the bridge from that understanding into the product. The pair makes learning feel buildable.',
-    'Let Scott name the learning path and Sergio name the implementation path. The best version is when those become the same path.',
+    'Scott sees what people need to understand; Jordan helps create the bridge from that understanding into the product. The pair makes learning feel buildable.',
+    'Let Scott name the learning path and Jordan name the implementation path. The best version is when those become the same path.',
     'Onboarding, adoption moments, experience architecture, and products that only work if people understand them over time.',
     'This pair may look slower at the beginning because both are looking for the shape beneath the feature.',
     'Do not reduce the learning idea to content too quickly. Decide what the user should be able to do differently after the experience.'
   ),
   [makePairId('sergio', 'sophie')]: pair(
     'The Delivery Pair',
-    'Sergio and Sophie make progress feel less noisy. Sergio clarifies the path; Sophie steadily carries it through.',
+    'Jordan and Sophie make progress feel less noisy. Jordan clarifies the path; Sophie steadily carries it through.',
     'Give them ownership that is clear enough to land but flexible enough to adjust. They do not need much drama to make a thing real.',
     'Implementation, quality passes, technical cleanup, and work that needs reliable forward motion.',
     'Their steadiness can hide how much they are carrying. Make priority explicit so reliability does not become invisible labor.',
@@ -306,32 +306,32 @@ const PAIR_SYNTHESIS = {
   ),
   [makePairId('sergio', 'rahul')]: pair(
     'The Spark-to-Landing Pair',
-    'Rahul opens the frame; Sergio helps it touch the ground. The pair is useful when a strange idea needs a practical first version.',
-    'Give Rahul room to loosen the inherited answer, then ask Sergio what version of it could survive the first build.',
+    'Rahul opens the frame; Jordan helps it touch the ground. The pair is useful when a strange idea needs a practical first version.',
+    'Give Rahul room to loosen the inherited answer, then ask Jordan what version of it could survive the first build.',
     'Concept exploration, early prototyping, and turning a wild direction into the first credible artifact.',
-    'Sergio may seem too grounding and Rahul may seem too loose. The useful work is the handoff between those instincts.',
+    'Jordan may seem too grounding and Rahul may seem too loose. The useful work is the handoff between those instincts.',
     'Name when exploration ends and landing begins. Otherwise the handoff becomes the conflict.'
   ),
   [makePairId('sergio', 'preetoshi')]: pair(
     'The Taste-and-Build Pair',
-    'Preetoshi pushes toward the version that feels alive; Sergio helps keep that intensity attached to a buildable path.',
-    'Let Preetoshi name what feels dead or generic, then let Sergio identify the smallest move that would make the better version real.',
+    'Preetoshi pushes toward the version that feels alive; Jordan helps keep that intensity attached to a buildable path.',
+    'Let Preetoshi name what feels dead or generic, then let Jordan identify the smallest move that would make the better version real.',
     'Experience quality, prototype direction, and moments where the team needs high taste without losing feasibility.',
     'People may mistake this pair for taste versus pragmatism. The better read is taste looking for a path.',
     'Do not flatten the strong reaction too quickly. Translate it into a product move before deciding it is too much.'
   ),
   [makePairId('sergio', 'jon')]: pair(
     'The Studio Track',
-    'Jon creates belief and creative current; Sergio gives that current a track. Together they can make ambitious work feel possible and buildable.',
+    'Jon creates belief and creative current; Jordan gives that current a track. Together they can make ambitious work feel possible and buildable.',
     'Start with the human stakes, then ask what path lets the team actually move. Belief and constraints both need airtime.',
     'Studio direction, early planning, and work that needs momentum without floating away from delivery.',
-    'Jon may sound like he is expanding the frame while Sergio sounds like he is narrowing it. That tension is useful when both are explicit.',
+    'Jon may sound like he is expanding the frame while Jordan sounds like she is narrowing it. That tension is useful when both are explicit.',
     'Keep one eye on the story and one eye on the next owner. The pair works when both stay visible.'
   ),
   [makePairId('sergio', 'rainy')]: pair(
     'The Evidence Rail',
-    'Rainy asks what would count as true; Sergio asks what would count as buildable. Together they give the work a rail before it runs.',
-    'Bring them the question and the constraint. Rainy can sharpen the evidence standard while Sergio turns the answer into a practical path.',
+    'Rainy asks what would count as true; Jordan asks what would count as buildable. Together they give the work a rail before it runs.',
+    'Bring them the question and the constraint. Rainy can sharpen the evidence standard while Jordan turns the answer into a practical path.',
     'Research-to-product handoffs, experiment framing, and technical planning that needs evidence behind it.',
     'This pair can be misread as cautious. Usually they are protecting the team from building confidently around a weak premise.',
     'Decide what evidence is enough before engineering starts carrying the answer.'

@@ -13,8 +13,8 @@ const TEAM_FACE_SWAP_EXIT_MS = 240;
 const TAP_HINT_INITIAL_DELAY_MS = 5000;
 const TAP_HINT_VISIBLE_MS = 3300;
 const TAP_HINT_GAP_MS = 2600;
-const TITLE_BASE_FONT_SIZE = 48;
-const TITLE_MAX_FONT_SIZE = 58;
+const TITLE_BASE_FONT_SIZE = 38;
+const TITLE_MAX_FONT_SIZE = 44;
 const TITLE_MIN_FONT_SIZE = 12;
 
 function getLayoutCenter(node) {
@@ -325,6 +325,9 @@ export function TeamFaceField({
   hideConnections = false,
   introActive,
   showIntroHint = false,
+  showViewerProfileHint = false,
+  showTeamExploreHint = false,
+  showCompareHint = false,
   canPreviewDuoMember,
   currentViewerMemberId,
   onSelectMember,
@@ -353,13 +356,37 @@ export function TeamFaceField({
     titleRef: entityTitleRef,
     titleStyle: entityTitleStyle,
   } = useFittedEntityTitle(entityTitle);
-  const tapHintMemberIds = useMemo(
-    () =>
-      displayedMembers
-        .filter((member) => member.assessmentComplete !== false)
-        .map((member) => member.id),
-    [displayedMembers]
-  );
+  const isCompareHintActive = showCompareHint && selectedIds.length === 1;
+  const isIdleHintActive =
+    (showIntroHint || showViewerProfileHint || showTeamExploreHint) &&
+    selectedIds.length === 0;
+  const tapHintMemberIds = useMemo(() => {
+    const completeMemberIds = displayedMembers
+      .filter((member) => member.assessmentComplete !== false)
+      .map((member) => member.id);
+
+    // One profile open: pulse the other teammates so it's clear you can tap a
+    // second face to compare. (Hovering already previews the connection line.)
+    if (isCompareHintActive) {
+      return completeMemberIds.filter((id) => !selectedIds.includes(id));
+    }
+    // Viewer-pending: only nudge the viewer to open their own profile.
+    if (showViewerProfileHint) {
+      return completeMemberIds.filter((id) => id === currentViewerMemberId);
+    }
+    // Settled team: nudge toward teammates' profiles, not the viewer's own.
+    if (showTeamExploreHint) {
+      return completeMemberIds.filter((id) => id !== currentViewerMemberId);
+    }
+    return completeMemberIds;
+  }, [
+    displayedMembers,
+    isCompareHintActive,
+    selectedIds,
+    showViewerProfileHint,
+    showTeamExploreHint,
+    currentViewerMemberId,
+  ]);
   const tapHintMemberKey = tapHintMemberIds.join(':');
   const previewMember = displayedMembers.find((member) => member.id === hoveredMemberId);
   const previewSelectedIds =
@@ -437,9 +464,7 @@ export function TeamFaceField({
 
   useEffect(() => {
     const canShowTapHint =
-      showIntroHint &&
-      selectedIds.length === 0 &&
-      tapHintMemberIds.length > 0;
+      (isIdleHintActive || isCompareHintActive) && tapHintMemberIds.length > 0;
 
     if (!canShowTapHint) {
       setActiveTapHint({ cycle: 0, memberId: null });
@@ -490,8 +515,8 @@ export function TeamFaceField({
       setActiveTapHint({ cycle: 0, memberId: null });
     };
   }, [
-    selectedIds.length,
-    showIntroHint,
+    isIdleHintActive,
+    isCompareHintActive,
     tapHintMemberIds,
     tapHintMemberKey,
   ]);

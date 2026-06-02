@@ -2,11 +2,13 @@ import { teamDnaDataset } from './teamDnaMock.js';
 import { BIG_FIVE_TRAITS } from './bigFiveTraits.js';
 import { makePairId } from './teamDnaIds.js';
 import { getWatchOutForSubjects } from './teamDnaWatchOuts.js';
-import { getMeetingBehaviorForMember } from './teamDnaMeetingBehavior.js';
+import { getStrengthForSubjects } from './teamDnaStrengths.js';
 import {
-  getArchetypeImageForMember,
-  getArchetypeImageForTeam,
-} from './teamDnaArchetypeImages.js';
+  getMemberRoles,
+  getPersonGuidanceCards,
+  getPairGuidanceCards,
+} from './teamDnaRoles.js';
+import { getArchetypeImageForTeam } from './teamDnaArchetypeImages.js';
 import {
   buildPairInsight,
   buildPersonInsight,
@@ -73,77 +75,104 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
   const spectrumLabel = getSpectrumLabel(selectedMembers);
   const watchOut =
     insight.watchOut ?? getWatchOutForSubjects(subjects);
-  const meetingBehavior =
-    selectedMembers.length === 1
-      ? insight.meetingBehavior ?? getMeetingBehaviorForMember(selectedMembers[0])
-      : null;
+  const strengths = getStrengthForSubjects(subjects);
   const spectrumReads = insight.spectrumReads;
-  const insightCards = insight.cards ?? [];
-  const archetypeImage =
-    selectedMembers.length === 1
-      ? getArchetypeImageForMember(selectedMembers[0])
-      : selectedMembers.length === 2
-        ? {
-            images: selectedMembers
-              .map((member) => getArchetypeImageForMember(member))
-              .filter(Boolean),
-          }
-        : getArchetypeImageForTeam(selectableMembers);
-  const teamShapeContributions =
-    !hasSelectedSubjects && archetypeImage?.contributions?.length
-      ? archetypeImage.contributions
-      : [];
+  let insightCards = insight.cards ?? [];
+  // Strengths is now a structured, multi-item card (a matched pair with blind
+  // spots), so drop any authored/role one-paragraph "where this shines" copy.
+  insightCards = insightCards.filter(
+    (card) => !(card.kind === 'guidance' && card.id.endsWith('-where-shines'))
+  );
+  const isSingleMember = selectedMembers.length === 1;
+  const isPair = selectedMembers.length === 2;
+  const isTeam = !hasSelectedSubjects;
+  const toBloomSubject = (member) => ({
+    id: member.id,
+    name: member.name,
+    bigFive: member.bigFive,
+    avatarUrl: member.avatarUrl ?? null,
+  });
+
+  // Static archetype illustrations are retired across all views. Individual and
+  // pair profiles use a Big Five bloom placeholder; the team view folds its bloom
+  // into the role-distribution box (see below).
+  const teamArchetype = isTeam ? getArchetypeImageForTeam(selectableMembers) : null;
+  const teamShapeContributions = teamArchetype?.contributions?.length
+    ? teamArchetype.contributions
+    : [];
+
+  // Bloom hero for individual + pair profiles (single shape, or two overlaid).
+  const bloomHero =
+    (isSingleMember || isPair) && selectedMembers.every((member) => member?.bigFive)
+      ? {
+          id: `${scopeId}-bloom-hero`,
+          kind: 'bloomHero',
+          label: 'Team DNA shape',
+          showLabel: false,
+          data: { subjects: selectedMembers.map(toBloomSubject) },
+        }
+      : null;
+
+  // Deterministic collaboration guidance so every profile has full copy, not just
+  // hand-authored members. Strengths + blind spots are structured core cards; the
+  // generators below only fill the "how to work with / together" section.
+  let deterministicGuidance = [];
+  if (isSingleMember) {
+    const hasAuthoredWorkWith = insightCards.some(
+      (card) => card.kind === 'guidance' && card.id.endsWith('-work-with')
+    );
+    if (!hasAuthoredWorkWith) {
+      deterministicGuidance = getPersonGuidanceCards(selectedMembers[0]);
+    }
+  } else if (isPair) {
+    deterministicGuidance = getPairGuidanceCards(
+      selectedMembers[0],
+      selectedMembers[1]
+    );
+    insightCards = insightCards.filter((card) => card.kind !== 'guidance');
+  }
+
+  const strengthsCard = strengths?.items?.length
+    ? {
+        id: `${scopeId}-strengths`,
+        kind: 'strengthsList',
+        label: 'Strengths',
+        data: { strengths },
+      }
+    : null;
 
   const coreCards = [
-    archetypeImage?.imageUrl || archetypeImage?.images?.length
-      ? {
-          id: `${scopeId}-archetype-image`,
-          kind: 'archetypeImage',
-          label: archetypeImage.title ?? 'Role imagery',
-          showLabel: false,
-          data: { image: archetypeImage },
-        }
-      : null,
+    bloomHero,
+    strengthsCard,
+    // Team composition: one bloom placeholder + role distribution combined into a
+    // single box (showLabel off; the box renders its own subsection divider).
     teamShapeContributions.length
       ? {
           id: 'team-shape-contributions',
           kind: 'teamShapeContributions',
-          label: 'Role distribution',
-          data: { contributions: teamShapeContributions },
-        }
-      : null,
-    hasSelectedSubjects
-      ? {
-          id: `${scopeId}-spectrum`,
-          kind: 'bigFiveSpectrumList',
-          label: spectrumLabel,
-          data: { subjects, traits: BIG_FIVE_TRAITS, reads: spectrumReads },
-        }
-      : {
-          id: 'team-spectrum',
-          kind: 'bigFiveSpectrumList',
-          label: spectrumLabel,
-          data: { subjects, traits: BIG_FIVE_TRAITS, reads: spectrumReads },
-        },
-    meetingBehavior
-      ? {
-          id: `${scopeId}-meeting-behavior`,
-          kind: 'meetingBehavior',
-          label: 'Meeting behavior',
-          data: { meetingBehavior },
+          label: 'Team shape',
+          showLabel: false,
+          data: {
+            contributions: teamShapeContributions,
+            subjects: selectableMembers.map(toBloomSubject),
+          },
         }
       : null,
     {
-      id: hasSelectedSubjects
-        ? `${scopeId}-watch-out`
-        : 'team-watch-out',
+      id: hasSelectedSubjects ? `${scopeId}-spectrum` : 'team-spectrum',
+      kind: 'bigFiveSpectrumList',
+      label: spectrumLabel,
+      data: { subjects, traits: BIG_FIVE_TRAITS, reads: spectrumReads },
+    },
+    {
+      id: hasSelectedSubjects ? `${scopeId}-watch-out` : 'team-watch-out',
       kind: 'watchOut',
       label: 'Potential blind spots',
       data: { watchOut },
     },
   ];
 
-  return [...coreCards.filter(Boolean), ...insightCards];
+  return [...coreCards.filter(Boolean), ...deterministicGuidance, ...insightCards];
 }
 
 function withSelectionCards(dataset, selectedIds, insight) {
@@ -208,20 +237,28 @@ export function getInsightForSelection(
     const selectedMember = dataset.members.find(
       (member) => member.id === selectedIds[0]
     );
+    const personInsight = buildPersonInsight({
+      member: selectedMember,
+      cards: [],
+      authoredInsight: getResolvedInsightCopy(
+        dataset.insights.people?.[selectedIds[0]],
+        lifecycle
+      ),
+    });
+    // Primary + secondary team roles, woven into the description as a short
+    // labeled read rather than separate cards/chips. Kept as its own field so it
+    // stays out of the editable overview draft.
+    const roleRead = getMemberRoles(selectedMember);
 
     return withGenerationLifecycle(
       withSelectionCards(
         dataset,
         selectedIds,
         withEntityHeading(
-          buildPersonInsight({
-            member: selectedMember,
-            cards: [],
-            authoredInsight: getResolvedInsightCopy(
-              dataset.insights.people?.[selectedIds[0]],
-              lifecycle
-            ),
-          }),
+          {
+            ...personInsight,
+            roleRead: roleRead ?? undefined,
+          },
           'Person',
           selectedMember?.name ?? 'Team member'
         )

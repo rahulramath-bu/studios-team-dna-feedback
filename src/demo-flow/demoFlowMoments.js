@@ -4,11 +4,27 @@ export const DEMO_FLOW_PATH = '/flow-demo';
 // new scripted states should be a small URL adapter instead of custom page code.
 const userJourneyMoments = [
   {
+    id: 'surface-0-account',
+    phase: 'Onboarding',
+    label: 'Account',
+    title: 'Create an account',
+    note: 'Before the assessment, the user signs up and consents to sharing their Team DNA results with their teams.',
+    surfaceUrl: '/assessment?demo=account',
+  },
+  {
+    id: 'surface-0-value',
+    phase: 'Onboarding',
+    label: 'Value',
+    title: 'Frame the value',
+    note: 'A short value page explains what Team DNA unlocks and what getting started involves.',
+    surfaceUrl: '/assessment?demo=value',
+  },
+  {
     id: 'surface-1-start',
     phase: 'Assessment',
     label: 'Welcome',
-    title: 'Start with a short read',
-    note: 'The first screen frames this as quick, useful, and grounded in the Big Five.',
+    title: 'Kick off the assessment',
+    note: 'The assessment begins here — the user answers a series of quick questions; in this demo you can use Next to skip ahead through them.',
     surfaceUrl: '/assessment?demo=welcome',
   },
   {
@@ -187,12 +203,12 @@ const managerJourneyMoments = [
 export const demoFlowJourneys = {
   user: {
     id: 'user',
-    label: 'User journey',
+    label: 'Direct report flow',
     moments: userJourneyMoments,
   },
   manager: {
     id: 'manager',
-    label: 'Manager journey',
+    label: 'Manager flow',
     moments: managerJourneyMoments,
   },
 };

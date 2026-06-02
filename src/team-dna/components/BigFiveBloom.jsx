@@ -126,6 +126,7 @@ export function BigFiveBloom({
   onSelectMember,
   subjects,
   traits = BIG_FIVE_TRAITS,
+  hideLegend = false,
 }) {
   const [activeSubjectId, setActiveSubjectId] = useState(null);
   const scoredSubjects = subjects.filter((subject) => subject?.bigFive);
@@ -365,7 +366,7 @@ export function BigFiveBloom({
           ))}
         </motion.g>
       </svg>
-      {!isTeam && visibleSubjects.length > 1 && (
+      {!hideLegend && !isTeam && visibleSubjects.length > 1 && (
         <motion.div
           className="big-five-bloom-legend big-five-bloom-legend--duo"
           {...labelMotion}
@@ -393,7 +394,7 @@ export function BigFiveBloom({
           ))}
         </motion.div>
       )}
-      {isTeam && (
+      {!hideLegend && isTeam && (
         <motion.div
           className="big-five-bloom-legend big-five-bloom-legend--team"
           {...labelMotion}

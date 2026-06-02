@@ -23,6 +23,45 @@ function getInviteId(teamId, email) {
   return `${teamId}-invite-${normalizeEmail(email).replace(/[^a-z0-9]+/g, '-')}`;
 }
 
+const FALLBACK_BIG_FIVE_KEYS = [
+  'openness',
+  'conscientiousness',
+  'extraversion',
+  'agreeableness',
+  'neuroticism',
+];
+
+function hashSeed(value) {
+  let hash = 2166136261;
+  const text = String(value);
+  for (let index = 0; index < text.length; index += 1) {
+    hash ^= text.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return hash >>> 0;
+}
+
+/**
+ * Deterministic Big Five for demo members who have no authored result.
+ *
+ * Why: the spectrum and role-distribution views only plot members that have a
+ * `bigFive`, and a flat neutral 50/50/50 fallback collapses every such member
+ * onto the exact center — so a freshly built or resized team looked like it was
+ * "missing" people. Seeding off the member id gives each one a stable, varied,
+ * believable position so the whole team shows up distinctly.
+ */
+export function makeFallbackBigFive(seed) {
+  const hash = hashSeed(seed);
+  const scores = {};
+
+  FALLBACK_BIG_FIVE_KEYS.forEach((key, index) => {
+    const slice = (hash >>> (index * 6)) & 0x3f; // 0..63
+    scores[key] = 18 + Math.round((slice / 63) * 68); // 18..86 band
+  });
+
+  return scores;
+}
+
 function makeEmptyEmployeeAccessFields() {
   return {
     currentAccess: [],
@@ -235,7 +274,12 @@ export function buildTeamDnaDatasetFromTeamRecord(
         avatarUrl: employee.avatar || null,
         sourceAvatarUrl: employee.avatar || null,
         assessmentComplete,
-        bigFive: assessmentComplete ? dnaResult?.bigFive : undefined,
+        // A completed member always needs a Big Five so they plot on the
+        // spectrum / role distribution; fall back to a seeded profile when no
+        // authored result exists (e.g. directory-only picks, demo completions).
+        bigFive: assessmentComplete
+          ? dnaResult?.bigFive ?? makeFallbackBigFive(employee.id)
+          : undefined,
         meta: {
           organizationEmployeeId: employee.id,
           source: 'organizationEmployee',
@@ -243,18 +287,30 @@ export function buildTeamDnaDatasetFromTeamRecord(
       };
     })
     .filter(Boolean);
-  const invitedMembers = teamRecord.invitedEmails.map((email) => ({
-    id: getInviteId(teamRecord.id, email),
-    name: email,
-    role: 'Invited teammate',
-    avatarUrl: null,
-    sourceAvatarUrl: null,
-    assessmentComplete: false,
-    meta: {
-      invitedEmail: email,
-      source: 'manualInvite',
-    },
-  }));
+  const invitedMembers = teamRecord.invitedEmails.map((email) => {
+    const inviteId = getInviteId(teamRecord.id, email);
+    // Invited members can be completed by the demo flow too, so honor any
+    // assessment-state override keyed by their invite id.
+    const dnaResult = teamDnaResultsByEmployeeId[inviteId];
+    const assessmentComplete = dnaResult?.assessmentComplete === true;
+
+    return {
+      id: inviteId,
+      name: email,
+      pronouns: dnaResult?.pronouns,
+      role: 'Invited teammate',
+      avatarUrl: null,
+      sourceAvatarUrl: null,
+      assessmentComplete,
+      bigFive: assessmentComplete
+        ? dnaResult?.bigFive ?? makeFallbackBigFive(inviteId)
+        : undefined,
+      meta: {
+        invitedEmail: email,
+        source: 'manualInvite',
+      },
+    };
+  });
   const members = [...employeeMembers, ...invitedMembers];
   const aiInsights = members.length > 0
     ? makeMockTeamDnaGeneratedInsights({ team, members })
@@ -274,9 +330,14 @@ export function buildTeamDnaDatasetFromTeamRecord(
 export const TEAM_TYPE_OPTIONS = [
   'Direct reports',
   'Cross-functional',
-  'Skip-level peers',
   'Project team',
+  'Custom',
 ];
+
+// The signed-in manager building the team. Prototype-only: in the monolith this
+// comes from the authenticated user. They are seeded into every team they create
+// because a manager is always a member of their own team.
+export const CURRENT_MANAGER_EMPLOYEE_ID = 'sam';
 
 export function normalizeTeamRecord(teamRecord) {
   return {

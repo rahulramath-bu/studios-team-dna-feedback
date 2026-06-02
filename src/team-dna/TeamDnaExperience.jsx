@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
-import { TeamDnaChatInputBridge } from './components/TeamDnaChatInputBridge.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
@@ -116,6 +115,7 @@ export function TeamDnaExperience({
   onInsightLifecycleAction,
   onProfileCopySave,
   onStartAssessment,
+  onDemoAdvance,
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
@@ -154,6 +154,18 @@ export function TeamDnaExperience({
       return next.length === current.length ? current : next;
     });
   }, [selectableMemberIds, setSelectedIds]);
+
+  // When nobody on the team has completed their assessment yet, there are no
+  // faces to explore, so the cinematic intro gate has nothing to reveal — and
+  // worse, the only way to release it (clicking a face) is blocked. Release it
+  // automatically so the waiting state and its "Start your assessment" CTA show
+  // immediately instead of sitting hidden behind the gate.
+  useEffect(() => {
+    if (selectableMemberIds.size === 0) {
+      setHasReleasedIntroGate(true);
+      setIsIntroChromeHidden(false);
+    }
+  }, [selectableMemberIds]);
 
   useEffect(() => {
     const nextInitialSelectedIds = initialSelectedIds.filter((id) =>
@@ -345,6 +357,47 @@ export function TeamDnaExperience({
 
   const questionScope =
     selectedIds.length === 2 ? 'duo' : selectedIds.length === 1 ? 'person' : 'team';
+
+  // Once the viewer has finished but teammates are still pending, the only face
+  // worth tapping is the viewer's own — so nudge them to open their profile
+  // while they wait. The existing tap-hint cycle already picks among completed
+  // members, and the viewer is the only one, so enabling it lands on them.
+  const viewerMember = dataset.members.find(
+    (member) => member.id === currentViewerMemberId
+  );
+  const viewerHasCompleted =
+    Boolean(viewerMember) && viewerMember.assessmentComplete !== false;
+  const teammatesStillPending = dataset.members.some(
+    (member) =>
+      member.id !== currentViewerMemberId && member.assessmentComplete === false
+  );
+  const showViewerProfileHint =
+    !isIntroGateActive &&
+    selectedIds.length === 0 &&
+    viewerHasCompleted &&
+    teammatesStillPending;
+
+  // Settled team view: everyone is in and nothing is selected, so gently invite
+  // tapping a teammate's face to open their profile.
+  const otherCompleteMembersExist = dataset.members.some(
+    (member) =>
+      member.id !== currentViewerMemberId && member.assessmentComplete !== false
+  );
+  const showTeamExploreHint =
+    !isIntroGateActive &&
+    selectedIds.length === 0 &&
+    !showViewerProfileHint &&
+    viewerHasCompleted &&
+    !teammatesStillPending &&
+    otherCompleteMembersExist;
+
+  // One profile open and at least one other teammate to compare against: pulse
+  // the other faces so the second-tap-to-compare interaction is discoverable.
+  const completeMemberCount = dataset.members.filter(
+    (member) => member.assessmentComplete !== false
+  ).length;
+  const showCompareHint =
+    !isIntroGateActive && selectedIds.length === 1 && completeMemberCount > 1;
   const handleGrowChatPromptSubmit = ({ message, scope, submittedAt }) => {
     onGrowChatPrompt?.({
       type: 'growChatInitialPromptRequested',
@@ -356,6 +409,16 @@ export function TeamDnaExperience({
         selectedIds,
       }),
       timestamp: submittedAt,
+    });
+  };
+  // Per-section AI coach CTAs hand off the current view's context with a
+  // pre-selected starter prompt, replacing the floating ask box.
+  const handleCoachPrompt = (message) => {
+    if (!message) return;
+    handleGrowChatPromptSubmit({
+      message,
+      scope: questionScope,
+      submittedAt: new Date().toISOString(),
     });
   };
 
@@ -377,6 +440,9 @@ export function TeamDnaExperience({
           hideConnections={isPeopleSelectorScaled}
           introActive={isIntroGateActive}
           showIntroHint={isIntroGateActive}
+          showViewerProfileHint={showViewerProfileHint}
+          showTeamExploreHint={showTeamExploreHint}
+          showCompareHint={showCompareHint}
           currentViewerMemberId={currentViewerMemberId}
           canPreviewDuoMember={(memberId) => {
             const member = dataset.members.find((item) => item.id === memberId);
@@ -400,15 +466,13 @@ export function TeamDnaExperience({
         currentViewerMemberId={currentViewerMemberId}
         members={dataset.members}
         teamName={dataset.team?.name}
+        coachScope={questionScope}
         onSelectMember={handleSelectMember}
+        onCoachPrompt={handleCoachPrompt}
         onLifecycleAction={onInsightLifecycleAction}
         onProfileCopySave={onProfileCopySave}
         onStartAssessment={onStartAssessment}
-      />
-      <TeamDnaChatInputBridge
-        scope={questionScope}
-        isHidden={isIntroGateActive}
-        onSubmitPrompt={handleGrowChatPromptSubmit}
+        onDemoAdvance={onDemoAdvance}
       />
     </section>
   );

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { BetterUpIcon } from '../team-dna/components/BetterUpIcon.jsx';
 import { getDemoFlowJourney } from './demoFlowMoments.js';
 import './demoFlow.css';
@@ -22,6 +22,42 @@ function clampIndex(index, total) {
   return Math.max(0, Math.min(index, total - 1));
 }
 
+function parseMomentSurface(surfaceUrl) {
+  const [, query = ''] = (surfaceUrl ?? '').split('?');
+  const params = new URLSearchParams(query);
+  const rawQ = params.get('q');
+  return {
+    demo: params.get('demo') ?? '',
+    q: rawQ === null ? null : Number(rawQ),
+  };
+}
+
+// Maps a progress report coming from a surface (e.g. the assessment running in
+// the iframe) to the closest demo moment, so the control panel can follow along
+// as the user clicks through the real surface instead of the demo's controls.
+function findMomentIndexForProgress(moments, { demo, q }) {
+  if (!demo) return -1;
+
+  if (demo === 'questions') {
+    let bestIndex = -1;
+    let bestStep = -Infinity;
+    moments.forEach((moment, index) => {
+      const parsed = parseMomentSurface(moment.surfaceUrl);
+      if (parsed.demo !== 'questions') return;
+      const step = Number.isFinite(parsed.q) ? parsed.q : 0;
+      if (step <= q && step >= bestStep) {
+        bestStep = step;
+        bestIndex = index;
+      }
+    });
+    if (bestIndex !== -1) return bestIndex;
+  }
+
+  return moments.findIndex(
+    (moment) => parseMomentSurface(moment.surfaceUrl).demo === demo
+  );
+}
+
 function addDemoOnlyViewMode(url, viewMode) {
   if (viewMode !== 'wireframe') return url;
 
@@ -34,24 +70,47 @@ function addDemoOnlyViewMode(url, viewMode) {
 }
 
 export function DemoFlowPage({ onNavigate }) {
-  const journey = useMemo(() => getDemoFlowJourney(getDemoJourneyId()), []);
+  const journey = getDemoFlowJourney(getDemoJourneyId());
   const viewMode = useMemo(() => getDemoViewMode(), []);
   const demoFlowMoments = journey.moments;
+  // `activeIndex` drives the control panel (kicker, title, dots, progress).
+  // `surfaceIndex` drives which surface the iframe loads. They move together on
+  // demo controls, but only `activeIndex` follows the iframe's own navigation so
+  // we never force a disruptive reload while the user clicks through a surface.
   const [activeIndex, setActiveIndex] = useState(0);
+  const [surfaceIndex, setSurfaceIndex] = useState(0);
   const [isPinnedOpen, setIsPinnedOpen] = useState(false);
   const activeMoment = demoFlowMoments[activeIndex];
+  const surfaceMoment = demoFlowMoments[surfaceIndex];
   const activeSurfaceUrl = useMemo(
-    () => addDemoOnlyViewMode(activeMoment.surfaceUrl, viewMode),
-    [activeMoment.surfaceUrl, viewMode]
+    () => addDemoOnlyViewMode(surfaceMoment.surfaceUrl, viewMode),
+    [surfaceMoment.surfaceUrl, viewMode]
   );
   const progress = useMemo(
     () => ((activeIndex + 1) / demoFlowMoments.length) * 100,
-    [activeIndex]
+    [activeIndex, demoFlowMoments.length]
   );
 
   const goToMoment = (index) => {
-    setActiveIndex(clampIndex(index, demoFlowMoments.length));
+    const clamped = clampIndex(index, demoFlowMoments.length);
+    setActiveIndex(clamped);
+    setSurfaceIndex(clamped);
   };
+
+  useEffect(() => {
+    const handleMessage = (event) => {
+      const data = event.data;
+      if (!data || data.type !== 'team-dna-demo-progress') return;
+      const nextIndex = findMomentIndexForProgress(demoFlowMoments, {
+        demo: data.demo,
+        q: Number(data.q),
+      });
+      if (nextIndex >= 0) setActiveIndex(nextIndex);
+    };
+
+    window.addEventListener('message', handleMessage);
+    return () => window.removeEventListener('message', handleMessage);
+  }, [demoFlowMoments]);
 
   const goHome = () => {
     onNavigate?.('/');
@@ -65,10 +124,10 @@ export function DemoFlowPage({ onNavigate }) {
     >
       <section className="team-dna-demo-flow-stage">
         <iframe
-          key={activeMoment.id}
+          key={surfaceMoment.id}
           className="team-dna-demo-flow-frame"
           src={activeSurfaceUrl}
-          title={activeMoment.title}
+          title={surfaceMoment.title}
         />
       </section>
 
@@ -96,7 +155,11 @@ export function DemoFlowPage({ onNavigate }) {
 
         <div className="team-dna-demo-flow-copy">
           <p>
-            {activeMoment.phase}
+            <span className="team-dna-demo-flow-kicker">
+              <b>{journey.label}</b>
+              <i aria-hidden="true">·</i>
+              {activeMoment.phase}
+            </span>
             <button
               type="button"
               className="team-dna-demo-flow-home"
@@ -107,7 +170,9 @@ export function DemoFlowPage({ onNavigate }) {
             </button>
           </p>
           <h1>{activeMoment.title}</h1>
-          <span>{activeMoment.note}</span>
+          <span>
+            Step {activeIndex + 1} of {demoFlowMoments.length} — {activeMoment.note}
+          </span>
         </div>
 
         <ol className="team-dna-demo-flow-dots" aria-label="Demo moments">

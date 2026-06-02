@@ -1,5 +1,6 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
+import { BigFiveBloom } from './BigFiveBloom.jsx';
 
 function getInitials(name = '') {
   return name
@@ -95,27 +96,53 @@ function TeamShapeFaceCarousel({ members, onSelectMember }) {
  * Port: keep the data shape coming from the Team DNA read model. Replace only
  * the avatar primitive/tooltip shell if the monolith already has a better one.
  */
-export function TeamShapeContributions({ contributions = [], onSelectMember }) {
+export function TeamShapeContributions({
+  contributions = [],
+  subjects = [],
+  hideLegend = false,
+  onSelectMember,
+}) {
   if (!contributions.length) {
     return null;
   }
 
+  const hasBloom = subjects.length > 0;
+
   return (
-    <div className="team-shape-contributions" aria-label="Team role distribution">
-      {contributions.map((contribution) => (
-        <div className="team-shape-contribution" key={contribution.key}>
-          <span className="team-shape-contribution-faces">
-            <TeamShapeFaceCarousel
-              members={contribution.members}
+    <div className="team-shape-block">
+      {hasBloom ? (
+        <>
+          <div className="team-shape-bloom">
+            <BigFiveBloom
+              subjects={subjects}
+              hideLegend={hideLegend}
               onSelectMember={onSelectMember}
             />
-          </span>
-          <span className="team-shape-contribution-copy">
-            <strong>{contribution.label}</strong>
-            <span>{contribution.description}</span>
-          </span>
-        </div>
-      ))}
+            <span className="team-shape-bloom-note">Visual placeholder</span>
+          </div>
+          <hr className="team-shape-divider" aria-hidden="true" />
+          <p className="team-shape-sublabel">Role distribution</p>
+        </>
+      ) : null}
+      <div
+        className="team-shape-contributions"
+        aria-label="Team role distribution"
+      >
+        {contributions.map((contribution) => (
+          <div className="team-shape-contribution" key={contribution.key}>
+            <span className="team-shape-contribution-faces">
+              <TeamShapeFaceCarousel
+                members={contribution.members}
+                onSelectMember={onSelectMember}
+              />
+            </span>
+            <span className="team-shape-contribution-copy">
+              <strong>{contribution.label}</strong>
+              <span>{contribution.description}</span>
+            </span>
+          </div>
+        ))}
+      </div>
     </div>
   );
 }

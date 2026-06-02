@@ -19,10 +19,10 @@ const team = {
 const members = [
     {
       id: 'sergio',
-      name: 'Sergio Canales',
-      pronouns: { subject: 'he', object: 'him', possessive: 'his' },
-      role: 'Manager, Engineering',
-      avatarUrl: '/team-dna/avatars/sergio-canales.png',
+      name: 'Jordan Rivera',
+      pronouns: { subject: 'she', object: 'her', possessive: 'her' },
+      role: 'Product Designer',
+      avatarUrl: '/team-dna/avatars/demo-indian-woman.png',
       assessmentComplete: true,
       // Demo scores mirror provided Team DNA prototype outputs where available.
       // `neuroticism` is stored as emotional reactivity, so it inverses the

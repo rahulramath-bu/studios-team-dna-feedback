@@ -146,7 +146,7 @@ export const TeamFace = forwardRef(function TeamFace(
       layout
       className="team-face-visual-layer"
       animate={{
-        opacity: isDimmed && !hovered ? dimmedOpacity : 1,
+        opacity: isDimmed && !hovered && !showTapHint ? dimmedOpacity : 1,
         scale: visualScale,
         x: nudge.x,
         y: nudge.y,
@@ -199,7 +199,7 @@ export const TeamFace = forwardRef(function TeamFace(
               Pending
             </span>
           )}
-          {isViewer && (
+          {isViewer && !showTapHint && (
             <span className="team-face-viewer-pill" aria-hidden="true">
               You
             </span>

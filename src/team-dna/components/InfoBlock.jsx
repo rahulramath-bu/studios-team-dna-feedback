@@ -30,13 +30,16 @@ export function InfoBlock({
   bodyOverride,
   onAction,
   onSelectMember,
+  onCoachPrompt,
+  coachScope,
+  coachSubject,
   actionLabel,
 }) {
   // Monolith integration seam: supporting cards should enter through
   // `insight.cards`, not through fixture or backend imports inside the panel.
   const blockClassName = [
     'info-block',
-    ['bigFiveSpectrumList', 'guidance', 'watchOut', 'meetingBehavior', 'teamShapeContributions'].includes(card.kind)
+    ['bigFiveSpectrumList', 'guidance', 'watchOut', 'strengthsList', 'meetingBehavior', 'teamShapeContributions'].includes(card.kind)
       ? 'info-block--editorial'
       : '',
     card.kind === 'bigFiveSpectrumList' ? 'info-block--spectrum' : '',
@@ -48,6 +51,9 @@ export function InfoBlock({
     .join(' ');
   const label = getDisplayLabel(card);
   const shouldShowLabel = card.showLabel !== false;
+  const coachCta = onCoachPrompt
+    ? getCoachCta(card, { scope: coachScope, subject: coachSubject })
+    : null;
 
   return (
     <section
@@ -68,7 +74,105 @@ export function InfoBlock({
       {bodyOverride ?? (
         <InfoBlockBody card={card} onSelectMember={onSelectMember} />
       )}
+      {coachCta ? (
+        <CoachLink cta={coachCta} onCoachPrompt={onCoachPrompt} />
+      ) : null}
     </section>
+  );
+}
+
+/**
+ * Subtle, design-system tertiary text link that hands off the section's context
+ * to the AI coach with a pre-selected prompt. One per section box, never per
+ * point — it sits quietly at the foot of the box.
+ */
+export function CoachLink({ cta, onCoachPrompt }) {
+  if (!cta) return null;
+
+  return (
+    <button
+      className="info-block-coach-link"
+      type="button"
+      onClick={() => onCoachPrompt?.(cta.prompt)}
+    >
+      <span>{cta.label}</span>
+      <BetterUpIcon name="ArrowUpRight" size={13} strokeWidth={2} />
+    </button>
+  );
+}
+
+/**
+ * Maps a section box to a quiet AI-coach CTA: a consistent "…with the AI coach"
+ * label plus a context-aware starter prompt keyed off the section and the
+ * current scope (person / duo / team).
+ */
+export function getCoachCta(card, { scope = 'team', subject } = {}) {
+  const who =
+    subject && scope === 'person'
+      ? subject.split(' ')[0]
+      : subject || 'this team';
+  const pair = scope === 'duo';
+  const person = scope === 'person';
+
+  if (card.kind === 'strengthsList') {
+    return {
+      label: 'Put these to work with AI coach',
+      prompt: person
+        ? `How can ${who} put these strengths to work?`
+        : pair
+          ? `How can ${who} make the most of their combined strengths?`
+          : `How can this team build on these strengths?`,
+    };
+  }
+
+  if (card.kind === 'watchOut') {
+    return {
+      label: 'Get ahead of these with AI coach',
+      prompt: person
+        ? `How can ${who} stay ahead of these potential blind spots?`
+        : pair
+          ? `How can this pair cover these potential blind spots?`
+          : `How can this team manage these potential blind spots?`,
+    };
+  }
+
+  if (card.kind === 'guidance' && isCollaborationCard(card)) {
+    return {
+      label: 'Discuss teamwork with AI coach',
+      prompt: person
+        ? `How should I put this into practice when working with ${who}?`
+        : pair
+          ? `How can ${who} work best together day to day?`
+          : `How can this team work better together?`,
+    };
+  }
+
+  if (card.kind === 'bigFiveSpectrumList') {
+    return {
+      label: 'Decode these scores with AI coach',
+      prompt: person
+        ? `What do ${who}'s Big Five results mean for how they work?`
+        : pair
+          ? `What do these Big Five differences mean for how ${who} work together?`
+          : `What do these Big Five results mean for how this team works?`,
+    };
+  }
+
+  if (card.kind === 'teamShapeContributions') {
+    return {
+      label: 'Make sense of this with AI coach',
+      prompt: `What does this team's shape and role mix mean for how we work together?`,
+    };
+  }
+
+  return null;
+}
+
+function isCollaborationCard(card) {
+  return (
+    card.id.endsWith('-work-with') ||
+    card.id.endsWith('-work-best') ||
+    card.id.endsWith('-pairing-manual')
   );
 }
 
@@ -113,6 +217,7 @@ function InfoBlockBody({ card, onSelectMember }) {
     return (
       <TeamShapeContributions
         contributions={card.data?.contributions ?? []}
+        subjects={card.data?.subjects ?? []}
         onSelectMember={onSelectMember}
       />
     );
@@ -120,6 +225,10 @@ function InfoBlockBody({ card, onSelectMember }) {
 
   if (card.kind === 'watchOut') {
     return <WatchOutCard watchOut={card.data?.watchOut} />;
+  }
+
+  if (card.kind === 'strengthsList') {
+    return <WatchOutCard watchOut={card.data?.strengths} />;
   }
 
   if (card.kind === 'meetingBehavior') {

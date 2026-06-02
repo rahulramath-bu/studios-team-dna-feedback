@@ -1,11 +1,16 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { TeamDnaExperience } from './TeamDnaExperience.jsx';
 import { TeamDnaEmptyPreview } from './components/TeamDnaEmptyPreview.jsx';
 import { TeamManagementOverlay } from './components/TeamManagementOverlay.jsx';
+import { AssessmentOverlay } from './components/AssessmentOverlay.jsx';
+import { AssessmentResultsOverlay } from './components/AssessmentResultsOverlay.jsx';
+import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { TeamLeftRail } from './components/TeamLeftRail.jsx';
 import { TeamSurfacePanel } from './components/TeamSurfacePanel.jsx';
 import {
   buildTeamDnaDatasetFromTeamRecord,
+  CURRENT_MANAGER_EMPLOYEE_ID,
+  makeFallbackBigFive,
   mockOrganizationEmployees,
   mockTeamDnaResultsByEmployeeId,
   mockTeamRecords,
@@ -26,14 +31,9 @@ const EMPTY_TEAM_DATASET = {
   },
 };
 
-const NEUTRAL_BIG_FIVE = {
-  openness: 50,
-  conscientiousness: 50,
-  extraversion: 50,
-  agreeableness: 50,
-  neuroticism: 50,
-};
 const FAKE_ASSESSMENT_REMINDER_LATENCY_MS = 650;
+// How long the demo lingers on the generating screen before resolving to ready.
+const DEMO_GENERATION_MS = 2800;
 const DEMO_INVITED_EMAIL = 'new.teammate@betterup.co';
 
 const DEMO_SETUP_TEAM_RECORD = {
@@ -423,6 +423,22 @@ function getInitialTeamManagementOverlayForDemo(demoConfig) {
  */
 export function TeamDnaPage() {
   const demoConfig = useMemo(readTeamDnaDemoConfig, []);
+
+  // When this page runs inside the demo viewer iframe, report which demo surface
+  // it landed on so the demo control panel can follow along — e.g. after the
+  // assessment's "Save and continue" CTA navigates straight to the team read.
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.parent === window) return;
+    if (!demoConfig.enabled) return;
+    window.parent.postMessage(
+      {
+        type: 'team-dna-demo-progress',
+        demo: demoConfig.mode,
+      },
+      '*'
+    );
+  }, [demoConfig.enabled, demoConfig.mode]);
+
   const initialTeamRecords = useMemo(
     () => getInitialTeamRecordsForDemo(demoConfig),
     [demoConfig.enabled, demoConfig.mode]
@@ -475,7 +491,12 @@ export function TeamDnaPage() {
   const [teamManagementOverlay, setTeamManagementOverlay] = useState(
     () => initialTeamManagementOverlay
   );
+  const [isCreatingTeam, setIsCreatingTeam] = useState(false);
+  const creatingTeamTimerRef = useRef(null);
   const [activeGenerationTarget, setActiveGenerationTarget] = useState(null);
+  const demoGenerationTimerRef = useRef(null);
+  const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
+  const [isSelfResultsOpen, setIsSelfResultsOpen] = useState(false);
   const [activeSurface, setActiveSurface] = useState(null);
   const [profileCopyEditsByMemberId, setProfileCopyEditsByMemberId] = useState(
     {}
@@ -527,6 +548,33 @@ export function TeamDnaPage() {
       : editableTeamDna.members[0]?.id ?? null;
   const generationStatusByTargetId = devState.generationStatusByTargetId ?? {};
   const scenarioDataset = editableTeamDna;
+  // Viewer's own profile read for the post-assessment results page. Built the
+  // same way the team panel builds a person read, but forced to "ready" and with
+  // the archetype image dropped so it matches the single-profile review page.
+  const selfResultsInsight = useMemo(() => {
+    if (!isSelfResultsOpen || !currentViewerMemberId) return null;
+
+    const base = getInsightForSelection(
+      editableTeamDna,
+      [currentViewerMemberId],
+      {
+        ...generationStatusByTargetId,
+        [`person:${currentViewerMemberId}`]: 'ready',
+      }
+    );
+
+    return {
+      ...base,
+      cards: (base.cards ?? []).filter(
+        (card) => card.kind !== 'archetypeImage'
+      ),
+    };
+  }, [
+    isSelfResultsOpen,
+    currentViewerMemberId,
+    editableTeamDna,
+    generationStatusByTargetId,
+  ]);
   const teamOptions = useMemo(
     () =>
       Object.values(teamRecords).map(({ teamRecord }) => ({
@@ -687,11 +735,53 @@ export function TeamDnaPage() {
     }));
   };
 
+  // The "Start your assessment" CTA opens a lightweight, on-brand stand-in for
+  // the real assessment flow so the demo has a believable "your turn" moment.
   const handleStartAssessment = () => {
-    if (typeof window === 'undefined') return;
-    if (window.location.pathname === '/assessment') return;
-    window.history.pushState({}, '', '/assessment');
-    window.dispatchEvent(new PopStateEvent('popstate'));
+    if (!currentViewerMemberId) return;
+    setIsAssessmentOpen(true);
+  };
+
+  // Completing the stand-in marks the viewer's assessment done, then lands on
+  // the viewer's own results page (the same "You are the…" read as the single
+  // profile review) before they head back to the team view.
+  const handleCompleteAssessment = () => {
+    setIsAssessmentOpen(false);
+    if (!currentViewerMemberId) return;
+    setMemberAssessmentStates([
+      { memberId: currentViewerMemberId, assessmentComplete: true },
+    ]);
+    setIsSelfResultsOpen(true);
+  };
+
+  const handleCloseSelfResults = () => {
+    setIsSelfResultsOpen(false);
+  };
+
+  const viewerMember = editableTeamDna.members.find(
+    (member) => member.id === currentViewerMemberId
+  );
+  const viewerMemberName = viewerMember?.name ?? null;
+
+  // Demo-only fast-forward. Once the viewer has "finished" and is waiting on the
+  // rest of the team, this stands in for everyone else finishing: it marks the
+  // whole team complete and kicks off generation, then resolves to ready after a
+  // short beat. Generating and ready intentionally read off the SAME team data —
+  // the generating screen is just a loading veil over the real summary — so the
+  // teammate running this demo never sees the content swap.
+  const handleDemoAdvanceToReady = () => {
+    const target = activeGenerationTarget;
+    if (!target?.id) return;
+
+    setGenerationScenarioForTarget(target, 'pending', 'demo:generating');
+
+    if (demoGenerationTimerRef.current) {
+      window.clearTimeout(demoGenerationTimerRef.current);
+    }
+    demoGenerationTimerRef.current = window.setTimeout(() => {
+      setGenerationStatusForTarget(target, 'ready', 'demo:ready');
+      demoGenerationTimerRef.current = null;
+    }, DEMO_GENERATION_MS);
   };
 
   const resetMembersForFreshTeam = (teamRecord) => {
@@ -731,24 +821,61 @@ export function TeamDnaPage() {
           ),
       },
     }));
-    if (!draftTeamRecord.id) {
+    const isNewTeam = !draftTeamRecord.id;
+    if (isNewTeam) {
       resetMembersForFreshTeam(nextTeamRecord);
     }
     setActiveTeamId(teamId);
     setTeamManagementOverlay(null);
+
+    // Briefly cover the hand-off with a full-screen loader so the new team page
+    // resolves behind it instead of popping in.
+    if (isNewTeam) {
+      window.clearTimeout(creatingTeamTimerRef.current);
+      setIsCreatingTeam(true);
+      creatingTeamTimerRef.current = window.setTimeout(() => {
+        setIsCreatingTeam(false);
+      }, 1200);
+    }
   };
 
   const setActiveTeamSize = (teamSize) => {
     if (!activeRecord) return;
 
+    const resizedRecord = getResizedTeamRecord(
+      activeRecord.teamRecord,
+      teamSize,
+      organizationEmployees
+    );
+
     updateActiveRecord((record) => ({
       ...record,
-      teamRecord: getResizedTeamRecord(
-        record.teamRecord,
-        teamSize,
-        organizationEmployees
-      ),
+      teamRecord: resizedRecord,
     }));
+
+    // Keep the team data in sync when the roster grows: newly added members
+    // count as complete (with seeded Big Five) so they immediately appear on the
+    // team spectrum / role distribution, while existing members keep their state.
+    const previousMemberIds = new Set(
+      (activeDataset?.members ?? []).map((member) => member.id)
+    );
+    const resizedDataset = getDatasetForTeamRecord(
+      resizedRecord,
+      organizationEmployees,
+      teamDnaResultsByEmployeeId
+    );
+    const newlyAddedMembers = resizedDataset.members.filter(
+      (member) => !previousMemberIds.has(member.id)
+    );
+
+    if (newlyAddedMembers.length > 0) {
+      setMemberAssessmentStates(
+        newlyAddedMembers.map((member) => ({
+          memberId: member.id,
+          assessmentComplete: true,
+        }))
+      );
+    }
   };
 
   const toggleMemberAvatar = (memberId) => {
@@ -780,7 +907,7 @@ export function TeamDnaPage() {
         [memberId]: {
           ...currentResult,
           assessmentComplete: nextAssessmentComplete,
-          bigFive: currentResult.bigFive ?? NEUTRAL_BIG_FIVE,
+          bigFive: currentResult.bigFive ?? makeFallbackBigFive(memberId),
         },
       };
     });
@@ -820,7 +947,7 @@ export function TeamDnaPage() {
         next[memberId] = {
           ...currentResult,
           assessmentComplete,
-          bigFive: currentResult.bigFive ?? NEUTRAL_BIG_FIVE,
+          bigFive: currentResult.bigFive ?? makeFallbackBigFive(memberId),
         };
       });
 
@@ -988,6 +1115,7 @@ export function TeamDnaPage() {
                 onInsightLifecycleAction={handleInsightLifecycleAction}
                 onProfileCopySave={handleProfileCopySave}
                 onStartAssessment={handleStartAssessment}
+                onDemoAdvance={handleDemoAdvanceToReady}
               />
             )}
           </main>
@@ -998,17 +1126,45 @@ export function TeamDnaPage() {
           />
         </div>
       </MonolithTeamShell>
+      {isAssessmentOpen && (
+        <AssessmentOverlay
+          viewerName={viewerMemberName}
+          onComplete={handleCompleteAssessment}
+          onClose={() => setIsAssessmentOpen(false)}
+        />
+      )}
+      {isSelfResultsOpen && selfResultsInsight && (
+        <AssessmentResultsOverlay
+          insight={selfResultsInsight}
+          members={editableTeamDna.members}
+          teamName={editableTeamDna.team?.name}
+          currentViewerMemberId={currentViewerMemberId}
+          viewerName={viewerMemberName}
+          viewerAvatarUrl={viewerMember?.avatarUrl ?? null}
+          viewerBigFive={viewerMember?.bigFive ?? null}
+          onBackToTeam={handleCloseSelfResults}
+        />
+      )}
       {teamManagementOverlay && (
         <TeamManagementOverlay
           mode={teamManagementOverlay.mode}
           initialDemoState={teamManagementOverlay.initialDemoState}
           organizationEmployees={organizationEmployees}
           teamDnaResultsByEmployeeId={teamDnaResultsByEmployeeId}
+          currentManagerEmployeeId={CURRENT_MANAGER_EMPLOYEE_ID}
           teamRecord={overlayTeamRecord}
           onCancel={closeTeamManagement}
           onSave={saveTeamRecord}
           onTeamManagementAction={handleTeamManagementAction}
         />
+      )}
+      {isCreatingTeam && (
+        <div className="team-creating-overlay" role="status" aria-live="polite">
+          <div className="team-creating-overlay-inner">
+            <span className="team-creating-spinner" aria-hidden="true" />
+            <p className="team-creating-label">Creating new team</p>
+          </div>
+        </div>
       )}
       {!demoConfig.enabled && (
         <TeamDnaDevPanel

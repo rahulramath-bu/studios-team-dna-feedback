@@ -7,7 +7,12 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { AnimatePresence, motion, useAnimationControls } from 'motion/react';
+import {
+  AnimatePresence,
+  motion,
+  useAnimationControls,
+  useReducedMotion,
+} from 'motion/react';
 import { BetterUpIcon } from '../team-dna/components/BetterUpIcon.jsx';
 import { InsightPanel } from '../team-dna/components/InsightPanel.jsx';
 import { getInsightForSelection } from '../team-dna/data/teamDnaAdapter.js';
@@ -23,9 +28,16 @@ import {
   serializeAssessmentEnginePayload,
 } from './teamDnaAssessmentModel.js';
 import { HalftoneHand } from './HalftoneHand.jsx';
+import {
+  OnboardingFaceCluster,
+  OnboardingTraitPreview,
+} from './OnboardingVisuals.jsx';
+import { TeamDnaEmptyPreview } from '../team-dna/components/TeamDnaEmptyPreview.jsx';
 import './teamDnaAssessment.css';
 
 const FLOW_STEPS = {
+  ACCOUNT: 'account',
+  VALUE: 'value',
   WELCOME: 'welcome',
   QUESTIONS: 'questions',
   AVATAR: 'avatar',
@@ -293,18 +305,24 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
     return generateTeamDnaProfile({
       bigFive: scoreBigFive(demoResponses),
       workingStyle: scoreWorkingStyle(demoResponses),
-      name: 'You',
+      name: 'Jordan',
       avatarDataUrl: DEMO_AVATAR_URL,
     });
   }, [demoMode, demoResponses]);
   const storedDraft = useMemo(readStoredDraft, []);
   const [flowStep, setFlowStep] = useState(
     () => {
+      if (demoMode === 'account') return FLOW_STEPS.ACCOUNT;
+      if (demoMode === 'value') return FLOW_STEPS.VALUE;
+      if (demoMode === 'welcome') return FLOW_STEPS.WELCOME;
       if (demoMode === 'questions') return FLOW_STEPS.QUESTIONS;
       if (demoMode === 'avatar') return FLOW_STEPS.AVATAR;
       if (demoMode === 'processing') return FLOW_STEPS.PROCESSING;
       if (demoMode === 'review') return FLOW_STEPS.REVIEW;
-      return storedDraft?.profile ? FLOW_STEPS.REVIEW : FLOW_STEPS.WELCOME;
+      if (storedDraft?.profile) return FLOW_STEPS.REVIEW;
+      // A fresh start opens the onboarding (account → value → welcome) before
+      // the quiz so the user journey begins with sign-up + the value framing.
+      return FLOW_STEPS.ACCOUNT;
     }
   );
   const [questionIndex, setQuestionIndex] = useState(
@@ -404,6 +422,21 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  // When this page runs inside the demo viewer iframe, report progress so the
+  // demo control panel can follow along as the user clicks through the real
+  // surface (not just when they use the demo's own next/prev controls).
+  useEffect(() => {
+    if (typeof window === 'undefined' || window.parent === window) return;
+    window.parent.postMessage(
+      {
+        type: 'team-dna-demo-progress',
+        demo: flowStep,
+        q: questionIndex,
+      },
+      '*'
+    );
+  }, [flowStep, questionIndex]);
 
   useEffect(() => {
     const pageNode = pageRef.current;
@@ -564,7 +597,7 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
       const nextProfile = generateTeamDnaProfile({
         bigFive,
         workingStyle,
-        name: 'You',
+        name: 'Jordan',
         avatarDataUrl,
       });
       setProfile(nextProfile);
@@ -597,7 +630,10 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
       privacy,
       updatedAt: new Date().toISOString(),
     });
-    onNavigate('/team-dna');
+    // After finishing the assessment, land directly on a populated team read
+    // rather than the empty team page, so the direct-report flow continues
+    // straight into the team view.
+    onNavigate('/team-dna?demo=team');
   };
 
   return (
@@ -615,6 +651,20 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
       )}
 
       <AnimatePresence mode="wait">
+        {flowStep === FLOW_STEPS.ACCOUNT && (
+          <AccountStep
+            key="account"
+            onContinue={() => setFlowStep(FLOW_STEPS.VALUE)}
+          />
+        )}
+
+        {flowStep === FLOW_STEPS.VALUE && (
+          <ValueStep
+            key="value"
+            onStart={() => setFlowStep(FLOW_STEPS.WELCOME)}
+          />
+        )}
+
         {flowStep === FLOW_STEPS.WELCOME && (
           <WelcomeStep
             key="welcome"
@@ -666,10 +716,7 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
             bigFive={bigFive}
             profile={profile}
             profileCopy={profileCopy}
-            privacy={privacy}
             onAvatarChange={setAvatarDataUrl}
-            onCopyChange={setProfileCopy}
-            onPrivacyChange={setPrivacy}
             onSave={saveAndContinue}
           />
         )}
@@ -709,6 +756,293 @@ function DnaMark() {
   );
 }
 
+const ONBOARDING_FADE = {
+  initial: { opacity: 0, y: 12 },
+  animate: { opacity: 1, y: 0 },
+  exit: { opacity: 0, y: -10 },
+  transition: { duration: 0.34, ease: [0.22, 1, 0.36, 1] },
+};
+
+function BrandMark() {
+  return (
+    <span className="tdna-onboarding-brand">
+      <BetterUpIcon name="Dna" size={18} strokeWidth={1.8} />
+      Team DNA
+    </span>
+  );
+}
+
+const ACCOUNT_SLIDES = [
+  {
+    id: 'collaborate',
+    visual: 'traits',
+    title: 'See how you actually collaborate',
+    body: 'Honest answers become a clear read of how you and your teammates work best together.',
+  },
+  {
+    id: 'strengths',
+    visual: 'cluster',
+    title: 'Know the real strengths and friction',
+    body: 'Get genuine strengths, blind spots, and where working styles rub — not generic personality labels.',
+  },
+  {
+    id: 'coach',
+    visual: 'chat',
+    bubbles: [
+      'How should I approach this 1:1?',
+      'Here’s what works best with their style.',
+    ],
+    title: 'Debrief it with your AI coach',
+    body: 'Turn the read into action — talk any pairing or tension through with your AI coach.',
+  },
+];
+
+const ACCOUNT_SLIDE_MS = 5200;
+
+function AccountAside() {
+  const reduceMotion = useReducedMotion();
+  const [index, setIndex] = useState(0);
+
+  useEffect(() => {
+    if (reduceMotion) return undefined;
+    const timer = window.setInterval(() => {
+      setIndex((current) => (current + 1) % ACCOUNT_SLIDES.length);
+    }, ACCOUNT_SLIDE_MS);
+    return () => window.clearInterval(timer);
+  }, [reduceMotion]);
+
+  const slide = ACCOUNT_SLIDES[index];
+
+  return (
+    <aside className="tdna-onboarding-aside" aria-hidden="true">
+      <div className="tdna-onboarding-aside-top">
+        <BrandMark />
+      </div>
+
+      <div className="tdna-onboarding-carousel">
+        <div className="tdna-onboarding-stage">
+          <button
+            type="button"
+            className="tdna-onboarding-nav-arrow tdna-onboarding-nav-arrow--prev"
+            onClick={() =>
+              setIndex(
+                (current) =>
+                  (current - 1 + ACCOUNT_SLIDES.length) % ACCOUNT_SLIDES.length
+              )
+            }
+            aria-label="Previous slide"
+          >
+            <BetterUpIcon name="ChevronLeft" size={16} strokeWidth={2.2} />
+          </button>
+
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={slide.id}
+              className="tdna-onboarding-slide"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -16 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            >
+              <div className="tdna-onboarding-slide-visual">
+                {slide.visual === 'chat' ? (
+                  <div className="tdna-onboarding-chat">
+                    <span className="tdna-onboarding-bubble">
+                      {slide.bubbles[0]}
+                    </span>
+                    <span className="tdna-onboarding-bubble tdna-onboarding-bubble--reply">
+                      {slide.bubbles[1]}
+                    </span>
+                  </div>
+                ) : slide.visual === 'traits' ? (
+                  <OnboardingTraitPreview />
+                ) : (
+                  <OnboardingFaceCluster />
+                )}
+              </div>
+              <div className="tdna-onboarding-slide-copy">
+                <h2>{slide.title}</h2>
+                <p>{slide.body}</p>
+              </div>
+            </motion.div>
+          </AnimatePresence>
+
+          <button
+            type="button"
+            className="tdna-onboarding-nav-arrow tdna-onboarding-nav-arrow--next"
+            onClick={() =>
+              setIndex((current) => (current + 1) % ACCOUNT_SLIDES.length)
+            }
+            aria-label="Next slide"
+          >
+            <BetterUpIcon name="ChevronRight" size={16} strokeWidth={2.2} />
+          </button>
+        </div>
+
+        <div className="tdna-onboarding-dots">
+          {ACCOUNT_SLIDES.map((entry, dotIndex) => (
+            <button
+              type="button"
+              key={entry.id}
+              className="tdna-onboarding-dot"
+              data-active={dotIndex === index ? 'true' : undefined}
+              onClick={() => setIndex(dotIndex)}
+              aria-label={`Show slide ${dotIndex + 1}`}
+            />
+          ))}
+        </div>
+      </div>
+    </aside>
+  );
+}
+
+function AccountStep({ onContinue }) {
+  const [email, setEmail] = useState('jordan.rivera@biomarin.com');
+  const [password, setPassword] = useState('teamdna2026');
+  const [agreeTerms, setAgreeTerms] = useState(true);
+  const [agreeShare, setAgreeShare] = useState(true);
+  const canContinue = email.trim() && password.trim() && agreeTerms && agreeShare;
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    if (canContinue) onContinue();
+  };
+
+  return (
+    <motion.section
+      className="tdna-onboarding tdna-onboarding--account"
+      {...ONBOARDING_FADE}
+    >
+      <AccountAside />
+
+      <div className="tdna-onboarding-main">
+        <form className="tdna-onboarding-card" onSubmit={handleSubmit}>
+          <header className="tdna-onboarding-card-head">
+            <h1>Create your account</h1>
+            <p className="tdna-onboarding-card-sub">
+              Set up your Team DNA profile to begin.
+            </p>
+          </header>
+
+          <label className="tdna-field">
+            <span className="tdna-field-label">Email</span>
+            <input
+              type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              autoComplete="email"
+            />
+          </label>
+
+          <label className="tdna-field">
+            <span className="tdna-field-label">Set your password</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="new-password"
+            />
+            <span className="tdna-field-hint">
+              8 character minimum with a mix of numbers, uppercase, and lowercase
+              letters.
+            </span>
+          </label>
+
+          <div className="tdna-consent">
+            <label className="tdna-consent-row">
+              <input
+                type="checkbox"
+                checked={agreeTerms}
+                onChange={(event) => setAgreeTerms(event.target.checked)}
+              />
+              <span>
+                I agree to the <a href="#consent">Acceptable Use Policy</a> and{' '}
+                <a href="#consent">Privacy Policy</a>.
+              </span>
+            </label>
+            <label className="tdna-consent-row">
+              <input
+                type="checkbox"
+                checked={agreeShare}
+                onChange={(event) => setAgreeShare(event.target.checked)}
+              />
+              <span>
+                I understand my profile and Big Five results will be{' '}
+                <strong>visible to everyone in my organization</strong>.
+              </span>
+            </label>
+          </div>
+
+          <button
+            type="submit"
+            className="bu-button bu-button--primary tdna-onboarding-submit"
+            disabled={!canContinue}
+          >
+            Continue
+            <span aria-hidden="true">&rarr;</span>
+          </button>
+        </form>
+      </div>
+    </motion.section>
+  );
+}
+
+function ValueStep({ onStart }) {
+  return (
+    <motion.section
+      className="tdna-onboarding tdna-onboarding--value"
+      {...ONBOARDING_FADE}
+    >
+      <aside className="tdna-onboarding-aside tdna-onboarding-aside--value">
+        <div className="tdna-onboarding-value-copy">
+          <span className="tdna-onboarding-invite">
+            <span className="tdna-onboarding-invite-avatar">
+              <img src="/team-dna/avatars/sam-ryu.png" alt="" />
+            </span>
+            <span className="tdna-onboarding-invite-text">
+              <strong>Sam Ryu</strong> invited you to join Sample Team
+            </span>
+          </span>
+
+          <h1>Work better together.</h1>
+
+          <p className="tdna-onboarding-value-lede">
+            You’ve been added to a team. Answer a few quick questions to unlock
+            how you and your teammates work best together.
+          </p>
+
+          <ul className="tdna-onboarding-value-points">
+            <li>A clear read on how you work — your strengths and blind spots.</li>
+            <li>See where you and a teammate click, and where you’ll clash.</li>
+            <li>Practical ways to work better with anyone on your team.</li>
+          </ul>
+
+          <div className="tdna-onboarding-value-actions">
+            <button
+              type="button"
+              className="bu-button bu-button--primary tdna-onboarding-submit"
+              onClick={onStart}
+            >
+              Get started
+              <span aria-hidden="true">&rarr;</span>
+            </button>
+            <span className="tdna-onboarding-value-meta">Takes about 10 min</span>
+          </div>
+
+          <p className="tdna-onboarding-value-footnote">
+            <BetterUpIcon name="Info" size={13} strokeWidth={2} />
+            Your Team DNA profile is visible to everyone in your organization.
+          </p>
+        </div>
+      </aside>
+
+      <div className="tdna-onboarding-main tdna-onboarding-main--value">
+        <TeamDnaEmptyPreview />
+      </div>
+    </motion.section>
+  );
+}
+
 function WelcomeStep({ onStart }) {
   return (
     <motion.section className="tdna-welcome" {...QUESTION_FADE}>
@@ -743,10 +1077,10 @@ function WelcomeStep({ onStart }) {
         <div className="tdna-welcome-copy">
           <DnaMark />
           <p className="tdna-kicker">Team DNA</p>
-          <h1>What power do you bring?</h1>
+          <h1>Now, let’s map how you work.</h1>
           <p className="tdna-welcome-body">
-            Uncover how you move through work, relate to teammates, and the
-            unique power you bring, through the{' '}
+            A few quick questions on how you move through work and relate to
+            teammates. Your answers build your profile, using the{' '}
             <strong>Big Five</strong>
             <a
               aria-label="Goldberg 1990 Big Five factor structure source"
@@ -2041,7 +2375,7 @@ function ProcessingStep({ readyToExit, onExitComplete }) {
 function makeReviewInsight({ profile, profileCopy, bigFive, avatarDataUrl }) {
   const member = {
     id: 'you',
-    name: 'You',
+    name: 'Jordan',
     avatarUrl: avatarDataUrl,
     assessmentComplete: true,
     bigFive,
@@ -2128,9 +2462,16 @@ function makeReviewInsight({ profile, profileCopy, bigFive, avatarDataUrl }) {
     },
   };
 
-  return getInsightForSelection(dataset, ['you'], {
+  const insight = getInsightForSelection(dataset, ['you'], {
     'person:you': 'ready',
   });
+
+  return {
+    ...insight,
+    cards: (insight.cards ?? []).filter(
+      (card) => card.kind !== 'archetypeImage'
+    ),
+  };
 }
 
 function ReviewStep({
@@ -2138,10 +2479,7 @@ function ReviewStep({
   bigFive,
   profile,
   profileCopy,
-  privacy,
   onAvatarChange,
-  onCopyChange,
-  onPrivacyChange,
   onSave,
 }) {
   const [revealStage, setRevealStage] = useState(0);
@@ -2155,12 +2493,6 @@ function ReviewStep({
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, []);
 
-  const setPrivacyField = (key, enabled) => {
-    onPrivacyChange((current) => ({
-      ...current,
-      [key]: enabled ? 'teams' : key === 'profileVisibility' ? 'private' : 'not_allowed',
-    }));
-  };
   const reviewInsight = useMemo(
     () =>
       makeReviewInsight({
@@ -2179,26 +2511,6 @@ function ReviewStep({
   useEffect(() => {
     preloadImageUrls(reviewImageUrls);
   }, [reviewImageUrls]);
-
-  const saveProfileCopyPatch = (patch) => {
-    onCopyChange((current) => ({
-      ...current,
-      overview: patch.overview ?? current.overview,
-      strengths: patch.whereShines ?? current.strengths,
-      workingStyle:
-        patch.workWithSections?.[0] ??
-        current.workingStyle,
-      coaching:
-        patch.workWithSections?.[1] ??
-        current.coaching,
-      meetingBehavior:
-        patch.meetingBehaviorSections?.join(' ') ??
-        current.meetingBehavior,
-      watchOuts:
-        patch.watchOutSections?.join(' ') ??
-        current.watchOuts,
-    }));
-  };
 
   return (
     <motion.section
@@ -2223,7 +2535,7 @@ function ReviewStep({
           {avatarDataUrl ? (
             <img src={avatarDataUrl} alt="" />
           ) : (
-            <span>You</span>
+            <span>Jordan</span>
           )}
         </span>
         <span className="tdna-review-avatar-edit" aria-hidden="true">
@@ -2248,10 +2560,10 @@ function ReviewStep({
         </div>
         <InsightPanel
           canManageTeam={false}
+          allowProfileEditing={false}
           currentViewerMemberId="you"
           insight={reviewInsight}
           isHidden={false}
-          onProfileCopySave={saveProfileCopyPatch}
           preserveScroll
           revealMode="selfReview"
         />
@@ -2266,20 +2578,6 @@ function ReviewStep({
         }}
         transition={{ duration: 0.65, ease: [0.22, 1, 0.36, 1] }}
       >
-        <Toggle
-          ariaLabel="Let teams I am in see this profile"
-          label="Let my teams see this"
-          value={privacy.profileVisibility === 'teams'}
-          onChange={(value) => setPrivacyField('profileVisibility', value)}
-        />
-        <Toggle
-          ariaLabel="Show me in pair comparison views for teams I am in"
-          label="Show me in pair views"
-          value={privacy.pairComparisonVisibility === 'teams'}
-          onChange={(value) =>
-            setPrivacyField('pairComparisonVisibility', value)
-          }
-        />
         <button type="button" className="tdna-primary-action" onClick={onSave}>
           Save and continue
         </button>

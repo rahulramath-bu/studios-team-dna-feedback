@@ -36,6 +36,10 @@ const EMPTY_TEAM_RECORD = {
   sample: false,
 };
 
+// Team DNA summaries need enough responses to be meaningful, so a team can't be
+// saved with fewer than this many members.
+const MIN_TEAM_MEMBERS = 3;
+
 const MEMBER_CARD_MOTION = {
   layout: true,
   initial: { opacity: 0, y: 8, scale: 0.98 },
@@ -75,27 +79,37 @@ export function TeamManagementOverlay({
   organizationEmployees,
   initialDemoState,
   teamDnaResultsByEmployeeId = {},
+  currentManagerEmployeeId = null,
   teamRecord,
   onCancel,
   onSave,
   onTeamManagementAction,
 }) {
   const sourceRecord = teamRecord ?? EMPTY_TEAM_RECORD;
+  // A manager is always part of the team they create, so seed their own
+  // employee record into a brand-new team's roster up front.
+  const seedSelectedEmployeeIds = (record) => {
+    if (
+      mode === 'create' &&
+      currentManagerEmployeeId &&
+      !record.memberEmployeeIds.includes(currentManagerEmployeeId)
+    ) {
+      return [currentManagerEmployeeId, ...record.memberEmployeeIds];
+    }
+    return record.memberEmployeeIds;
+  };
   const [isClosing, setIsClosing] = useState(false);
   const [teamName, setTeamName] = useState(sourceRecord.name);
   const [teamType, setTeamType] = useState(
     sourceRecord.teamType || 'Direct reports'
   );
-  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState(
-    sourceRecord.memberEmployeeIds
+  const [selectedEmployeeIds, setSelectedEmployeeIds] = useState(() =>
+    seedSelectedEmployeeIds(sourceRecord)
   );
   const [invitedEmails, setInvitedEmails] = useState(sourceRecord.invitedEmails);
   const [isAddingTeammate, setIsAddingTeammate] = useState(false);
   const [isAddCardWaiting, setIsAddCardWaiting] = useState(false);
   const [recentlyAddedMemberKey, setRecentlyAddedMemberKey] = useState(null);
-  const [notifyNewTeammates, setNotifyNewTeammates] = useState(true);
-  const [reminderStatusesByMemberKey, setReminderStatusesByMemberKey] =
-    useState(() => ({}));
   const [bodyScrollState, setBodyScrollState] = useState({
     canScrollDown: false,
     canScrollUp: false,
@@ -150,6 +164,8 @@ export function TeamManagementOverlay({
     [sourceRecord.invitedEmails]
   );
   const teamMemberCount = selectedEmployees.length + invitedEmails.length;
+  const hasEnoughMembers = teamMemberCount >= MIN_TEAM_MEMBERS;
+  const membersNeeded = Math.max(0, MIN_TEAM_MEMBERS - teamMemberCount);
   const newPendingEmployeeCount = selectedEmployees.filter(
     (employee) =>
       !sourceEmployeeIdSet.has(employee.id) &&
@@ -183,19 +199,17 @@ export function TeamManagementOverlay({
       },
     ];
   }, [canInviteQuery, filteredEmployees, query]);
-  const saveLabel = 'Save team';
+  const saveLabel = mode === 'edit' ? 'Save team' : 'Create team';
   const title = mode === 'edit' ? 'Edit team' : 'Add team';
   const activeSearchResult = searchResults[activeSearchIndex] ?? null;
 
   useEffect(() => {
     setTeamName(sourceRecord.name);
-    setSelectedEmployeeIds(sourceRecord.memberEmployeeIds);
+    setSelectedEmployeeIds(seedSelectedEmployeeIds(sourceRecord));
     setInvitedEmails(sourceRecord.invitedEmails);
     setIsAddingTeammate(Boolean(initialDemoState?.isAddingTeammate));
     setIsAddCardWaiting(false);
     setRecentlyAddedMemberKey(null);
-    setNotifyNewTeammates(true);
-    setReminderStatusesByMemberKey(initialDemoState?.reminderStatuses ?? {});
     setQuery(initialDemoState?.query ?? '');
   }, [initialDemoState, sourceRecord]);
 
@@ -338,61 +352,47 @@ export function TeamManagementOverlay({
   };
 
   /**
-   * What: prototype action seam for user-triggered team management side effects.
-   * How: emits structured intent and returns the caller's promise so row-level
-   * UI can wait for pending/success/failure instead of lying optimistically.
-   * Port: wire this callback to real mutations/events for assessment reminders,
-   * team saves, analytics, and toast feedback.
+   * Demo helper: stocks the team with a believable spread of teammates in one
+   * tap so the manager flow can be walked end-to-end without searching the
+   * directory. Interleaves teammates who have profile photos with those who
+   * fall back to initials so the resulting team shows both avatar styles.
    */
-  const emitTeamManagementAction = (type, payload) => {
-    return onTeamManagementAction?.({
-      type,
-      payload,
-      timestamp: new Date().toISOString(),
-    });
-  };
+  const fillDemoTeammates = () => {
+    const withAvatar = organizationEmployees.filter(
+      (employee) => employee.avatar && !selectedEmployeeIdSet.has(employee.id)
+    );
+    const withoutAvatar = organizationEmployees.filter(
+      (employee) => !employee.avatar && !selectedEmployeeIdSet.has(employee.id)
+    );
 
-  const setReminderStatus = (memberKey, status) => {
-    setReminderStatusesByMemberKey((current) => ({
-      ...current,
-      [memberKey]: status,
-    }));
-  };
-
-  const requestAssessmentReminder = async (memberKey, payload) => {
-    if (reminderStatusesByMemberKey[memberKey] === 'pending') return;
-
-    setReminderStatus(memberKey, 'pending');
-
-    try {
-      await emitTeamManagementAction('assessmentReminderRequested', payload);
-      setReminderStatus(memberKey, 'sent');
-    } catch (error) {
-      setReminderStatus(memberKey, 'error');
+    const target = 4;
+    const picks = [];
+    for (
+      let index = 0;
+      picks.length < target &&
+      (index < withAvatar.length || index < withoutAvatar.length);
+      index += 1
+    ) {
+      if (index < withAvatar.length) picks.push(withAvatar[index]);
+      if (picks.length < target && index < withoutAvatar.length) {
+        picks.push(withoutAvatar[index]);
+      }
     }
-  };
 
-  const remindEmployee = (employee) => {
-    requestAssessmentReminder(`employee:${employee.id}`, {
-      source: 'organizationEmployee',
-      employeeId: employee.id,
-      email: employee.email,
-      name: getEmployeeName(employee),
+    if (picks.length === 0) return;
+
+    setSelectedEmployeeIds((current) => {
+      const next = new Set(current);
+      picks.forEach((employee) => next.add(employee.id));
+      return Array.from(next);
     });
-  };
-
-  const remindInvite = (email) => {
-    const normalizedEmail = normalizeEmail(email);
-
-    requestAssessmentReminder(`invite:${normalizedEmail}`, {
-      source: 'manualInvite',
-      email: normalizedEmail,
-      name: normalizedEmail,
-    });
+    setIsAddingTeammate(false);
+    setQuery('');
   };
 
   const saveTeam = () => {
     if (isClosing) return;
+    if (!hasEnoughMembers) return;
     setIsClosing(true);
     window.setTimeout(() => {
       onSave?.({
@@ -403,7 +403,7 @@ export function TeamManagementOverlay({
         invitedEmails,
         sample: sourceRecord.sample,
         notificationPreference: {
-          notifyNewPendingTeammates: notifyNewTeammates && newPendingCount > 0,
+          notifyNewPendingTeammates: newPendingCount > 0,
         },
       });
     }, 260);
@@ -526,14 +526,19 @@ export function TeamManagementOverlay({
                 );
               })}
             </div>
-            <p className="team-management-field-helper">
-              Team DNA, Pulse, and Coaching can work for any group you work with.
-            </p>
           </div>
 
           <section className="team-management-section team-management-section--members">
             <div className="team-management-selected-heading">
               <span>Team members</span>
+              <span
+                className="team-management-members-requirement"
+                data-met={hasEnoughMembers || undefined}
+              >
+                {hasEnoughMembers
+                  ? `${teamMemberCount} added`
+                  : `At least ${MIN_TEAM_MEMBERS} needed`}
+              </span>
             </div>
             <div
               className="team-management-member-grid"
@@ -544,10 +549,9 @@ export function TeamManagementOverlay({
                   {selectedEmployees.map((employee) => {
                     const hasTeamDna =
                       teamDnaResultsByEmployeeId[employee.id]?.assessmentComplete === true;
-                    const reminderStatus =
-                      reminderStatusesByMemberKey[`employee:${employee.id}`];
-                    const reminderPending = reminderStatus === 'pending';
-                    const reminderSent = reminderStatus === 'sent';
+                    const isManager =
+                      Boolean(currentManagerEmployeeId) &&
+                      employee.id === currentManagerEmployeeId;
 
                     return (
                       <motion.div
@@ -570,8 +574,17 @@ export function TeamManagementOverlay({
                           </span>
                         </span>
                         <span className="team-management-row-copy">
-                          <strong>{getEmployeeName(employee)}</strong>
-                          {hasTeamDna ? (
+                          <strong>
+                            {getEmployeeName(employee)}
+                            {isManager && (
+                              <span className="team-management-you-badge">
+                                You
+                              </span>
+                            )}
+                          </strong>
+                          {isManager ? (
+                            <small>{employee.title || 'Team manager'}</small>
+                          ) : hasTeamDna ? (
                             <small>{employee.title || employee.email}</small>
                           ) : (
                             <small className="team-management-inline-pending">
@@ -579,46 +592,21 @@ export function TeamManagementOverlay({
                             </small>
                           )}
                         </span>
-                        {!hasTeamDna && (
-                          <span className="team-management-row-actions">
-                            <button
-                              type="button"
-                              className="team-management-remind-button"
-                              aria-label={`Remind ${getEmployeeName(employee)} to complete assessment`}
-                              title="Send assessment reminder"
-                              disabled={reminderPending}
-                              data-pending={reminderPending || undefined}
-                              data-sent={reminderSent || undefined}
-                              onClick={(event) => {
-                                event.stopPropagation();
-                                remindEmployee(employee);
-                              }}
-                            >
-                              {reminderPending
-                                ? 'Sending...'
-                                : reminderSent
-                                  ? 'Reminder sent!'
-                                  : 'Remind'}
-                            </button>
-                          </span>
+                        {!isManager && (
+                          <button
+                            type="button"
+                            className="team-management-remove-icon"
+                            onClick={() => removeEmployee(employee.id)}
+                            aria-label={`Remove ${getEmployeeName(employee)}`}
+                          >
+                            <BetterUpIcon name="Trash" size={15} strokeWidth={1.8} />
+                          </button>
                         )}
-                        <button
-                          type="button"
-                          className="team-management-remove-icon"
-                          onClick={() => removeEmployee(employee.id)}
-                          aria-label={`Remove ${getEmployeeName(employee)}`}
-                        >
-                          <BetterUpIcon name="Trash" size={15} strokeWidth={1.8} />
-                        </button>
                       </motion.div>
                     );
                   })}
                   {invitedEmails.map((email) => {
                     const normalizedEmail = normalizeEmail(email);
-                    const reminderStatus =
-                      reminderStatusesByMemberKey[`invite:${normalizedEmail}`];
-                    const reminderPending = reminderStatus === 'pending';
-                    const reminderSent = reminderStatus === 'sent';
 
                     return (
                       <motion.div
@@ -640,27 +628,6 @@ export function TeamManagementOverlay({
                           <small className="team-management-inline-pending">
                             Assessment pending...
                           </small>
-                        </span>
-                        <span className="team-management-row-actions">
-                          <button
-                            type="button"
-                            className="team-management-remind-button"
-                            aria-label={`Remind ${email} to complete assessment`}
-                            title="Send assessment reminder"
-                            disabled={reminderPending}
-                            data-pending={reminderPending || undefined}
-                            data-sent={reminderSent || undefined}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              remindInvite(email);
-                            }}
-                          >
-                            {reminderPending
-                              ? 'Sending...'
-                              : reminderSent
-                                ? 'Reminder sent!'
-                                : 'Remind'}
-                          </button>
                         </span>
                         <button
                           type="button"
@@ -797,21 +764,24 @@ export function TeamManagementOverlay({
                   )}
                 </AnimatePresence>
               </LayoutGroup>
+              <button
+                type="button"
+                className="team-management-demo-fill"
+                onClick={fillDemoTeammates}
+              >
+                <span>Auto-fill demo team</span>
+                <span
+                  aria-hidden="true"
+                  className="team-management-demo-fill-arrow"
+                >
+                  &rarr;
+                </span>
+              </button>
             </div>
           </section>
         </div>
 
         <footer className="team-management-footer">
-          {newPendingCount > 0 && (
-            <label className="team-management-notify-toggle">
-              <input
-                type="checkbox"
-                checked={notifyNewTeammates}
-                onChange={(event) => setNotifyNewTeammates(event.target.checked)}
-              />
-              <span>Notify new teammates</span>
-            </label>
-          )}
           <button
             type="button"
             className="team-management-secondary"
@@ -823,8 +793,16 @@ export function TeamManagementOverlay({
             type="button"
             className="team-management-primary"
             onClick={saveTeam}
+            disabled={!hasEnoughMembers}
+            title={
+              hasEnoughMembers
+                ? undefined
+                : `Add at least ${MIN_TEAM_MEMBERS} members to save`
+            }
           >
-            {saveLabel}
+            {hasEnoughMembers
+              ? saveLabel
+              : `Add ${membersNeeded} more`}
           </button>
         </footer>
       </div>

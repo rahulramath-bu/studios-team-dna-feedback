@@ -152,6 +152,22 @@
   text-transform: uppercase;
 }
 
+.team-dna-demo-flow-kicker {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.team-dna-demo-flow-kicker b {
+  color: #ce0058;
+  font-weight: 700;
+}
+
+.team-dna-demo-flow-kicker i {
+  font-style: normal;
+  color: rgba(29, 25, 37, 0.32);
+}
+
 .team-dna-demo-flow-home {
   display: grid;
   width: 30px;

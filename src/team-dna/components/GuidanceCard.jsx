@@ -22,6 +22,8 @@ export function GuidanceCard({ guidance }) {
     : guidance?.body
       ? [{ body: guidance.body }]
       : [];
+  // A single section that carries a `bullets` array renders as a quiet list
+  // rather than the multi-section marquee.
   const isCarousel = sections.length > 1;
 
   React.useEffect(() => {
@@ -80,7 +82,15 @@ export function GuidanceCard({ guidance }) {
       {!isCarousel && section.label && (
         <p className="guidance-section-label">{section.label}</p>
       )}
-      <p className="guidance-section-body">{section.body}</p>
+      {section.bullets?.length ? (
+        <ul className="guidance-section-bullets">
+          {section.bullets.map((bullet, bulletIndex) => (
+            <li key={bulletIndex}>{bullet}</li>
+          ))}
+        </ul>
+      ) : (
+        <p className="guidance-section-body">{section.body}</p>
+      )}
     </section>
   );
 
