@@ -76,18 +76,87 @@ function toSecondPersonText(text, firstName, pronouns = {}) {
       (match, verb) => `you ${toBaseVerb(verb)}`
     );
   }
-  // Possessive pronoun -> "your" (skip the ambiguous "her", which is also an object)
+  // Possessive pronoun -> "your". "her" is ambiguous (possessive vs object), so
+  // use adjacency: "her idea" -> "your idea", a bare/object "her" -> "you".
   const possessive = pronouns.possessive;
-  if (possessive && possessive !== 'her') {
+  if (possessive === 'her') {
+    out = out.replace(/\bher\b(\s+[a-z])/g, 'your$1');
+    out = out.replace(/\bHer\b(\s+[a-z])/g, 'Your$1');
+    out = out.replace(/\bher\b/g, 'you');
+    out = out.replace(/\bHer\b/g, 'You');
+  } else if (possessive) {
     out = out.replace(new RegExp(`\\b${possessive}\\b`, 'g'), 'your');
     out = out.replace(
       new RegExp(`\\b${capitalizeFirst(possessive)}\\b`, 'g'),
       'Your'
     );
   }
+  // Object pronoun (him/them) -> "you".
+  const object = pronouns.object;
+  if (object && object !== possessive) {
+    out = out.replace(new RegExp(`\\b${object}\\b`, 'g'), 'you');
+    out = out.replace(new RegExp(`\\b${capitalizeFirst(object)}\\b`, 'g'), 'You');
+  }
   // Re-capitalize at sentence starts.
   out = out.replace(/(^|[.!?]\s+)you\b/g, (match, lead) => `${lead}You`);
   out = out.replace(/(^|[.!?]\s+)your\b/g, (match, lead) => `${lead}Your`);
+  return out;
+}
+
+// The "how to work with" and "where they shine" cards are written as advice to a
+// teammate ("Use Jordan when…", "She helps…"), so on your own profile they read
+// most naturally in the first person ("Use me when…", "I help…") rather than the
+// second person used for the descriptive sections.
+const FIRST_PERSON_IRREGULAR = {
+  is: 'am',
+  are: 'am',
+  was: 'was',
+  were: 'was',
+  has: 'have',
+  does: 'do',
+  goes: 'go',
+};
+
+function toFirstPersonVerb(verb) {
+  const lower = verb.toLowerCase();
+  if (FIRST_PERSON_IRREGULAR[lower]) return FIRST_PERSON_IRREGULAR[lower];
+  if (SECOND_PERSON_ES_VERBS[lower]) return SECOND_PERSON_ES_VERBS[lower];
+  if (lower.endsWith('s')) return lower.slice(0, -1);
+  return lower;
+}
+
+function toFirstPersonText(text, firstName, pronouns = {}) {
+  if (!text) return text;
+  let out = text;
+  if (firstName) {
+    const fn = escapeRegExp(firstName);
+    out = out.replace(new RegExp(`\\b${fn}['’]s\\b`, 'g'), 'my');
+    out = out.replace(new RegExp(`\\b${fn}\\b`, 'g'), 'me');
+  }
+  const subject = pronouns.subject;
+  if (subject) {
+    out = out.replace(
+      new RegExp(`\\b${subject}\\s+([A-Za-z]+)`, 'gi'),
+      (match, verb) => `I ${toFirstPersonVerb(verb)}`
+    );
+  }
+  const possessive = pronouns.possessive;
+  const object = pronouns.object;
+  if (possessive === 'her' || object === 'her') {
+    out = out.replace(/\bher\b(\s+[a-z])/gi, 'my$1');
+    out = out.replace(/\bher\b/gi, 'me');
+  } else {
+    if (possessive) {
+      out = out.replace(new RegExp(`\\b${possessive}\\b`, 'gi'), 'my');
+    }
+    if (object && object !== possessive) {
+      out = out.replace(new RegExp(`\\b${object}\\b`, 'gi'), 'me');
+    }
+  }
+  out = out.replace(
+    /(^|[.!?]\s+)(me|my|i)\b/g,
+    (match, lead, word) => `${lead}${word === 'i' ? 'I' : capitalizeFirst(word)}`
+  );
   return out;
 }
 
@@ -97,6 +166,7 @@ function buildOwnProfileInsight(insight, viewerMember) {
   if (!firstName) return insight;
   const pronouns = viewerMember.pronouns ?? {};
   const transform = (text) => toSecondPersonText(text, firstName, pronouns);
+  const transformAdvice = (text) => toFirstPersonText(text, firstName, pronouns);
 
   return {
     ...insight,
@@ -132,6 +202,37 @@ function buildOwnProfileInsight(insight, viewerMember) {
                 transform(value),
               ])
             ),
+          },
+        };
+      }
+
+      // "How to work with" / "Where they shine" guidance reads as teammate-facing
+      // advice, so render it in the first person on your own profile.
+      if (card.kind === 'guidance' && card.data?.guidance) {
+        const guidance = card.data.guidance;
+        return {
+          ...card,
+          ...(card.label ? { label: transformAdvice(card.label) } : {}),
+          data: {
+            ...card.data,
+            guidance: {
+              ...guidance,
+              sections: guidance.sections?.map((section) => ({
+                ...section,
+                ...(section.body ? { body: transformAdvice(section.body) } : {}),
+                ...(section.bullets
+                  ? { bullets: section.bullets.map(transformAdvice) }
+                  : {}),
+              })),
+              ...(guidance.discussion?.bullets
+                ? {
+                    discussion: {
+                      ...guidance.discussion,
+                      bullets: guidance.discussion.bullets.map(transformAdvice),
+                    },
+                  }
+                : {}),
+            },
           },
         };
       }

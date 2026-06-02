@@ -2562,6 +2562,14 @@ function ReviewStep({
           canManageTeam={false}
           allowProfileEditing={false}
           currentViewerMemberId="you"
+          members={[
+            {
+              id: 'you',
+              name: 'Jordan',
+              pronouns: { subject: 'she', object: 'her', possessive: 'her' },
+              avatarUrl: avatarDataUrl,
+            },
+          ]}
           insight={reviewInsight}
           isHidden={false}
           preserveScroll
