@@ -28,7 +28,6 @@ import {
   scoreWorkingStyle,
   serializeAssessmentEnginePayload,
 } from './teamDnaAssessmentModel.js';
-import { HalftoneHand } from './HalftoneHand.jsx';
 import {
   OnboardingFaceCluster,
   OnboardingTraitPreview,
@@ -46,12 +45,6 @@ const FLOW_STEPS = {
   REVIEW: 'review',
 };
 
-const SOUNDS = {
-  cardSelect: '/sounds/card-select.wav',
-  optionShow: '/sounds/option-show.wav',
-  click: '/sounds/click.wav',
-  loadingComplete: '/sounds/loading-complete.wav',
-};
 const DEMO_AVATAR_URL = '/team-dna/avatars/demo-indian-woman.png';
 
 const QUESTION_FADE = {
@@ -107,20 +100,6 @@ const BIG_FIVE_HIGHLIGHTS = {
   tdna_b5_neuroticism_4: 'rarely worry',
   tdna_b5_openness_4: 'already works',
 };
-
-function useAssessmentSound(src, volume = 0.35) {
-  const audioRef = useRef(null);
-
-  return useCallback(() => {
-    if (!audioRef.current) {
-      audioRef.current = new Audio(src);
-      audioRef.current.volume = volume;
-    }
-
-    audioRef.current.currentTime = 0;
-    audioRef.current.play().catch(() => {});
-  }, [src, volume]);
-}
 
 function readStoredDraft() {
   if (typeof window === 'undefined') return null;
@@ -249,7 +228,6 @@ function collectInsightImageUrls(insight) {
  */
 export function TeamDnaAssessmentPage({ onNavigate }) {
   const pageRef = useRef(null);
-  const confirmPressTargetRef = useRef(null);
   const skipNextPersistRef = useRef(false);
   const assessmentSteps = useMemo(() => buildAssessmentSteps(), []);
   const demoMode = useMemo(getAssessmentDemoMode, []);
@@ -330,9 +308,6 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
       'teams',
   }));
   const [debugOpen, setDebugOpen] = useState(false);
-  const playOptionShow = useAssessmentSound(SOUNDS.optionShow, 0.3);
-  const playCardSelect = useAssessmentSound(SOUNDS.cardSelect, 0.4);
-  const playClick = useAssessmentSound(SOUNDS.click, 0.25);
   const currentQuestion = assessmentSteps[questionIndex];
   const answeredCount = assessmentSteps.filter((step) =>
     responses[step.id] !== undefined
@@ -408,64 +383,6 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
       '*'
     );
   }, [flowStep, questionIndex]);
-
-  useEffect(() => {
-    const pageNode = pageRef.current;
-    if (!pageNode) return undefined;
-
-    const handlePointerDown = (event) => {
-      const target = event.target.closest(
-        'button, label, input[type="range"], [data-press-sound], [data-confirm-sound]'
-      );
-      if (!target || !pageNode.contains(target)) return;
-      if (target.disabled || target.getAttribute('aria-disabled') === 'true') return;
-
-      confirmPressTargetRef.current = target.dataset.confirmSound
-        ? target
-        : null;
-      const sound = target.dataset.pressSound ?? 'click';
-      if (sound === 'none') return;
-      if (sound === 'select') {
-        playCardSelect();
-        return;
-      }
-      playClick();
-    };
-    const handlePointerUp = (event) => {
-      const confirmTarget = confirmPressTargetRef.current;
-      confirmPressTargetRef.current = null;
-      if (!confirmTarget || !pageNode.contains(confirmTarget)) return;
-      if (
-        event.target !== confirmTarget &&
-        !confirmTarget.contains(event.target)
-      ) {
-        return;
-      }
-
-      if (confirmTarget.dataset.confirmSound === 'select') {
-        playCardSelect();
-      }
-    };
-    const handlePointerCancel = () => {
-      confirmPressTargetRef.current = null;
-    };
-
-    pageNode.addEventListener('pointerdown', handlePointerDown, true);
-    pageNode.addEventListener('pointerup', handlePointerUp, true);
-    pageNode.addEventListener('pointercancel', handlePointerCancel, true);
-    return () => {
-      pageNode.removeEventListener('pointerdown', handlePointerDown, true);
-      pageNode.removeEventListener('pointerup', handlePointerUp, true);
-      pageNode.removeEventListener('pointercancel', handlePointerCancel, true);
-    };
-  }, [playCardSelect, playClick]);
-
-  useEffect(() => {
-    if (flowStep !== FLOW_STEPS.QUESTIONS || !currentQuestion) return undefined;
-
-    const timer = window.setTimeout(playOptionShow, 180);
-    return () => window.clearTimeout(timer);
-  }, [currentQuestion?.id, flowStep, playOptionShow]);
 
   useEffect(() => {
     preloadImageUrls(IMAGE_BREAK_URLS);
@@ -560,6 +477,16 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
     setFlowStep(FLOW_STEPS.WELCOME);
   };
 
+  // Demo convenience: fill in plausible answers and jump straight to the photo
+  // step so the questionnaire can be skipped while walking through the flow.
+  const skipQuestionnaire = () => {
+    setResponses((current) => ({
+      ...buildDemoResponses(assessmentSteps),
+      ...current,
+    }));
+    setFlowStep(FLOW_STEPS.AVATAR);
+  };
+
   const startProcessing = () => {
     setProfileReady(false);
     setFlowStep(FLOW_STEPS.PROCESSING);
@@ -613,12 +540,25 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
       className="team-dna-assessment-page"
       aria-label="Team DNA assessment"
     >
-      {flowStep === FLOW_STEPS.QUESTIONS && (
-        <AssessmentProgress
-          current={questionIndex + 1}
-          total={assessmentSteps.length}
-          progress={progress}
-        />
+      {flowStep === FLOW_STEPS.QUESTIONS && currentQuestion && (
+        <>
+          <button
+            type="button"
+            className="tdna-demo-skip"
+            onClick={skipQuestionnaire}
+          >
+            <span>Skip for demo</span>
+            <BetterUpIcon name="ChevronRight" size={15} strokeWidth={2.2} />
+          </button>
+          <AssessmentProgress
+            current={questionIndex + 1}
+            total={assessmentSteps.length}
+            progress={progress}
+            onBack={goToPreviousQuestion}
+            onForward={goToNextQuestion}
+            canForward={responses[currentQuestion.id] !== undefined}
+          />
+        </>
       )}
 
       {(flowStep === FLOW_STEPS.ACCOUNT ||
@@ -666,19 +606,10 @@ export function TeamDnaAssessmentPage({ onNavigate }) {
 
         {flowStep === FLOW_STEPS.QUESTIONS && currentQuestion && (
           <motion.div key={currentQuestion.id} className="tdna-question-frame">
-            <button
-              type="button"
-              className="tdna-fixed-back"
-              onClick={goToPreviousQuestion}
-            >
-              <BetterUpIcon name="ChevronLeft" size={18} strokeWidth={2.2} />
-              <span>Back</span>
-            </button>
             <QuestionStep
               step={currentQuestion}
               value={responses[currentQuestion.id]}
               onChange={(value) => setResponse(currentQuestion.id, value)}
-              onInterstitialSeen={(id) => seenInterstitialIdsRef.current.add(id)}
               onNext={goToNextQuestion}
             />
           </motion.div>
@@ -1034,58 +965,57 @@ function ValueStep({ onStart }) {
 
 function WelcomeStep({ onStart }) {
   return (
-    <motion.section className="tdna-welcome" {...QUESTION_FADE}>
+    <motion.section
+      className="tdna-welcome tdna-welcome--intro"
+      {...QUESTION_FADE}
+    >
       <div className="tdna-welcome-lines" aria-hidden="true">
         <span className="tdna-line tdna-line-h tdna-line-h-1" />
         <span className="tdna-line tdna-line-h tdna-line-h-2" />
         <span className="tdna-line tdna-line-h tdna-line-h-3" />
         <span className="tdna-line tdna-line-h tdna-line-h-4" />
         <span className="tdna-line tdna-line-v tdna-line-v-1" />
-        <span className="tdna-line tdna-line-v tdna-line-v-2" />
-        <span className="tdna-line tdna-line-v tdna-line-v-3" />
         <span className="tdna-line tdna-line-v tdna-line-v-4" />
         <span className="tdna-plus tdna-plus-1" />
-        <span className="tdna-plus tdna-plus-2" />
-      </div>
-      <div className="tdna-welcome-media" aria-hidden="true">
-        <motion.div
-          className="tdna-hand-stage"
-          initial={{ opacity: 0, y: 18, scale: 0.96 }}
-          animate={{ opacity: 1, y: 0, scale: 1 }}
-          exit={{ opacity: 0, y: -18, scale: 0.98 }}
-          transition={{
-            delay: 0.1,
-            duration: 0.62,
-            ease: [0.215, 0.61, 0.355, 1],
-          }}
-        >
-          <HalftoneHand className="tdna-halftone-hand" />
-        </motion.div>
       </div>
       <div className="tdna-welcome-content">
-        <div className="tdna-welcome-copy">
-          <DnaMark />
-          <p className="tdna-kicker">Team DNA</p>
+        <div className="tdna-welcome-grid">
+          <div className="tdna-welcome-art" aria-hidden="true">
+            <motion.img
+              src="/team-dna/big-five-intro.png"
+              alt=""
+              className="tdna-welcome-art-img"
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{
+                delay: 0.08,
+                duration: 0.6,
+                ease: [0.215, 0.61, 0.355, 1],
+              }}
+            />
+          </div>
+          <div className="tdna-welcome-copy">
+            <DnaMark />
+            <p className="tdna-kicker">Team DNA</p>
           <h1>Now, let’s map how you work.</h1>
           <p className="tdna-welcome-body">
             A few quick questions on how you move through work and relate to
-            teammates. Your answers build your profile, using the{' '}
-            <strong>Big Five</strong>
-            <a
-              aria-label="Goldberg 1990 Big Five factor structure source"
-              href="https://doi.org/10.1037/0022-3514.59.6.1216"
-              rel="noreferrer"
-              target="_blank"
-              title="Goldberg, L. R. (1990). An alternative description of personality: The Big-Five factor structure."
-            >
-              [1]
-            </a>{' '}
-            framework.
+            teammates — your answers build your Team DNA profile.
+          </p>
+          <p className="tdna-welcome-body">
+            It’s built on the <strong>Big Five</strong>, the research-backed
+            model of five core traits — openness, conscientiousness,
+            extraversion, agreeableness, and emotional stability — that shape how
+            we think, work, and show up with others. There are no right or wrong
+            answers; pick what fits how you are right now, not how you’d like to
+            be.
           </p>
           <div className="tdna-welcome-actions">
             <button type="button" className="tdna-primary-action" onClick={onStart}>
               Begin assessment <span>10 min</span>
             </button>
+          </div>
+            <WelcomeDisclosure />
           </div>
         </div>
       </div>
@@ -1093,7 +1023,66 @@ function WelcomeStep({ onStart }) {
   );
 }
 
-function AssessmentProgress({ current, total, progress }) {
+function WelcomeDisclosure() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="tdna-welcome-disclosure" data-open={open || undefined}>
+      <button
+        type="button"
+        className="tdna-welcome-disclosure-trigger"
+        onClick={() => setOpen((current) => !current)}
+        aria-expanded={open}
+      >
+        <span>About this assessment and your data</span>
+        <BetterUpIcon name="ChevronDown" size={15} strokeWidth={2.1} />
+      </button>
+      <AnimatePresence initial={false}>
+        {open && (
+          <motion.div
+            className="tdna-welcome-disclosure-panel"
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.28, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <div className="tdna-welcome-disclosure-inner">
+              <p>
+                This assessment content was developed in Donnellan, M. B.,
+                Oswald, F. L., Baird, B. M., &amp; Lucas, R. E. (2006). The
+                Mini-IPIP scales: Tiny-yet-effective measures of the Big Five
+                factors of personality. <em>Psychological Assessment, 18</em>,
+                192–203.
+              </p>
+              <p>
+                Team DNA asks about your typical behaviors and experiences at
+                work and in life. Your answers are used to build your profile,
+                suggest relevant content, and — in aggregate — to improve the
+                program.
+              </p>
+              <p>
+                Your individual responses are confidential. We won’t share them
+                with your employer. If you choose to share your strengths and
+                growth areas with your manager or team, they’ll see that. If
+                you’d ever like your assessment data deleted, contact
+                support@betterup.co.
+              </p>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+function AssessmentProgress({
+  current,
+  total,
+  progress,
+  onBack,
+  onForward,
+  canForward,
+}) {
   const stepProgress = 100 / total;
   const journeyRatio = total <= 1 ? 1 : (current - 1) / (total - 1);
   const optimisticMultiplier = 0.62 + Math.pow(1 - journeyRatio, 0.72) * 0.78;
@@ -1140,59 +1129,55 @@ function AssessmentProgress({ current, total, progress }) {
   }, [current, optimisticProgress]);
 
   return (
-    <div className="tdna-progress" aria-label={`Question ${current} of ${total}`}>
-      <motion.div
-        className="tdna-progress-bar"
-        initial={false}
-        animate={{ width: progressAnimation.width }}
-        transition={progressAnimation.transition}
-      />
+    <div className="tdna-assessment-footer">
+      <div className="tdna-footer-row">
+        <p className="tdna-footer-label">
+          <span className="tdna-footer-title">
+            What are your Big 5 Personality Traits?
+          </span>
+          <span className="tdna-footer-count">
+            {current}/{total}
+          </span>
+        </p>
+        <div className="tdna-footer-nav">
+          <button
+            type="button"
+            className="tdna-footer-nav-button"
+            onClick={onBack}
+            aria-label="Previous question"
+          >
+            <BetterUpIcon name="ChevronLeft" size={18} strokeWidth={2.1} />
+          </button>
+          <button
+            type="button"
+            className="tdna-footer-nav-button"
+            onClick={onForward}
+            disabled={!canForward}
+            aria-label="Next question"
+          >
+            <BetterUpIcon name="ChevronRight" size={18} strokeWidth={2.1} />
+          </button>
+        </div>
+      </div>
+      <div
+        className="tdna-progress"
+        aria-label={`Question ${current} of ${total}`}
+      >
+        <motion.div
+          className="tdna-progress-bar"
+          initial={false}
+          animate={{ width: progressAnimation.width }}
+          transition={progressAnimation.transition}
+        />
+      </div>
     </div>
   );
 }
 
-function QuestionStep({
-  step,
-  value,
-  onChange,
-  onInterstitialSeen,
-  onNext,
-}) {
-  const isBigFive = step.kind === 'bigFive';
-  const isWorkingStyle = step.kind === 'workingStyle';
+function QuestionStep({ step, value, onChange, onNext }) {
   const [selectedValue, setSelectedValue] = useState(null);
   const isSelecting = selectedValue !== null;
 
-  if (step.kind === 'interstitial') {
-    return (
-      <InterstitialBreak
-        item={step.item}
-        onNext={onNext}
-        onSeen={onInterstitialSeen}
-      />
-    );
-  }
-
-  if (step.kind === 'imageChoice') {
-    return (
-      <ImageChoiceBreak
-        item={step.item}
-        selectedValue={selectedValue}
-        onSelect={(optionId) => {
-          if (isSelecting) return;
-          setSelectedValue(optionId);
-          window.setTimeout(onNext, IMAGE_CHOICE_ADVANCE_MS);
-        }}
-      />
-    );
-  }
-
-  const handleNext = () => {
-    if (isWorkingStyle && value === undefined) {
-      onChange(50);
-    }
-    onNext();
-  };
   const handleLikertSelect = (nextValue) => {
     if (isSelecting) return;
 
@@ -1203,46 +1188,22 @@ function QuestionStep({
 
   return (
     <motion.section className="tdna-question-shell" {...QUESTION_FADE}>
-      <div className="tdna-question-card" data-kind={step.kind}>
+      <div className="tdna-question-card" data-kind="bigFive">
         <motion.h2
           style={getQuestionTypographyStyle(step.item.text)}
           animate={{
             opacity: isSelecting ? 0 : 1,
-            y: isSelecting ? -12 : 0,
+            y: isSelecting ? -10 : 0,
           }}
           transition={{ duration: 0.24 }}
         >
-          {isBigFive ? (
-            <HighlightedQuestionText item={step.item} />
-          ) : (
-            step.item.text
-          )}
+          {step.item.text}
         </motion.h2>
-        {isBigFive ? (
-          <LikertControl
-            value={value}
-            selectedValue={selectedValue}
-            onChange={handleLikertSelect}
-          />
-        ) : (
-          <WorkingStyleControl
-            item={step.item}
-            value={value}
-            onChange={onChange}
-          />
-        )}
-        {isWorkingStyle && (
-          <div className="tdna-step-actions">
-            <button
-              type="button"
-              className="tdna-primary-action"
-              data-confirm-sound="select"
-              onClick={handleNext}
-            >
-              Continue
-            </button>
-          </div>
-        )}
+        <LikertControl
+          value={value}
+          selectedValue={selectedValue}
+          onChange={handleLikertSelect}
+        />
       </div>
     </motion.section>
   );
@@ -1478,92 +1439,42 @@ function getQuestionTypographyStyle(text) {
 }
 
 function LikertControl({ value, selectedValue, onChange }) {
-  return (
-    <div className="tdna-likert" role="radiogroup" aria-label="Answer options">
-      {LIKERT_OPTIONS.map((option, index) => (
-        <LikertOption
-          key={option.value}
-          index={index}
-          option={option}
-          value={value}
-          selectedValue={selectedValue}
-          onChange={onChange}
-        />
-      ))}
-    </div>
-  );
-}
-
-function LikertOption({ index, option, value, selectedValue, onChange }) {
-  const { pressed, handlers } = useTeamDnaPressable({
-    disabled: selectedValue !== null,
-  });
-  const fan = LIKERT_FAN[index] ?? { rotate: 0, x: 0, y: 0 };
-  const stackOffset =
-    typeof window !== 'undefined' && window.innerWidth > 860
-      ? (2 - index) * LIKERT_STACK_SPACING
-      : 0;
-  const isSelected = value === option.value || selectedValue === option.value;
-  const isFading = selectedValue !== null && selectedValue !== option.value;
-  const baseScale = isSelected
-    ? 1.06
-    : selectedValue === null
-      ? 1
-      : 0.9;
+  const locked = selectedValue !== null;
 
   return (
-    <motion.button
-      type="button"
-      className="tdna-likert-option"
-      data-confirm-sound="select"
-      data-selected={isSelected || undefined}
-      data-tone={index + 1}
-      {...handlers}
-      initial={{
-        opacity: 0,
-        scale: 0.96,
-        x: stackOffset,
-        y: 18,
-        rotate: 0,
-      }}
-      animate={{
-        opacity: isFading ? 0 : 1,
-        scale: pressed ? baseScale * 1.045 : baseScale,
-        x: isSelected ? 0 : selectedValue === null ? fan.x : fan.x * 0.35,
-        y: isSelected ? -16 : selectedValue === null ? fan.y : fan.y + 12,
-        rotate: isSelected
-          ? 0
-          : selectedValue === null
-            ? fan.rotate
-            : fan.rotate * 0.45,
-      }}
-      whileHover={
-        selectedValue === null
-          ? {
-              y: fan.y - 9,
-              rotate: fan.rotate * 0.72,
-              scale: 1.025,
-              transition: {
-                type: 'spring',
-                stiffness: 1700,
-                damping: 30,
-                mass: 0.28,
-              },
-            }
-          : undefined
-      }
-      transition={{
-        type: 'spring',
-        stiffness: selectedValue === null ? 520 : 980,
-        damping: selectedValue === null ? 32 : 33,
-        mass: selectedValue === null ? 0.82 : 0.48,
-      }}
-      onClick={() => onChange(option.value)}
-      role="radio"
-      aria-checked={value === option.value}
+    <div
+      className="tdna-likert-classic"
+      role="radiogroup"
+      aria-label="Choose how much you agree"
     >
-      {option.label}
-    </motion.button>
+      {LIKERT_OPTIONS.map((option) => {
+        const isSelected =
+          value === option.value || selectedValue === option.value;
+
+        return (
+          <div className="tdna-likert-classic-item" key={option.value}>
+            <button
+              type="button"
+              className="tdna-likert-classic-button"
+              data-selected={isSelected || undefined}
+              data-tone={option.value}
+              disabled={locked}
+              onClick={() => onChange(option.value)}
+              role="radio"
+              aria-checked={value === option.value}
+              aria-label={
+                option.anchor ? `${option.value} — ${option.anchor}` : `${option.value}`
+              }
+            >
+              {option.value}
+            </button>
+            <span className="tdna-likert-classic-anchor" aria-hidden="true">
+              {option.anchor ?? ''}
+            </span>
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -2249,7 +2160,6 @@ function ProfileLoader({ readyToExit, onExitComplete }) {
   const mountedAtRef = useRef(null);
   const exitTimerRef = useRef(null);
   const finalTriggeredRef = useRef(false);
-  const playLoadingComplete = useAssessmentSound(SOUNDS.loadingComplete, 0.42);
   const [statusIndex, setStatusIndex] = useState(0);
   const [completionStarted, setCompletionStarted] = useState(false);
   const [showCheckmark, setShowCheckmark] = useState(false);
@@ -2297,10 +2207,9 @@ function ProfileLoader({ readyToExit, onExitComplete }) {
   }, [readyToExit]);
 
   const handleFinalComplete = useCallback(() => {
-    playLoadingComplete();
     setShowCheckmark(true);
     window.setTimeout(onExitComplete, PROFILE_LOADER_COMPLETION_HOLD_MS);
-  }, [onExitComplete, playLoadingComplete]);
+  }, [onExitComplete]);
 
   return (
     <div className="tdna-profile-loader" role="status" aria-live="polite">

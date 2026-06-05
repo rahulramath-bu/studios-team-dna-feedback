@@ -19,127 +19,133 @@ export const IMAGE_BREAK_URLS = Object.values(IMAGE_BREAK_ASSETS);
 
 export const TEAM_DNA_ASSESSMENT_STORAGE_KEY = 'team-dna.surface-1.profile-draft';
 
+// Classic agree/disagree Likert scale. Anchors are shown under 1 / 3 / 5 only,
+// matching the production Big Five assessment.
 export const LIKERT_OPTIONS = [
-  { value: 1, label: 'Not at all' },
-  { value: 2, label: 'Not much' },
-  { value: 3, label: 'Somewhat' },
-  { value: 4, label: 'Very much' },
-  { value: 5, label: 'Absolutely' },
+  { value: 1, anchor: 'Strongly Disagree' },
+  { value: 2 },
+  { value: 3, anchor: 'Neutral' },
+  { value: 4 },
+  { value: 5, anchor: 'Strongly Agree' },
 ];
 
-// Prototype item keys intentionally look like AssessmentItem keys. In the
-// monolith, these should be replaced by the real assessment_response_set values
-// from the Team DNA assessment definition, not invented client-side keys.
+// Mini-IPIP Big Five items (Donnellan, Oswald, Baird, & Lucas, 2006) — the same
+// 20-item set used by the production assessment. Items are interleaved by trait
+// so consecutive questions don't cluster. `reverse: true` marks reverse-keyed
+// items. Note: the "neuroticism" trait key is scored so a higher value means
+// more neuroticism, so the Emotional Stability statements ("relaxed", "seldom
+// feel blue") are the reverse-keyed ones here.
 export const BIG_FIVE_ITEMS = [
   {
-    id: 'tdna_b5_extraversion_1',
+    id: 'sda_extraversion_1',
     trait: 'extraversion',
-    text: 'I bring energy into a room.',
+    text: 'I am the life of the party.',
   },
   {
-    id: 'tdna_b5_agreeableness_1',
+    id: 'sda_agreeableness_1',
     trait: 'agreeableness',
-    text: 'I try to make sure people feel included.',
+    text: "I sympathize with others' feelings.",
   },
   {
-    id: 'tdna_b5_conscientiousness_1',
+    id: 'sda_conscientiousness_1',
     trait: 'conscientiousness',
-    text: 'I like to have a clear plan before I start.',
+    text: 'I get chores done right away.',
   },
   {
-    id: 'tdna_b5_neuroticism_1',
+    id: 'sda_emotional_stability_1',
     trait: 'neuroticism',
-    text: 'I notice potential problems early.',
+    text: 'I have frequent mood swings.',
   },
   {
-    id: 'tdna_b5_openness_1',
+    id: 'sda_openness_1',
     trait: 'openness',
-    text: 'I enjoy exploring new ideas.',
+    text: 'I have a vivid imagination.',
   },
   {
-    id: 'tdna_b5_extraversion_2',
+    id: 'sda_extraversion_2',
     trait: 'extraversion',
-    reverse: true,
-    text: 'I usually keep my thoughts to myself in group settings.',
+    text: 'I talk to a lot of different people at parties.',
   },
   {
-    id: 'tdna_b5_agreeableness_2',
+    id: 'sda_agreeableness_2',
     trait: 'agreeableness',
-    reverse: true,
-    text: 'I tend to challenge ideas before I support them.',
+    text: "I feel others' emotions.",
   },
   {
-    id: 'tdna_b5_conscientiousness_2',
+    id: 'sda_conscientiousness_2',
     trait: 'conscientiousness',
-    reverse: true,
-    text: 'I am comfortable leaving some details open until later.',
+    text: 'I like order.',
   },
   {
-    id: 'tdna_b5_neuroticism_2',
+    id: 'sda_emotional_stability_2',
     trait: 'neuroticism',
-    reverse: true,
-    text: 'I stay calm even when the situation is uncertain.',
+    text: 'I get upset easily.',
   },
   {
-    id: 'tdna_b5_openness_2',
+    id: 'sda_openness_2',
     trait: 'openness',
     reverse: true,
-    text: 'I prefer familiar approaches over untested ones.',
+    text: 'I have difficulty understanding abstract ideas.',
   },
   {
-    id: 'tdna_b5_extraversion_3',
-    trait: 'extraversion',
-    text: 'I think out loud when I am working through something.',
-  },
-  {
-    id: 'tdna_b5_agreeableness_3',
-    trait: 'agreeableness',
-    text: 'I look for common ground when people disagree.',
-  },
-  {
-    id: 'tdna_b5_conscientiousness_3',
-    trait: 'conscientiousness',
-    text: 'I follow through on commitments carefully.',
-  },
-  {
-    id: 'tdna_b5_neuroticism_3',
-    trait: 'neuroticism',
-    text: 'I feel tension when important things are unresolved.',
-  },
-  {
-    id: 'tdna_b5_openness_3',
-    trait: 'openness',
-    text: 'I connect ideas across different topics.',
-  },
-  {
-    id: 'tdna_b5_extraversion_4',
+    id: 'sda_extraversion_3',
     trait: 'extraversion',
     reverse: true,
-    text: 'I need quiet time before I share my point of view.',
+    text: "I don't talk a lot.",
   },
   {
-    id: 'tdna_b5_agreeableness_4',
+    id: 'sda_agreeableness_3',
     trait: 'agreeableness',
     reverse: true,
-    text: 'I am quick to name what does not make sense.',
+    text: 'I am not really interested in others.',
   },
   {
-    id: 'tdna_b5_conscientiousness_4',
+    id: 'sda_conscientiousness_3',
     trait: 'conscientiousness',
     reverse: true,
-    text: 'I can move forward without much structure.',
+    text: 'I often forget to put things back in their proper place.',
   },
   {
-    id: 'tdna_b5_neuroticism_4',
+    id: 'sda_emotional_stability_3',
     trait: 'neuroticism',
     reverse: true,
-    text: 'I rarely worry about things going wrong.',
+    text: 'I am relaxed most of the time.',
   },
   {
-    id: 'tdna_b5_openness_4',
+    id: 'sda_openness_3',
     trait: 'openness',
     reverse: true,
-    text: 'I like to keep ideas close to what already works.',
+    text: 'I am not interested in abstract ideas.',
+  },
+  {
+    id: 'sda_extraversion_4',
+    trait: 'extraversion',
+    reverse: true,
+    text: 'I keep in the background.',
+  },
+  {
+    id: 'sda_agreeableness_4',
+    trait: 'agreeableness',
+    reverse: true,
+    text: "I am not interested in other people's problems.",
+  },
+  {
+    id: 'sda_conscientiousness_4',
+    trait: 'conscientiousness',
+    reverse: true,
+    text: 'I make a mess of things.',
+  },
+  {
+    id: 'sda_emotional_stability_4',
+    trait: 'neuroticism',
+    reverse: true,
+    text: 'I seldom feel blue.',
+  },
+  {
+    id: 'sda_openness_4',
+    trait: 'openness',
+    reverse: true,
+    text: 'I do not have a good imagination.',
   },
 ];
 
@@ -300,56 +306,14 @@ export const ROLE_BY_TRAIT_POLE = {
   },
 };
 
+// Classic questionnaire: the 20 Big Five items, one per screen, no working-style
+// sliders or interstitial beats. (Working-style scoring helpers are kept below
+// for the generated profile; they simply fall back to neutral defaults now.)
 export function buildAssessmentSteps() {
-  const steps = [];
-  const workingStyleInsertions = new Map([
-    [2, 0],
-    [5, 1],
-    [8, 2],
-    [11, 3],
-    [14, 4],
-    [17, 5],
-    [19, 6],
-  ]);
-  const experienceBreakInsertions = new Map([
-    [6, [0]],
-    [11, [1]],
-    [16, [2]],
-  ]);
-
-  BIG_FIVE_ITEMS.forEach((item, index) => {
-    steps.push({
-      id: item.id,
-      kind: 'bigFive',
-      item,
-    });
-
-    if (workingStyleInsertions.has(index)) {
-      const workingStyleItem =
-        WORKING_STYLE_ITEMS[workingStyleInsertions.get(index)];
-
-      steps.push({
-        id: workingStyleItem.id,
-        kind: 'workingStyle',
-        item: workingStyleItem,
-      });
-    }
-
-    if (experienceBreakInsertions.has(index)) {
-      experienceBreakInsertions.get(index).forEach((breakIndex) => {
-        const experienceBreak = EXPERIENCE_BREAKS[breakIndex];
-        steps.push({
-          id: experienceBreak.id,
-          kind: experienceBreak.kind,
-          item: experienceBreak,
-          nonScored: true,
-        });
-      });
-    }
-  });
-
-  return steps.map((step, index) => ({
-    ...step,
+  return BIG_FIVE_ITEMS.map((item, index) => ({
+    id: item.id,
+    kind: 'bigFive',
+    item,
     questionIndex: index + 1,
   }));
 }
