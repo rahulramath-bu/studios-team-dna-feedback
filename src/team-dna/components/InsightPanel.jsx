@@ -2,7 +2,6 @@ import React, { useRef } from 'react';
 import { AnimatePresence, motion } from 'motion/react';
 import { InfoBlock } from './InfoBlock.jsx';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
-import { BigFiveBloom } from './BigFiveBloom.jsx';
 import { TeamShapeContributions } from './TeamShapeContributions.jsx';
 
 const PAGE_EASE = [0.22, 1, 0.36, 1];
@@ -438,19 +437,9 @@ function InsightPageContent({
     ? buildOwnProfileInsight(insight, ownProfileViewer)
     : insight;
   const imageCard = displayInsight.cards.find((card) => card.kind === 'archetypeImage');
-  const bloomHeroCard = displayInsight.cards.find((card) => card.kind === 'bloomHero');
-  // The hero aside is the small Big Five bloom: the self-review page supplies its
-  // own; individual profiles get one from the `bloomHero` card the adapter adds.
+  // The hero aside is only used by the self-review page when it supplies one.
   const heroAside =
-    revealMode === 'selfReview' && selfReviewAside
-      ? selfReviewAside
-      : bloomHeroCard
-        ? (
-            <div className="self-results-bloom" aria-hidden="true">
-              <BigFiveBloom subjects={bloomHeroCard.data?.subjects ?? []} />
-            </div>
-          )
-        : null;
+    revealMode === 'selfReview' && selfReviewAside ? selfReviewAside : null;
   // The team view folds its bloom + role distribution into the big hero box, so
   // it is pulled out of the supporting stack and rendered inside the hero.
   const teamCompositionCard = displayInsight.cards.find(
@@ -614,8 +603,6 @@ function InsightPageContent({
                 <div className="insight-team-composition">
                   <TeamShapeContributions
                     contributions={teamCompositionCard.data?.contributions ?? []}
-                    subjects={teamCompositionCard.data?.subjects ?? []}
-                    hideLegend
                     onSelectMember={onSelectMember}
                   />
                 </div>

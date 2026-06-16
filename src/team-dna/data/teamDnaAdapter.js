@@ -86,32 +86,13 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
   const isSingleMember = selectedMembers.length === 1;
   const isPair = selectedMembers.length === 2;
   const isTeam = !hasSelectedSubjects;
-  const toBloomSubject = (member) => ({
-    id: member.id,
-    name: member.name,
-    bigFive: member.bigFive,
-    avatarUrl: member.avatarUrl ?? null,
-  });
 
-  // Static archetype illustrations are retired across all views. Individual and
-  // pair profiles use a Big Five bloom placeholder; the team view folds its bloom
-  // into the role-distribution box (see below).
+  // Static archetype illustrations are retired across all views. The team view
+  // shows a role-distribution box (see below); profiles lead with their copy.
   const teamArchetype = isTeam ? getArchetypeImageForTeam(selectableMembers) : null;
   const teamShapeContributions = teamArchetype?.contributions?.length
     ? teamArchetype.contributions
     : [];
-
-  // Bloom hero for individual + pair profiles (single shape, or two overlaid).
-  const bloomHero =
-    (isSingleMember || isPair) && selectedMembers.every((member) => member?.bigFive)
-      ? {
-          id: `${scopeId}-bloom-hero`,
-          kind: 'bloomHero',
-          label: 'Team DNA shape',
-          showLabel: false,
-          data: { subjects: selectedMembers.map(toBloomSubject) },
-        }
-      : null;
 
   // Deterministic collaboration guidance so every profile has full copy, not just
   // hand-authored members. Strengths + blind spots are structured core cards; the
@@ -142,10 +123,9 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
     : null;
 
   const coreCards = [
-    bloomHero,
     strengthsCard,
-    // Team composition: one bloom placeholder + role distribution combined into a
-    // single box (showLabel off; the box renders its own subsection divider).
+    // Team composition: role distribution rendered as a single box (showLabel
+    // off; the box renders its own subsection divider).
     teamShapeContributions.length
       ? {
           id: 'team-shape-contributions',
@@ -154,7 +134,6 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
           showLabel: false,
           data: {
             contributions: teamShapeContributions,
-            subjects: selectableMembers.map(toBloomSubject),
           },
         }
       : null,

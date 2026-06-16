@@ -1,6 +1,5 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
-import { BigFiveBloom } from './BigFiveBloom.jsx';
 
 function getInitials(name = '') {
   return name
@@ -98,31 +97,14 @@ function TeamShapeFaceCarousel({ members, onSelectMember }) {
  */
 export function TeamShapeContributions({
   contributions = [],
-  subjects = [],
-  hideLegend = false,
   onSelectMember,
 }) {
   if (!contributions.length) {
     return null;
   }
 
-  const hasBloom = subjects.length > 0;
-
   return (
     <div className="team-shape-block">
-      {hasBloom ? (
-        <>
-          <div className="team-shape-bloom">
-            <BigFiveBloom
-              subjects={subjects}
-              hideLegend={hideLegend}
-              onSelectMember={onSelectMember}
-            />
-          </div>
-          <hr className="team-shape-divider" aria-hidden="true" />
-          <p className="team-shape-sublabel">Role distribution</p>
-        </>
-      ) : null}
       <div
         className="team-shape-contributions"
         aria-label="Team role distribution"

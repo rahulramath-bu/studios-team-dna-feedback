@@ -1,5 +1,4 @@
 import React from 'react';
-import { BigFiveBloom } from './BigFiveBloom.jsx';
 import { BigFiveSpectrumList } from './BigFiveSpectrumList.jsx';
 import { WatchOutCard } from './WatchOutCard.jsx';
 import { GuidanceCard } from './GuidanceCard.jsx';
@@ -189,16 +188,6 @@ function getDisplayLabel(card) {
 }
 
 function InfoBlockBody({ card, onSelectMember }) {
-  if (card.kind === 'bigFiveBloom') {
-    return (
-      <BigFiveBloom
-        onSelectMember={onSelectMember}
-        subjects={card.data?.subjects ?? []}
-        traits={card.data?.traits}
-      />
-    );
-  }
-
   if (card.kind === 'bigFiveSpectrumList') {
     return (
       <BigFiveSpectrumList
@@ -217,7 +206,6 @@ function InfoBlockBody({ card, onSelectMember }) {
     return (
       <TeamShapeContributions
         contributions={card.data?.contributions ?? []}
-        subjects={card.data?.subjects ?? []}
         onSelectMember={onSelectMember}
       />
     );

@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'motion/react';
 import { InsightPanel } from './InsightPanel.jsx';
-import { BigFiveBloom } from './BigFiveBloom.jsx';
 
 /**
  * Post-assessment results page for the viewer.
@@ -40,22 +39,6 @@ export function AssessmentResultsOverlay({
 }) {
   const intro = <p className="self-results-kicker">Your Big Five results</p>;
 
-  const aside = viewerBigFive ? (
-    <div className="self-results-bloom" aria-hidden="true">
-      <BigFiveBloom
-        subjects={[
-          {
-            id: currentViewerMemberId,
-            name: viewerName ?? 'You',
-            bigFive: viewerBigFive,
-            avatarUrl: viewerAvatarUrl ?? null,
-          },
-        ]}
-      />
-      <span className="self-results-bloom-note">Visual placeholder</span>
-    </div>
-  ) : null;
-
   return (
     <motion.div
       className="self-results-overlay"
@@ -90,7 +73,6 @@ export function AssessmentResultsOverlay({
             canManageTeam={false}
             allowProfileEditing={false}
             selfReviewIntro={intro}
-            selfReviewAside={aside}
             currentViewerMemberId={currentViewerMemberId}
             members={members}
             teamName={teamName}
