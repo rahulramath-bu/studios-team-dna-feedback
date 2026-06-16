@@ -56,7 +56,7 @@ const userJourneyMoments = [
     phase: 'Profile',
     label: 'Profile',
     title: 'See your Team DNA profile',
-    note: 'The user sees their finished read — strengths, blind spots, and how teammates can work with them — before it appears to their teams.',
+    note: 'The user sees their finished read — strengths, growth opportunities, and how teammates can work with them — before it appears to their teams.',
     surfaceUrl: '/assessment?demo=review',
   },
   {

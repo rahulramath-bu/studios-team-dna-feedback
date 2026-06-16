@@ -703,7 +703,7 @@ const ACCOUNT_SLIDES = [
     id: 'strengths',
     visual: 'cluster',
     title: 'Know the real strengths and friction',
-    body: 'Get genuine strengths, blind spots, and where working styles rub — not generic personality labels.',
+    body: 'Get genuine strengths, growth opportunities, and where working styles rub — not generic personality labels.',
   },
   {
     id: 'coach',
@@ -932,7 +932,7 @@ function ValueStep({ onStart }) {
           </p>
 
           <ul className="tdna-onboarding-value-points">
-            <li>A clear read on how you work — your strengths and blind spots.</li>
+            <li>A clear read on how you work — your strengths and growth opportunities.</li>
             <li>See where you and a teammate click, and where you’ll clash.</li>
             <li>Practical ways to work better with anyone on your team.</li>
           </ul>

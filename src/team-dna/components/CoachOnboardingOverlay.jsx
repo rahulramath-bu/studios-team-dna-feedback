@@ -25,7 +25,7 @@ const SETUP_STEPS = [
   },
   {
     title: 'Pick a focus',
-    body: 'Choose what you want to get better at together — collaboration, blind spots, or day-to-day teamwork.',
+    body: 'Choose what you want to get better at together — collaboration, growth opportunities, or day-to-day teamwork.',
   },
   {
     title: 'Start the conversation',

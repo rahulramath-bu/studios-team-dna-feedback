@@ -198,7 +198,7 @@ export function getPairGuidanceCards(first, second) {
   const workBest = sameLead
     ? [
         `Because you share a lead, divide the work by your second strengths — let ${a} carry the ${firstRoles.secondary.gift} side and ${b} the ${secondRoles.secondary.gift} side.`,
-        `Name the blind spot you both share out loud, and assign one of you to watch for it on each piece of work.`,
+        `Name the growth opportunity you both share out loud, and assign one of you to watch for it on each piece of work.`,
         `Decide up front who owns the final call so two similar instincts don't quietly compete.`,
       ]
     : [

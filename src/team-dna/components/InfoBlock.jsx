@@ -116,7 +116,7 @@ export function getCoachCta(card, { scope = 'team', subject } = {}) {
 
   if (card.kind === 'strengthsList') {
     return {
-      label: 'Put these to work with AI coach',
+      label: 'Discuss with AI coach',
       prompt: person
         ? `How can ${who} put these strengths to work?`
         : pair
@@ -127,18 +127,18 @@ export function getCoachCta(card, { scope = 'team', subject } = {}) {
 
   if (card.kind === 'watchOut') {
     return {
-      label: 'Get ahead of these with AI coach',
+      label: 'Discuss with AI coach',
       prompt: person
-        ? `How can ${who} stay ahead of these potential blind spots?`
+        ? `How can ${who} make the most of these growth opportunities?`
         : pair
-          ? `How can this pair cover these potential blind spots?`
-          : `How can this team manage these potential blind spots?`,
+          ? `How can this pair make the most of these growth opportunities?`
+          : `How can this team make the most of these growth opportunities?`,
     };
   }
 
   if (card.kind === 'guidance' && isCollaborationCard(card)) {
     return {
-      label: 'Discuss teamwork with AI coach',
+      label: 'Discuss with AI coach',
       prompt: person
         ? `How should I put this into practice when working with ${who}?`
         : pair
@@ -149,7 +149,7 @@ export function getCoachCta(card, { scope = 'team', subject } = {}) {
 
   if (card.kind === 'bigFiveSpectrumList') {
     return {
-      label: 'Decode these scores with AI coach',
+      label: 'Discuss with AI coach',
       prompt: person
         ? `What do ${who}'s Big Five results mean for how they work?`
         : pair
@@ -160,7 +160,7 @@ export function getCoachCta(card, { scope = 'team', subject } = {}) {
 
   if (card.kind === 'teamShapeContributions') {
     return {
-      label: 'Make sense of this with AI coach',
+      label: 'Discuss with AI coach',
       prompt: `What does this team's shape and role mix mean for how we work together?`,
     };
   }
@@ -177,7 +177,7 @@ function isCollaborationCard(card) {
 }
 
 function getDisplayLabel(card) {
-  if (card.kind === 'watchOut') return 'Potential blind spots';
+  if (card.kind === 'watchOut') return 'Growth opportunities';
   if (card.kind === 'guidance' && card.id.endsWith('-where-shines')) {
     return 'Strengths';
   }

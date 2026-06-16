@@ -167,7 +167,7 @@ function getCardsForSelection(dataset, selectedIds, insight = {}) {
     {
       id: hasSelectedSubjects ? `${scopeId}-watch-out` : 'team-watch-out',
       kind: 'watchOut',
-      label: 'Potential blind spots',
+      label: 'Growth opportunities',
       data: { watchOut },
     },
   ];
