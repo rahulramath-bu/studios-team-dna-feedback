@@ -233,22 +233,37 @@ button {
   min-height: var(--monolith-nav-height);
 }
 
-/* Demo-only "View as" persona toggle. Deliberately understated so it reads as a
-   quiet preview control rather than shipped product chrome. */
-.monolith-persona-toggle {
+/* Demo-only "View as" persona dropdown. Deliberately understated so it reads as
+   a quiet preview control rather than shipped product chrome. */
+.monolith-persona-menu {
+  position: relative;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  opacity: 0.62;
-  transition: opacity 150ms ease;
 }
 
-.monolith-persona-toggle:hover,
-.monolith-persona-toggle:focus-within {
+.monolith-persona-menu-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 7px;
+  border: 0;
+  border-radius: 7px;
+  background: none;
+  color: rgba(var(--team-dna-ink-rgb), 0.55);
+  font-family: 'Söhne', sans-serif;
+  cursor: pointer;
+  opacity: 0.78;
+  transition: opacity 150ms ease, background 150ms ease, color 150ms ease;
+}
+
+.monolith-persona-menu-trigger:hover,
+.monolith-persona-menu-trigger[aria-expanded='true'] {
   opacity: 1;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+  color: var(--foreground-heading);
 }
 
-.monolith-persona-toggle-label {
+.monolith-persona-menu-eyebrow {
   color: var(--foreground-muted);
   font-size: 8.5px;
   font-weight: 500;
@@ -256,45 +271,62 @@ button {
   text-transform: uppercase;
 }
 
-.monolith-persona-toggle-seg {
-  display: inline-flex;
-  align-items: center;
+.monolith-persona-menu-value {
+  font-size: 11px;
+  font-weight: 500;
+  color: inherit;
 }
 
-.monolith-persona-toggle-button {
-  padding: 2px 6px;
+.monolith-persona-menu-caret {
+  width: 11px;
+  height: 11px;
+  color: var(--foreground-muted);
+}
+
+.monolith-persona-menu-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 80;
+  display: flex;
+  flex-direction: column;
+  min-width: 152px;
+  padding: 5px;
+  border-radius: 12px;
+  background: var(--white);
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+  box-shadow: 0 16px 38px rgba(var(--team-dna-ink-rgb), 0.16);
+}
+
+.monolith-persona-menu-item {
+  display: flex;
+  align-items: center;
+  padding: 7px 10px;
   border: 0;
-  border-radius: 5px;
+  border-radius: 8px;
   background: none;
-  color: rgba(var(--team-dna-ink-rgb), 0.4);
+  color: var(--foreground-heading);
   font-family: 'Söhne', sans-serif;
-  font-size: 10.5px;
+  font-size: 12.5px;
   font-weight: 400;
+  text-align: left;
   white-space: nowrap;
   cursor: pointer;
-  transition: color 150ms ease;
+  transition: background 150ms ease;
 }
 
-.monolith-persona-toggle-button + .monolith-persona-toggle-button {
-  border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
-  border-radius: 0;
-  margin-left: 2px;
-  padding-left: 8px;
+.monolith-persona-menu-item:hover {
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
 }
 
-.monolith-persona-toggle-button:hover {
-  color: rgba(var(--team-dna-ink-rgb), 0.7);
+.monolith-persona-menu-item[data-active] {
+  font-weight: 600;
 }
 
-.monolith-persona-toggle-button[data-active] {
-  color: var(--foreground-heading);
-  font-weight: 500;
-}
-
-.monolith-persona-toggle-button:focus-visible {
+.monolith-persona-menu-trigger:focus-visible,
+.monolith-persona-menu-item:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 2px;
-  border-radius: 5px;
 }
 
 .monolith-primary-logo img {
@@ -3556,10 +3588,12 @@ button.team-management-row {
   flex: none;
 }
 
-/* Demo sub-bar under the nav for flipping between the landing CTA states. */
+/* Demo sub-bar under the nav for flipping between the landing CTA states.
+   Kept thin and quiet; its content left-aligns with the nav logo. */
 .team-dna-landing-switcher {
   border-bottom: 1px solid var(--team-dna-nav-border, rgba(var(--team-dna-ink-rgb), 0.1));
   background: rgba(var(--team-dna-ink-rgb), 0.02);
+  padding: 0 24px;
 }
 
 .team-dna-landing-switcher-inner {
@@ -3569,47 +3603,48 @@ button.team-management-row {
   flex-wrap: wrap;
   max-width: 1006px;
   margin: 0 auto;
-  padding: 9px 24px;
+  padding: 9px 0;
 }
 
 .team-dna-landing-switcher-label {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   color: var(--foreground-muted);
-  font-size: 12px;
+  font-size: 9px;
   font-weight: 500;
-  letter-spacing: 0.01em;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 .team-dna-landing-switcher-label svg {
+  width: 12px;
+  height: 12px;
   color: var(--foreground-muted);
 }
 
 .team-dna-landing-switcher-label--secondary {
-  margin-left: 6px;
-  padding-left: 14px;
+  margin-left: 4px;
+  padding-left: 12px;
   border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
 }
 
 .team-dna-landing-switcher-seg {
   display: inline-flex;
-  padding: 3px;
-  border-radius: 999px;
-  background: rgba(var(--team-dna-ink-rgb), 0.06);
+  gap: 2px;
 }
 
 .team-dna-landing-switcher-button {
-  padding: 5px 14px;
+  padding: 4px 12px;
   border: 0;
   border-radius: 999px;
   background: none;
-  color: var(--foreground-muted);
+  color: rgba(var(--team-dna-ink-rgb), 0.5);
   font-family: 'Söhne', sans-serif;
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  transition: background 150ms ease, color 150ms ease;
 }
 
 .team-dna-landing-switcher-button:hover {
@@ -3617,9 +3652,8 @@ button.team-management-row {
 }
 
 .team-dna-landing-switcher-button[data-active] {
-  background: var(--white);
+  background: rgba(var(--team-dna-ink-rgb), 0.07);
   color: var(--foreground-heading);
-  box-shadow: 0 1px 3px rgba(var(--team-dna-ink-rgb), 0.16);
 }
 
 .team-dna-landing-switcher-button:focus-visible {

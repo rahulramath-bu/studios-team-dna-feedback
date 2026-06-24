@@ -1551,8 +1551,8 @@ function TeamDnaAccessCta({ teamOptions, layout = 'split', onViewTeamDna }) {
             role="tooltip"
             className="team-dna-cta-tooltip"
           >
-            You’re not on a team yet. Ask your admin to add you to a team to
-            unlock Team DNA.
+            You’re not on a team yet. Ask your manager or admin to add you to a
+            team to view your Team DNA.
           </span>
         </span>
       </div>
@@ -1592,9 +1592,6 @@ function CtaVariantSplit({ teamOptions, onViewTeamDna }) {
           onClick={() => onViewTeamDna?.(selected?.id)}
         >
           View Team DNA
-          {multi ? null : (
-            <BetterUpIcon name="ChevronRight" size={16} strokeWidth={2} />
-          )}
         </button>
         {multi ? (
           <>

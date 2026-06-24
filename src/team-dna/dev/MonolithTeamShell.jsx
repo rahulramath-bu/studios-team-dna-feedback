@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 
 const primaryLinks = [
   { label: 'Home', href: '/', icon: 'Home', top: true },
@@ -141,27 +141,83 @@ const PERSONA_OPTIONS = [
 ];
 
 function MonolithPersonaToggle({ viewerPersona, onSelectPersona }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+  const activeLabel =
+    PERSONA_OPTIONS.find((option) => option.id === viewerPersona)?.label ??
+    PERSONA_OPTIONS[0].label;
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (rootRef.current?.contains(event.target)) return;
+      setOpen(false);
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  const handleSelect = (id) => {
+    onSelectPersona?.(id);
+    setOpen(false);
+  };
+
   return (
-    <div
-      className="monolith-persona-toggle"
-      role="group"
-      aria-label="Demo: view hub as"
-    >
-      <span className="monolith-persona-toggle-label">View as</span>
-      <div className="monolith-persona-toggle-seg">
-        {PERSONA_OPTIONS.map((option) => (
-          <button
-            key={option.id}
-            type="button"
-            className="monolith-persona-toggle-button"
-            data-active={option.id === viewerPersona || undefined}
-            aria-pressed={option.id === viewerPersona}
-            onClick={() => onSelectPersona?.(option.id)}
-          >
-            {option.label}
-          </button>
-        ))}
-      </div>
+    <div className="monolith-persona-menu" ref={rootRef}>
+      <button
+        type="button"
+        className="monolith-persona-menu-trigger"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((value) => !value)}
+      >
+        <span className="monolith-persona-menu-eyebrow">View as</span>
+        <span className="monolith-persona-menu-value">{activeLabel}</span>
+        <svg
+          className="monolith-persona-menu-caret"
+          viewBox="0 0 16 16"
+          aria-hidden="true"
+        >
+          <path
+            d="M4 6.5 8 10l4-3.5"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </button>
+      {open ? (
+        <div
+          className="monolith-persona-menu-pop"
+          role="menu"
+          aria-label="Demo: view hub as"
+        >
+          {PERSONA_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={option.id === viewerPersona}
+              className="monolith-persona-menu-item"
+              data-active={option.id === viewerPersona || undefined}
+              onClick={() => handleSelect(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
