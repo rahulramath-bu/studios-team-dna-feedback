@@ -1,5 +1,6 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useId, useMemo, useRef, useState } from 'react';
 import { TeamDnaExperience } from './TeamDnaExperience.jsx';
+import { BetterUpIcon } from './components/BetterUpIcon.jsx';
 import { TeamDnaEmptyPreview } from './components/TeamDnaEmptyPreview.jsx';
 import { TeamManagementOverlay } from './components/TeamManagementOverlay.jsx';
 import { AssessmentOverlay } from './components/AssessmentOverlay.jsx';
@@ -44,6 +45,40 @@ const DEMO_SETUP_TEAM_RECORD = {
   invitedEmails: [DEMO_INVITED_EMAIL],
   sample: false,
 };
+
+// Prototype-only fixtures backing the "manager has N teams" landing scenarios
+// the demo state switcher exposes. They reuse the sample roster so every member
+// already has Team DNA results, and overlap is fine for a visual demo.
+const DEMO_MANAGER_TEAMS = [
+  {
+    id: 'demo-manager-product',
+    name: 'Product team',
+    teamType: 'Direct reports',
+    memberEmployeeIds: sampleTeamRecord.memberEmployeeIds.slice(0, 5),
+    invitedEmails: [],
+    sample: false,
+  },
+  {
+    id: 'demo-manager-platform',
+    name: 'Platform team',
+    teamType: 'Cross-functional',
+    memberEmployeeIds: sampleTeamRecord.memberEmployeeIds.slice(2),
+    invitedEmails: [],
+    sample: false,
+  },
+];
+
+const LANDING_SCENARIOS = [
+  { id: 'none', label: 'No team' },
+  { id: 'single', label: '1 team' },
+  { id: 'multi', label: '2 teams' },
+];
+
+function getLandingScenarioForCount(count) {
+  if (count <= 0) return 'none';
+  if (count === 1) return 'single';
+  return 'multi';
+}
 
 function cloneState(value) {
   return JSON.parse(JSON.stringify(value));
@@ -509,6 +544,8 @@ export function TeamDnaPage() {
   const [emptyDevState, setEmptyDevState] = useState(() =>
     createInitialDevState(EMPTY_TEAM_DATASET.members)
   );
+  // Demo-only: which direct-report CTA treatment to preview on the hub.
+  const [ctaLayout, setCtaLayout] = useState('split');
   const activeRecord = activeTeamId ? teamRecords[activeTeamId] : null;
   const activeDataset = useMemo(() => {
     if (!activeRecord) return null;
@@ -580,17 +617,39 @@ export function TeamDnaPage() {
     editableTeamDna,
     generationStatusByTargetId,
   ]);
-  const teamOptions = useMemo(
-    () =>
-      Object.values(teamRecords).map(({ teamRecord }) => ({
+  const teamOptions = useMemo(() => {
+    const employeeById = new Map(
+      organizationEmployees.map((employee) => [employee.id, employee])
+    );
+
+    return Object.values(teamRecords).map(({ teamRecord }) => {
+      const members = teamRecord.memberEmployeeIds
+        .map((employeeId) => {
+          const employee = employeeById.get(employeeId);
+          if (!employee) return null;
+
+          return {
+            id: employee.id,
+            name:
+              [employee.firstName, employee.lastName].filter(Boolean).join(' ') ||
+              employee.email ||
+              employee.id,
+            avatarUrl: employee.avatar || null,
+          };
+        })
+        .filter(Boolean);
+
+      return {
         id: teamRecord.id,
         name: teamRecord.name,
         teamType: teamRecord.teamType,
-        memberCount: teamRecord.memberEmployeeIds.length + teamRecord.invitedEmails.length,
+        memberCount:
+          teamRecord.memberEmployeeIds.length + teamRecord.invitedEmails.length,
+        members,
         sample: teamRecord.sample,
-      })),
-    [teamRecords]
-  );
+      };
+    });
+  }, [teamRecords, organizationEmployees]);
   const overlayTeamRecord =
     teamManagementOverlay?.mode === 'edit' && teamManagementOverlay.teamId
       ? teamRecords[teamManagementOverlay.teamId]?.teamRecord
@@ -1078,15 +1137,73 @@ export function TeamDnaPage() {
     setActiveTeamId(sampleTeamRecord.id);
   };
 
+  // Demo-only: preview the direct-report landing states (no team / one team /
+  // multiple teams). A direct report can't create teams, so this also flips the
+  // viewer into a non-manager (canManageTeam: false) and stays on the hub
+  // (activeTeamId = null) so the reviewer sees the CTA rather than jumping in.
+  const applyLandingScenario = (scenario) => {
+    const defs =
+      scenario === 'single'
+        ? DEMO_MANAGER_TEAMS.slice(0, 1)
+        : scenario === 'multi'
+          ? DEMO_MANAGER_TEAMS
+          : [];
+
+    setTeamManagementOverlay(null);
+    setActiveSurface(null);
+    setActiveTeamId(null);
+    setEmptyDevState((current) => ({ ...current, canManageTeam: false }));
+    setTeamRecords(
+      Object.fromEntries(
+        defs.map((def) => {
+          const recordState = createTeamRecordState(
+            def,
+            organizationEmployees,
+            teamDnaResultsByEmployeeId
+          );
+
+          return [
+            def.id,
+            {
+              ...recordState,
+              devState: { ...recordState.devState, canManageTeam: false },
+            },
+          ];
+        })
+      )
+    );
+  };
+
   return (
     <>
-      <MonolithTeamShell enabled={devState.showMonolithShell}>
+      <MonolithTeamShell
+        enabled={devState.showMonolithShell}
+        toolbar={
+          !demoConfig.enabled && isTrueEmptyState ? (
+            <LandingScenarioSwitcher
+              activeScenario={
+                canManageTeam
+                  ? null
+                  : getLandingScenarioForCount(teamOptions.length)
+              }
+              onSelect={applyLandingScenario}
+              ctaLayout={ctaLayout}
+              onSelectLayout={setCtaLayout}
+              showLayout={!canManageTeam && teamOptions.length > 0}
+            />
+          ) : null
+        }
+      >
         <div className="team-dna-shell">
           <main className="team-dna-page" aria-label="Team DNA">
             {isTrueEmptyState ? (
               <TeamDnaEmptyState
                 canManageTeam={canManageTeam}
                 currentViewerMemberId={currentViewerMemberId}
+                teamOptions={teamOptions}
+                ctaLayout={ctaLayout}
+                isGuidedDemo={demoConfig.enabled}
+                onViewTeamDna={switchTeam}
                 onAddTeam={openCreateTeam}
                 onTrySample={trySampleTeam}
                 onOpenSurface={setActiveSurface}
@@ -1187,7 +1304,16 @@ export function TeamDnaPage() {
   );
 }
 
-function TeamDnaEmptyState({ canManageTeam, onAddTeam, onTrySample, onOpenSurface }) {
+function TeamDnaEmptyState({
+  canManageTeam,
+  teamOptions = [],
+  ctaLayout = 'split',
+  isGuidedDemo = false,
+  onViewTeamDna,
+  onAddTeam,
+  onTrySample,
+  onOpenSurface,
+}) {
   return (
     <section className="team-tooling-home" aria-label="Team tooling home">
       <div
@@ -1231,13 +1357,19 @@ function TeamDnaEmptyState({ canManageTeam, onAddTeam, onTrySample, onOpenSurfac
                 Try with sample data
               </button>
             </div>
-          ) : (
+          ) : isGuidedDemo ? (
             <div className="team-dna-empty-actions">
               <p className="team-dna-empty-note">
                 After a manager or admin adds you to a team, you’ll see your team
                 summary here.
               </p>
             </div>
+          ) : (
+            <TeamDnaAccessCta
+              teamOptions={teamOptions}
+              layout={ctaLayout}
+              onViewTeamDna={onViewTeamDna}
+            />
           )}
         </div>
         <TeamDnaEmptyPreview />
@@ -1265,6 +1397,380 @@ function TeamDnaEmptyState({ canManageTeam, onAddTeam, onTrySample, onOpenSurfac
         </div>
       </div>
     </section>
+  );
+}
+
+function formatHeadcount(count) {
+  return `${count} ${count === 1 ? 'person' : 'people'}`;
+}
+
+function getInitialsFromName(name = '') {
+  return (
+    name
+      .split(' ')
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part[0])
+      .join('')
+      .toUpperCase() || '?'
+  );
+}
+
+// Closes a popover on outside click / Escape. Returns nothing; wire the ref.
+function useDismissable(ref, isOpen, onClose) {
+  useEffect(() => {
+    if (!isOpen) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (ref.current?.contains(event.target)) return;
+      onClose();
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+
+    document.addEventListener('pointerdown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+      document.removeEventListener('pointerdown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [ref, isOpen, onClose]);
+}
+
+// Overlapping member faces so a team reads as people, not an abstract count.
+// Deliberately small (2 faces + a count) so it stays a glanceable accent.
+function TeamAvatarStack({ members = [], max = 2, variant = 'default' }) {
+  const shown = members.slice(0, max);
+  const extra = members.length - shown.length;
+
+  if (!shown.length) return null;
+
+  return (
+    <span
+      className="team-dna-avatar-stack"
+      data-variant={variant}
+      aria-hidden="true"
+    >
+      {shown.map((member) => (
+        <span className="team-dna-avatar-stack-item" key={member.id}>
+          {member.avatarUrl ? (
+            <img src={member.avatarUrl} alt="" />
+          ) : (
+            <span className="team-dna-avatar-stack-initials">
+              {getInitialsFromName(member.name)}
+            </span>
+          )}
+        </span>
+      ))}
+      {extra > 0 ? (
+        <span className="team-dna-avatar-stack-item team-dna-avatar-stack-more">
+          +{extra}
+        </span>
+      ) : null}
+    </span>
+  );
+}
+
+// Shared frosted team menu used by the split + in-button variants.
+function TeamChooserMenu({ teamOptions, selectedId, onSelect, isOpen, menuId }) {
+  return (
+    <div
+      id={menuId}
+      role="menu"
+      className="team-dna-team-menu"
+      aria-label="Choose a team"
+      aria-hidden={!isOpen}
+    >
+      {teamOptions.map((team) => (
+        <button
+          key={team.id}
+          type="button"
+          role="menuitemradio"
+          aria-checked={team.id === selectedId}
+          className="team-dna-team-menu-item"
+          data-selected={team.id === selectedId || undefined}
+          tabIndex={isOpen ? 0 : -1}
+          onClick={() => onSelect(team.id)}
+        >
+          <TeamAvatarStack members={team.members} />
+          <span className="team-dna-team-menu-copy">
+            <span className="team-dna-team-menu-name">{team.name}</span>
+            <span className="team-dna-team-menu-meta">
+              {team.teamType} · {formatHeadcount(team.memberCount)}
+            </span>
+          </span>
+          {team.id === selectedId ? (
+            <BetterUpIcon name="Check" size={16} strokeWidth={2} />
+          ) : null}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Direct-report CTA on the Team DNA hub. A direct report can't create teams, so
+ * this never offers "add team". When they're on no team it locks with guidance;
+ * otherwise it renders one of three explorable treatments (demo `layout`):
+ *   - split:    action-first pill, faces beside it, caret menu for >1 team
+ *   - inButton: the team name + faces live inside the button
+ *   - cards:    each team is a tappable, face-forward card
+ */
+function TeamDnaAccessCta({ teamOptions, layout = 'split', onViewTeamDna }) {
+  if (teamOptions.length === 0) {
+    return (
+      <div className="team-dna-empty-actions team-dna-empty-actions--locked">
+        <span className="team-dna-cta-locked-wrap">
+          <button
+            type="button"
+            className="team-dna-empty-primary team-dna-empty-primary--locked"
+            aria-disabled="true"
+            aria-describedby="team-dna-locked-tip"
+            onClick={(event) => event.preventDefault()}
+          >
+            <BetterUpIcon name="Lock" size={15} strokeWidth={2} />
+            View Team DNA
+          </button>
+          <span
+            id="team-dna-locked-tip"
+            role="tooltip"
+            className="team-dna-cta-tooltip"
+          >
+            You’re not on a team yet. Ask your admin to add you to a team to
+            unlock Team DNA.
+          </span>
+        </span>
+      </div>
+    );
+  }
+
+  if (layout === 'cards') {
+    return <CtaVariantCards teamOptions={teamOptions} onViewTeamDna={onViewTeamDna} />;
+  }
+  if (layout === 'inButton') {
+    return (
+      <CtaVariantInButton teamOptions={teamOptions} onViewTeamDna={onViewTeamDna} />
+    );
+  }
+  return <CtaVariantSplit teamOptions={teamOptions} onViewTeamDna={onViewTeamDna} />;
+}
+
+// Variant A — action-first split button. Faces sit beside the CTA so you see
+// who's on the team; with multiple teams a caret opens a frosted chooser.
+function CtaVariantSplit({ teamOptions, onViewTeamDna }) {
+  const [selectedId, setSelectedId] = useState(teamOptions[0]?.id ?? null);
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef(null);
+  const menuId = useId();
+  const multi = teamOptions.length > 1;
+  const selected =
+    teamOptions.find((team) => team.id === selectedId) ?? teamOptions[0];
+
+  useDismissable(ref, isOpen, () => setIsOpen(false));
+
+  return (
+    <div className="team-dna-cta team-dna-cta--split">
+      <div ref={ref} className="team-dna-split" data-open={isOpen || undefined}>
+        <button
+          type="button"
+          className="team-dna-empty-primary team-dna-split-main"
+          onClick={() => onViewTeamDna?.(selected?.id)}
+        >
+          View Team DNA
+          {multi ? null : (
+            <BetterUpIcon name="ChevronRight" size={16} strokeWidth={2} />
+          )}
+        </button>
+        {multi ? (
+          <>
+            <button
+              type="button"
+              className="team-dna-empty-primary team-dna-split-caret"
+              aria-haspopup="menu"
+              aria-expanded={isOpen}
+              aria-controls={menuId}
+              aria-label="Choose a team"
+              onClick={() => setIsOpen((current) => !current)}
+            >
+              <BetterUpIcon name="ChevronDown" size={16} strokeWidth={2} />
+            </button>
+            <TeamChooserMenu
+              teamOptions={teamOptions}
+              selectedId={selectedId}
+              isOpen={isOpen}
+              menuId={menuId}
+              onSelect={(teamId) => {
+                setSelectedId(teamId);
+                setIsOpen(false);
+              }}
+            />
+          </>
+        ) : null}
+      </div>
+      <div className="team-dna-cta-team">
+        <TeamAvatarStack members={selected?.members} />
+        <span className="team-dna-cta-team-copy">
+          <span className="team-dna-cta-team-name">{selected?.name}</span>
+          <span className="team-dna-cta-team-meta">
+            {selected?.teamType} · {formatHeadcount(selected?.memberCount)}
+          </span>
+        </span>
+      </div>
+    </div>
+  );
+}
+
+// Variant B — the team lives inside the button: faces + "View {team}'s DNA".
+// With multiple teams the button carries a caret that opens the chooser.
+function CtaVariantInButton({ teamOptions, onViewTeamDna }) {
+  const [selectedId, setSelectedId] = useState(teamOptions[0]?.id ?? null);
+  const [isOpen, setIsOpen] = useState(false);
+  const ref = useRef(null);
+  const menuId = useId();
+  const multi = teamOptions.length > 1;
+  const selected =
+    teamOptions.find((team) => team.id === selectedId) ?? teamOptions[0];
+
+  useDismissable(ref, isOpen, () => setIsOpen(false));
+
+  return (
+    <div className="team-dna-cta team-dna-cta--in-button">
+      <div ref={ref} className="team-dna-context" data-open={isOpen || undefined}>
+        <button
+          type="button"
+          className="team-dna-empty-primary team-dna-context-main"
+          onClick={() => onViewTeamDna?.(selected?.id)}
+        >
+          <TeamAvatarStack members={selected?.members} variant="onPrimary" />
+          <span className="team-dna-context-label">
+            View {selected?.name}’s DNA
+          </span>
+          {multi ? null : (
+            <BetterUpIcon name="ChevronRight" size={16} strokeWidth={2} />
+          )}
+        </button>
+        {multi ? (
+          <>
+            <button
+              type="button"
+              className="team-dna-empty-primary team-dna-context-caret"
+              aria-haspopup="menu"
+              aria-expanded={isOpen}
+              aria-controls={menuId}
+              aria-label="Switch team"
+              onClick={() => setIsOpen((current) => !current)}
+            >
+              <BetterUpIcon name="ChevronDown" size={16} strokeWidth={2} />
+            </button>
+            <TeamChooserMenu
+              teamOptions={teamOptions}
+              selectedId={selectedId}
+              isOpen={isOpen}
+              menuId={menuId}
+              onSelect={(teamId) => {
+                setSelectedId(teamId);
+                setIsOpen(false);
+              }}
+            />
+          </>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+// Variant C — face-forward team cards. Each card is the CTA; one card for a
+// single team, a short stack when there are several.
+function CtaVariantCards({ teamOptions, onViewTeamDna }) {
+  return (
+    <div className="team-dna-cta team-dna-team-cards">
+      {teamOptions.map((team) => (
+        <button
+          key={team.id}
+          type="button"
+          className="team-dna-team-card"
+          onClick={() => onViewTeamDna?.(team.id)}
+        >
+          <TeamAvatarStack members={team.members} />
+          <span className="team-dna-team-card-copy">
+            <span className="team-dna-team-card-name">{team.name}</span>
+            <span className="team-dna-team-card-meta">
+              {team.teamType} · {formatHeadcount(team.memberCount)}
+            </span>
+          </span>
+          <span className="team-dna-team-card-cta">
+            View Team DNA
+            <BetterUpIcon name="ChevronRight" size={16} strokeWidth={2} />
+          </span>
+        </button>
+      ))}
+    </div>
+  );
+}
+
+const CTA_LAYOUTS = [
+  { id: 'split', label: 'Split' },
+  { id: 'inButton', label: 'In button' },
+  { id: 'cards', label: 'Cards' },
+];
+
+function LandingScenarioSwitcher({
+  activeScenario,
+  onSelect,
+  ctaLayout,
+  onSelectLayout,
+  showLayout = false,
+}) {
+  return (
+    <div
+      className="team-dna-landing-switcher"
+      role="group"
+      aria-label="Demo: direct-report team scenarios"
+    >
+      <div className="team-dna-landing-switcher-inner">
+        <span className="team-dna-landing-switcher-label">
+          <BetterUpIcon name="Info" size={14} strokeWidth={1.9} />
+          Demo · Direct report on
+        </span>
+        <div className="team-dna-landing-switcher-seg">
+          {LANDING_SCENARIOS.map((scenario) => (
+            <button
+              key={scenario.id}
+              type="button"
+              className="team-dna-landing-switcher-button"
+              data-active={scenario.id === activeScenario || undefined}
+              aria-pressed={scenario.id === activeScenario}
+              onClick={() => onSelect?.(scenario.id)}
+            >
+              {scenario.label}
+            </button>
+          ))}
+        </div>
+        {showLayout ? (
+          <>
+            <span className="team-dna-landing-switcher-label team-dna-landing-switcher-label--secondary">
+              CTA style
+            </span>
+            <div className="team-dna-landing-switcher-seg">
+              {CTA_LAYOUTS.map((option) => (
+                <button
+                  key={option.id}
+                  type="button"
+                  className="team-dna-landing-switcher-button"
+                  data-active={option.id === ctaLayout || undefined}
+                  aria-pressed={option.id === ctaLayout}
+                  onClick={() => onSelectLayout?.(option.id)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+          </>
+        ) : null}
+      </div>
+    </div>
   );
 }
 

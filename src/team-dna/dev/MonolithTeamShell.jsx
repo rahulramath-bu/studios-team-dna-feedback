@@ -38,14 +38,20 @@ const utilityLinks = [
  * MemberNavbar/Team route. Do not port the local CSS; use the real nav and
  * only carry Team DNA panel styles.
  */
-export function MonolithTeamShell({ children, enabled }) {
+export function MonolithTeamShell({ children, enabled, toolbar = null }) {
   if (!enabled) {
-    return children;
+    return (
+      <>
+        {toolbar}
+        {children}
+      </>
+    );
   }
 
   return (
     <div className="monolith-shell-preview">
       <MonolithPrimaryNav />
+      {toolbar}
       <main className="monolith-shell-main">
         <section className="monolith-shell-content" aria-label="Team shell preview">
           {children}

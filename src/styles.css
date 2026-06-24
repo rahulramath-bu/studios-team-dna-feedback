@@ -2163,6 +2163,11 @@ button.team-management-row {
      tool row below resolve to the same content width. */
   --empty-preview-width: 372px;
   --empty-pane-gap: 104px;
+  /* Sit above the tooling section so the CTA dropdown overlays the divider
+     instead of being painted under it (both create transform stacking
+     contexts via their entrance animations). */
+  position: relative;
+  z-index: 2;
   min-height: auto;
   padding: 0 0 36px;
 }
@@ -3052,6 +3057,503 @@ button.team-management-row {
   color: var(--foreground-muted);
   font-size: 14px;
   line-height: 1.55;
+}
+
+/* ── Direct-report landing CTA states (no team / one team / multiple teams) ── */
+.team-dna-empty-actions--locked {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.team-dna-empty-primary svg {
+  flex: none;
+}
+
+/* Locked CTA: present but inactive, with a hover/focus tooltip explaining how
+   to gain access rather than a dead, unexplained disabled button. */
+.team-dna-cta-locked-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.team-dna-empty-primary--locked {
+  background: rgba(var(--team-dna-ink-rgb), 0.06);
+  color: var(--foreground-muted);
+  border-color: rgba(var(--team-dna-ink-rgb), 0.1);
+  cursor: not-allowed;
+}
+
+.team-dna-empty-primary--locked:hover {
+  transform: none;
+}
+
+.team-dna-empty-primary--locked svg {
+  color: var(--foreground-muted);
+}
+
+.team-dna-cta-tooltip {
+  position: absolute;
+  bottom: calc(100% + 10px);
+  left: 0;
+  z-index: 5;
+  width: max-content;
+  max-width: 268px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: var(--team-dna-ink);
+  color: var(--white);
+  font-size: 12.5px;
+  line-height: 1.45;
+  box-shadow: 0 12px 30px rgba(var(--team-dna-ink-rgb), 0.22);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(4px);
+  transition: opacity 150ms ease, transform 150ms ease, visibility 150ms ease;
+  pointer-events: none;
+}
+
+.team-dna-cta-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 22px;
+  border: 6px solid transparent;
+  border-top-color: var(--team-dna-ink);
+}
+
+.team-dna-cta-locked-wrap:hover .team-dna-cta-tooltip,
+.team-dna-cta-locked-wrap:focus-within .team-dna-cta-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+/* Member faces — a team reads as people, not an abstract headcount. */
+.team-dna-avatar-stack {
+  display: inline-flex;
+  align-items: center;
+  flex: none;
+}
+
+.team-dna-avatar-stack-item {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  margin-left: -10px;
+  border-radius: 999px;
+  border: 2px solid var(--page-background);
+  background: rgba(var(--team-aggregate-rgb), 0.22);
+  color: var(--foreground-heading);
+  font-size: 10.5px;
+  font-weight: 600;
+  overflow: hidden;
+}
+
+.team-dna-avatar-stack-item:first-child {
+  margin-left: 0;
+}
+
+.team-dna-avatar-stack-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-dna-avatar-stack-more {
+  background: rgba(var(--team-dna-ink-rgb), 0.08);
+  color: var(--foreground-muted);
+  font-size: 10.5px;
+}
+
+.team-dna-avatar-stack[data-variant='onPrimary'] .team-dna-avatar-stack-item {
+  border-color: var(--primary);
+  background: rgba(var(--white-rgb), 0.28);
+  color: var(--white);
+}
+
+/* Shared frosted team chooser used by the split + in-button variants. */
+.team-dna-team-menu {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 30;
+  width: max-content;
+  min-width: 268px;
+  max-width: min(360px, calc(100vw - 48px));
+  padding: 6px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.1);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 16px 38px rgba(var(--team-dna-ink-rgb), 0.16);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-6px);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.22, 1, 0.36, 1),
+    visibility 180ms ease;
+}
+
+.team-dna-split[data-open] .team-dna-team-menu,
+.team-dna-context[data-open] .team-dna-team-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
+.team-dna-context[data-open] .team-dna-team-menu {
+  right: 0;
+  left: auto;
+}
+
+.team-dna-team-menu-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 12px;
+  min-height: 50px;
+  padding: 6px 10px 6px 8px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--foreground-heading);
+  font-family: 'Söhne', sans-serif;
+  text-align: left;
+  cursor: pointer;
+  transition: background 140ms ease;
+}
+
+.team-dna-team-menu-item:hover,
+.team-dna-team-menu-item:focus-visible {
+  background: rgba(var(--team-dna-primary-rgb), 0.1);
+  outline: none;
+}
+
+.team-dna-team-menu-item > svg {
+  flex: none;
+  color: var(--primary);
+}
+
+.team-dna-team-menu-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 1px;
+}
+
+.team-dna-team-menu-name {
+  overflow: hidden;
+  font-size: 14px;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.team-dna-team-menu-meta {
+  color: var(--muted-foreground);
+  font-size: 12px;
+}
+
+/* Variant A — split button: main action + caret, faces shown beside it. */
+.team-dna-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 16px;
+  margin-top: 42px;
+  animation: team-dna-empty-fade 1500ms cubic-bezier(0.22, 1, 0.36, 1) 1360ms both;
+}
+
+.team-dna-cta--split {
+  flex-flow: row wrap;
+  align-items: center;
+  gap: 18px;
+}
+
+/* One solid pill; the two inner buttons are transparent so there's no seam or
+   background bleed-through between them — just a hairline divider. */
+.team-dna-split {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--primary);
+  border-radius: 999px;
+}
+
+.team-dna-split-main,
+.team-dna-split-caret {
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: var(--white);
+}
+
+.team-dna-split:has(.team-dna-split-caret) .team-dna-split-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.team-dna-split-caret {
+  width: 44px;
+  padding: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  box-shadow: inset 1px 0 0 rgba(var(--white-rgb), 0.26);
+}
+
+.team-dna-split-main:hover,
+.team-dna-split-caret:hover {
+  transform: none;
+  background: rgba(var(--white-rgb), 0.12);
+}
+
+.team-dna-split-main:focus-visible,
+.team-dna-split-caret:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(var(--white-rgb), 0.85);
+}
+
+.team-dna-split-caret:focus-visible {
+  box-shadow:
+    inset 1px 0 0 rgba(var(--white-rgb), 0.26),
+    inset 0 0 0 2px rgba(var(--white-rgb), 0.85);
+}
+
+.team-dna-split-caret svg {
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.team-dna-split[data-open] .team-dna-split-caret svg {
+  transform: rotate(180deg);
+}
+
+.team-dna-cta-team {
+  display: inline-flex;
+  align-items: center;
+  gap: 11px;
+}
+
+.team-dna-cta-team-copy {
+  display: grid;
+  gap: 1px;
+}
+
+.team-dna-cta-team-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--foreground-heading);
+}
+
+.team-dna-cta-team-meta {
+  font-size: 12.5px;
+  color: var(--foreground-muted);
+}
+
+/* Variant B — context lives inside the button: faces + "View {team}'s DNA". */
+.team-dna-context {
+  position: relative;
+  display: inline-flex;
+  align-items: stretch;
+  background: var(--primary);
+  border-radius: 999px;
+}
+
+.team-dna-context-main,
+.team-dna-context-caret {
+  background: transparent;
+  border: 0;
+  border-radius: 999px;
+  color: var(--white);
+}
+
+.team-dna-context-main {
+  gap: 10px;
+}
+
+.team-dna-context-main .team-dna-avatar-stack {
+  margin-right: 2px;
+}
+
+.team-dna-context-label {
+  font-weight: 500;
+}
+
+.team-dna-context:has(.team-dna-context-caret) .team-dna-context-main {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+.team-dna-context-caret {
+  width: 44px;
+  padding: 0;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  box-shadow: inset 1px 0 0 rgba(var(--white-rgb), 0.26);
+}
+
+.team-dna-context-main:hover,
+.team-dna-context-caret:hover {
+  transform: none;
+  background: rgba(var(--white-rgb), 0.12);
+}
+
+.team-dna-context-main:focus-visible,
+.team-dna-context-caret:focus-visible {
+  outline: none;
+  box-shadow: inset 0 0 0 2px rgba(var(--white-rgb), 0.85);
+}
+
+.team-dna-context-caret:focus-visible {
+  box-shadow:
+    inset 1px 0 0 rgba(var(--white-rgb), 0.26),
+    inset 0 0 0 2px rgba(var(--white-rgb), 0.85);
+}
+
+.team-dna-context-caret svg {
+  transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.team-dna-context[data-open] .team-dna-context-caret svg {
+  transform: rotate(180deg);
+}
+
+/* Variant C — face-forward selectable team cards. */
+.team-dna-team-cards {
+  width: min(100%, 420px);
+  gap: 12px;
+}
+
+.team-dna-team-card {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+  border-radius: 16px;
+  background: rgba(var(--team-dna-canvas-rgb), 0.7);
+  box-shadow: inset 0 1px 0 rgba(var(--white-rgb), 0.4);
+  color: var(--foreground-heading);
+  text-align: left;
+  cursor: pointer;
+  backdrop-filter: blur(10px);
+  transition: border-color 160ms ease, background 160ms ease, transform 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.team-dna-team-card:hover {
+  transform: translateY(-1px);
+  border-color: rgba(var(--team-dna-primary-rgb), 0.4);
+  background: rgba(var(--team-dna-canvas-rgb), 0.96);
+  box-shadow: 0 12px 28px rgba(var(--team-dna-ink-rgb), 0.1);
+}
+
+.team-dna-team-card:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 3px;
+}
+
+.team-dna-team-card-copy {
+  display: grid;
+  flex: 1;
+  min-width: 0;
+  gap: 2px;
+}
+
+.team-dna-team-card-name {
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.team-dna-team-card-meta {
+  font-size: 13px;
+  color: var(--foreground-muted);
+}
+
+.team-dna-team-card-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  flex: none;
+  color: var(--primary);
+  font-size: 13.5px;
+  font-weight: 500;
+}
+
+.team-dna-team-card-cta svg {
+  flex: none;
+}
+
+/* Demo sub-bar under the nav for flipping between the landing CTA states. */
+.team-dna-landing-switcher {
+  border-bottom: 1px solid var(--team-dna-nav-border, rgba(var(--team-dna-ink-rgb), 0.1));
+  background: rgba(var(--team-dna-ink-rgb), 0.02);
+}
+
+.team-dna-landing-switcher-inner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  max-width: 1006px;
+  margin: 0 auto;
+  padding: 9px 24px;
+}
+
+.team-dna-landing-switcher-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--foreground-muted);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+}
+
+.team-dna-landing-switcher-label svg {
+  color: var(--foreground-muted);
+}
+
+.team-dna-landing-switcher-label--secondary {
+  margin-left: 6px;
+  padding-left: 14px;
+  border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.12);
+}
+
+.team-dna-landing-switcher-seg {
+  display: inline-flex;
+  padding: 3px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.06);
+}
+
+.team-dna-landing-switcher-button {
+  padding: 5px 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: var(--foreground-muted);
+  font-family: 'Söhne', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.team-dna-landing-switcher-button:hover {
+  color: var(--foreground-heading);
+}
+
+.team-dna-landing-switcher-button[data-active] {
+  background: var(--white);
+  color: var(--foreground-heading);
+  box-shadow: 0 1px 3px rgba(var(--team-dna-ink-rgb), 0.16);
+}
+
+.team-dna-landing-switcher-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
 }
 
 .team-dna-empty-preview {
