@@ -226,6 +226,77 @@ button {
   text-decoration: none;
 }
 
+.monolith-primary-end {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  min-height: var(--monolith-nav-height);
+}
+
+/* Demo-only "View as" persona toggle. Deliberately understated so it reads as a
+   quiet preview control rather than shipped product chrome. */
+.monolith-persona-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.62;
+  transition: opacity 150ms ease;
+}
+
+.monolith-persona-toggle:hover,
+.monolith-persona-toggle:focus-within {
+  opacity: 1;
+}
+
+.monolith-persona-toggle-label {
+  color: var(--foreground-muted);
+  font-size: 8.5px;
+  font-weight: 500;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.monolith-persona-toggle-seg {
+  display: inline-flex;
+  align-items: center;
+}
+
+.monolith-persona-toggle-button {
+  padding: 2px 6px;
+  border: 0;
+  border-radius: 5px;
+  background: none;
+  color: rgba(var(--team-dna-ink-rgb), 0.4);
+  font-family: 'Söhne', sans-serif;
+  font-size: 10.5px;
+  font-weight: 400;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: color 150ms ease;
+}
+
+.monolith-persona-toggle-button + .monolith-persona-toggle-button {
+  border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
+  border-radius: 0;
+  margin-left: 2px;
+  padding-left: 8px;
+}
+
+.monolith-persona-toggle-button:hover {
+  color: rgba(var(--team-dna-ink-rgb), 0.7);
+}
+
+.monolith-persona-toggle-button[data-active] {
+  color: var(--foreground-heading);
+  font-weight: 500;
+}
+
+.monolith-persona-toggle-button:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 5px;
+}
+
 .monolith-primary-logo img {
   display: block;
   width: 89px;

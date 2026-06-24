@@ -38,7 +38,13 @@ const utilityLinks = [
  * MemberNavbar/Team route. Do not port the local CSS; use the real nav and
  * only carry Team DNA panel styles.
  */
-export function MonolithTeamShell({ children, enabled, toolbar = null }) {
+export function MonolithTeamShell({
+  children,
+  enabled,
+  toolbar = null,
+  viewerPersona = 'manager',
+  onSelectPersona = null,
+}) {
   if (!enabled) {
     return (
       <>
@@ -50,7 +56,10 @@ export function MonolithTeamShell({ children, enabled, toolbar = null }) {
 
   return (
     <div className="monolith-shell-preview">
-      <MonolithPrimaryNav />
+      <MonolithPrimaryNav
+        viewerPersona={viewerPersona}
+        onSelectPersona={onSelectPersona}
+      />
       {toolbar}
       <main className="monolith-shell-main">
         <section className="monolith-shell-content" aria-label="Team shell preview">
@@ -61,7 +70,7 @@ export function MonolithTeamShell({ children, enabled, toolbar = null }) {
   );
 }
 
-function MonolithPrimaryNav() {
+function MonolithPrimaryNav({ viewerPersona = 'manager', onSelectPersona = null }) {
   return (
     <header className="monolith-primary-nav" data-test-primary-nav>
       <div className="monolith-primary-nav-inner">
@@ -90,28 +99,70 @@ function MonolithPrimaryNav() {
             </a>
           ))}
         </nav>
-        <nav className="monolith-primary-actions" aria-label="Utilities">
-          {utilityLinks.map((link) => (
-            <a key={link.label} href="/platform/member/home">
-              <span className="monolith-primary-action-icon-wrap">
-                <MonolithNavIcon name={link.icon} />
-                {link.badge && (
-                  <span className="monolith-primary-badge">{link.badge}</span>
-                )}
-              </span>
-              <span>{link.label}</span>
+        <div className="monolith-primary-end">
+          {onSelectPersona ? (
+            <MonolithPersonaToggle
+              viewerPersona={viewerPersona}
+              onSelectPersona={onSelectPersona}
+            />
+          ) : null}
+          <nav className="monolith-primary-actions" aria-label="Utilities">
+            {utilityLinks.map((link) => (
+              <a key={link.label} href="/platform/member/home">
+                <span className="monolith-primary-action-icon-wrap">
+                  <MonolithNavIcon name={link.icon} />
+                  {link.badge && (
+                    <span className="monolith-primary-badge">{link.badge}</span>
+                  )}
+                </span>
+                <span>{link.label}</span>
+              </a>
+            ))}
+            <a
+              className="monolith-primary-avatar-link"
+              href="/platform/member/profile"
+              aria-label="Profile"
+            >
+              <span className="monolith-primary-avatar" />
             </a>
-          ))}
-          <a
-            className="monolith-primary-avatar-link"
-            href="/platform/member/profile"
-            aria-label="Profile"
-          >
-            <span className="monolith-primary-avatar" />
-          </a>
-        </nav>
+          </nav>
+        </div>
       </div>
     </header>
+  );
+}
+
+// Demo-only chrome: lets a reviewer preview the hub as a manager (can create
+// teams) vs. a direct report (View Team DNA states). Real product nav reflects
+// the signed-in person's role, so this control would not ship.
+const PERSONA_OPTIONS = [
+  { id: 'manager', label: 'Manager' },
+  { id: 'member', label: 'Direct report' },
+];
+
+function MonolithPersonaToggle({ viewerPersona, onSelectPersona }) {
+  return (
+    <div
+      className="monolith-persona-toggle"
+      role="group"
+      aria-label="Demo: view hub as"
+    >
+      <span className="monolith-persona-toggle-label">View as</span>
+      <div className="monolith-persona-toggle-seg">
+        {PERSONA_OPTIONS.map((option) => (
+          <button
+            key={option.id}
+            type="button"
+            className="monolith-persona-toggle-button"
+            data-active={option.id === viewerPersona || undefined}
+            aria-pressed={option.id === viewerPersona}
+            onClick={() => onSelectPersona?.(option.id)}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    </div>
   );
 }
 

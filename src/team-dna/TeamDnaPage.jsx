@@ -1174,22 +1174,44 @@ export function TeamDnaPage() {
     );
   };
 
+  // Demo-only: flip back to the manager hub (can create teams, no teams yet).
+  const resetToManagerScenario = () => {
+    setTeamManagementOverlay(null);
+    setActiveSurface(null);
+    setActiveTeamId(null);
+    setTeamRecords({});
+    setEmptyDevState((current) => ({ ...current, canManageTeam: true }));
+  };
+
+  // Demo-only: subtle nav toggle between the manager hub and the direct-report
+  // hub. Direct report defaults to the one-team state (the View Team DNA CTA);
+  // the scenario sub-bar then lets the reviewer try no-team / 1 / 2 teams.
+  const viewerPersona = canManageTeam ? 'manager' : 'member';
+  const selectViewerPersona = (persona) => {
+    if (persona === 'manager') {
+      if (canManageTeam) return;
+      resetToManagerScenario();
+      return;
+    }
+
+    if (!canManageTeam) return;
+    applyLandingScenario('single');
+  };
+
   return (
     <>
       <MonolithTeamShell
         enabled={devState.showMonolithShell}
+        viewerPersona={viewerPersona}
+        onSelectPersona={selectViewerPersona}
         toolbar={
-          !demoConfig.enabled && isTrueEmptyState ? (
+          isTrueEmptyState && !canManageTeam ? (
             <LandingScenarioSwitcher
-              activeScenario={
-                canManageTeam
-                  ? null
-                  : getLandingScenarioForCount(teamOptions.length)
-              }
+              activeScenario={getLandingScenarioForCount(teamOptions.length)}
               onSelect={applyLandingScenario}
               ctaLayout={ctaLayout}
               onSelectLayout={setCtaLayout}
-              showLayout={!canManageTeam && teamOptions.length > 0}
+              showLayout={teamOptions.length > 0}
             />
           ) : null
         }
@@ -1202,7 +1224,6 @@ export function TeamDnaPage() {
                 currentViewerMemberId={currentViewerMemberId}
                 teamOptions={teamOptions}
                 ctaLayout={ctaLayout}
-                isGuidedDemo={demoConfig.enabled}
                 onViewTeamDna={switchTeam}
                 onAddTeam={openCreateTeam}
                 onTrySample={trySampleTeam}
@@ -1308,7 +1329,6 @@ function TeamDnaEmptyState({
   canManageTeam,
   teamOptions = [],
   ctaLayout = 'split',
-  isGuidedDemo = false,
   onViewTeamDna,
   onAddTeam,
   onTrySample,
@@ -1356,13 +1376,6 @@ function TeamDnaEmptyState({
               >
                 Try with sample data
               </button>
-            </div>
-          ) : isGuidedDemo ? (
-            <div className="team-dna-empty-actions">
-              <p className="team-dna-empty-note">
-                After a manager or admin adds you to a team, you’ll see your team
-                summary here.
-              </p>
             </div>
           ) : (
             <TeamDnaAccessCta
