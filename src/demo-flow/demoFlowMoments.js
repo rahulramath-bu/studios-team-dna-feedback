@@ -32,7 +32,7 @@ const userJourneyMoments = [
     phase: 'Assessment',
     label: 'Question',
     title: 'Answer the Big Five prompts',
-    note: 'Each screen shows one statement; the user rates how much they agree on a 1–5 scale. There are 20 in all — the standard Mini-IPIP Big Five set.',
+    note: 'Each screen shows one statement; the user rates how much they agree on a 1–5 scale. There are 20 in all — a research-backed Big Five item set.',
     surfaceUrl: '/assessment?demo=questions&q=0',
   },
   {

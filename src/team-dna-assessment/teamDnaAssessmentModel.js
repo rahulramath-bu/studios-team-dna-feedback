@@ -29,17 +29,18 @@ export const LIKERT_OPTIONS = [
   { value: 5, anchor: 'Strongly Agree' },
 ];
 
-// Mini-IPIP Big Five items (Donnellan, Oswald, Baird, & Lucas, 2006) — the same
-// 20-item set used by the production assessment. Items are interleaved by trait
-// so consecutive questions don't cluster. `reverse: true` marks reverse-keyed
-// items. Note: the "neuroticism" trait key is scored so a higher value means
-// more neuroticism, so the Emotional Stability statements ("relaxed", "seldom
-// feel blue") are the reverse-keyed ones here.
+// Revised Big Five item set (20 items, 4 per trait) — Mini-IPIP base with
+// several items swapped for their IPIP-50 equivalents to match the production
+// assessment copy. Items are interleaved by trait so consecutive questions
+// don't cluster. `reverse: true` marks reverse-keyed items. Note: the
+// "neuroticism" trait key is scored so a higher value means more neuroticism,
+// so the Emotional Stability statements ("relaxed", "not easily bothered") are
+// the reverse-keyed ones here.
 export const BIG_FIVE_ITEMS = [
   {
     id: 'sda_extraversion_1',
     trait: 'extraversion',
-    text: 'I am the life of the party.',
+    text: 'I feel comfortable around people.',
   },
   {
     id: 'sda_agreeableness_1',
@@ -49,7 +50,7 @@ export const BIG_FIVE_ITEMS = [
   {
     id: 'sda_conscientiousness_1',
     trait: 'conscientiousness',
-    text: 'I get chores done right away.',
+    text: 'I follow a schedule.',
   },
   {
     id: 'sda_emotional_stability_1',
@@ -59,12 +60,12 @@ export const BIG_FIVE_ITEMS = [
   {
     id: 'sda_openness_1',
     trait: 'openness',
-    text: 'I have a vivid imagination.',
+    text: 'I have excellent ideas.',
   },
   {
     id: 'sda_extraversion_2',
     trait: 'extraversion',
-    text: 'I talk to a lot of different people at parties.',
+    text: 'I start conversations.',
   },
   {
     id: 'sda_agreeableness_2',
@@ -74,12 +75,12 @@ export const BIG_FIVE_ITEMS = [
   {
     id: 'sda_conscientiousness_2',
     trait: 'conscientiousness',
-    text: 'I like order.',
+    text: 'I am always prepared.',
   },
   {
     id: 'sda_emotional_stability_2',
     trait: 'neuroticism',
-    text: 'I get upset easily.',
+    text: 'I get stressed out easily.',
   },
   {
     id: 'sda_openness_2',
@@ -103,7 +104,7 @@ export const BIG_FIVE_ITEMS = [
     id: 'sda_conscientiousness_3',
     trait: 'conscientiousness',
     reverse: true,
-    text: 'I often forget to put things back in their proper place.',
+    text: 'I do things in a half-way manner.',
   },
   {
     id: 'sda_emotional_stability_3',
@@ -114,8 +115,7 @@ export const BIG_FIVE_ITEMS = [
   {
     id: 'sda_openness_3',
     trait: 'openness',
-    reverse: true,
-    text: 'I am not interested in abstract ideas.',
+    text: 'I am quick to understand things.',
   },
   {
     id: 'sda_extraversion_4',
@@ -133,19 +133,19 @@ export const BIG_FIVE_ITEMS = [
     id: 'sda_conscientiousness_4',
     trait: 'conscientiousness',
     reverse: true,
-    text: 'I make a mess of things.',
+    text: 'I find it difficult to get down to work.',
   },
   {
     id: 'sda_emotional_stability_4',
     trait: 'neuroticism',
     reverse: true,
-    text: 'I seldom feel blue.',
+    text: 'I am not easily bothered by things.',
   },
   {
     id: 'sda_openness_4',
     trait: 'openness',
     reverse: true,
-    text: 'I do not have a good imagination.',
+    text: 'I avoid difficult reading material.',
   },
 ];
 
