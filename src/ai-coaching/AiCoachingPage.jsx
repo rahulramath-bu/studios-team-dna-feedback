@@ -40,12 +40,15 @@ const ANTHROPIC_MODEL =
 
 // BetterUp's Anthropic org disallows direct browser (CORS) calls, so requests
 // must go through a mini backend. In local dev the Vite server proxies
-// /anthropic-proxy → api.anthropic.com (see vite.config.js). On Amplify, the
-// same path is relayed by a reverse-proxy rewrite rule configured in the
-// Amplify Console (Rewrites and redirects). VITE_ANTHROPIC_BASE_URL can
-// override both (e.g. to point at a shared eng-team proxy).
+// /anthropic-proxy → api.anthropic.com (see vite.config.js). Deployed builds
+// use the Cloudflare Worker relay (proxy-worker/), since Amplify's rewrite
+// proxy forwards the Origin header and gets blocked. VITE_ANTHROPIC_BASE_URL
+// can override both (e.g. to point at a shared eng-team proxy).
 const ANTHROPIC_BASE_URL =
-  import.meta.env.VITE_ANTHROPIC_BASE_URL || '/anthropic-proxy';
+  import.meta.env.VITE_ANTHROPIC_BASE_URL ||
+  (import.meta.env.DEV
+    ? '/anthropic-proxy'
+    : 'https://anthropic-relay.rahul-bu-demos.workers.dev');
 
 const IS_DIRECT_ANTHROPIC = ANTHROPIC_BASE_URL.includes('api.anthropic.com');
 
