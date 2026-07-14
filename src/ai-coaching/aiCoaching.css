@@ -155,7 +155,8 @@
   text-align: left;
 }
 
-.ai-leftnav-experiences button:hover {
+.ai-leftnav-experiences button:hover,
+.ai-leftnav-experiences button[data-active] {
   background: rgba(229, 231, 235, 0.4);
 }
 
@@ -182,6 +183,56 @@
   line-height: 1.35;
   letter-spacing: 0.01em;
   padding-right: 12px;
+}
+
+/* Team DNA tile: mini pair view — the viewer front and prominent, a teammate
+   smaller behind, dashed connector between. Selectors are scoped under
+   .ai-experience-thumb so they beat the generic `.ai-experience-thumb img`
+   sizing rule that was flattening both faces to 48px. */
+.ai-experience-thumb .ai-dna-thumb {
+  position: relative;
+  display: block;
+  width: 54px;
+  height: 54px;
+}
+
+.ai-experience-thumb .ai-dna-thumb-face {
+  position: absolute;
+  border-radius: 50%;
+  object-fit: cover;
+  background: var(--white, #fff);
+}
+
+.ai-experience-thumb .ai-dna-thumb-face--viewer {
+  width: 34px;
+  height: 34px;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  border: 2px solid var(--rubine, #ce0058);
+  box-shadow: 0 0 0 2px var(--white, #fff);
+}
+
+.ai-experience-thumb .ai-dna-thumb-face--teammate {
+  width: 23px;
+  height: 23px;
+  top: 1px;
+  right: 1px;
+  z-index: 1;
+  border: 1.5px solid rgba(206, 0, 88, 0.55);
+  box-shadow: 0 0 0 1.5px var(--white, #fff);
+}
+
+.ai-experience-thumb .ai-dna-thumb-line {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  width: 30px;
+  height: 0;
+  z-index: 0;
+  border-top: 2px dashed var(--rubine, #ce0058);
+  opacity: 0.65;
+  transform: translate(-50%, -50%) rotate(-42deg);
 }
 
 .ai-leftnav-heading--archived {
@@ -402,6 +453,165 @@
 
 .ai-msg-question {
   font-weight: 600;
+}
+
+/* --- Team DNA experience empty state (Sohee-style prompt containers) --- */
+.ai-empty-header--dna .ai-empty-greeting {
+  max-width: 720px;
+}
+
+.ai-dna-starters {
+  display: flex;
+  gap: 14px;
+  margin-top: 30px;
+  width: 100%;
+  max-width: 720px;
+}
+
+.ai-dna-starter {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 18px 18px 20px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb, 29, 25, 37), 0.08);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease,
+    transform 150ms ease, box-shadow 150ms ease;
+}
+
+.ai-dna-starter:hover {
+  background: var(--white, #fff);
+  border-color: rgba(var(--team-dna-ink-rgb, 29, 25, 37), 0.16);
+  transform: translateY(-1px);
+  box-shadow: 0 10px 26px rgba(29, 25, 37, 0.08);
+}
+
+.ai-dna-starter-label {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(29, 25, 37, 0.48);
+}
+
+.ai-dna-starter-prompt {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--team-dna-ink);
+}
+
+/* Session chip showing the coach is grounded in Team DNA context. */
+.ai-dna-badge {
+  display: flex;
+  width: fit-content;
+  align-items: center;
+  gap: 7px;
+  margin: 0 auto 18px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.65);
+  border: 1px solid rgba(var(--team-dna-ink-rgb, 29, 25, 37), 0.08);
+  color: rgba(29, 25, 37, 0.6);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.ai-dna-badge-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rubine, #ce0058);
+  opacity: 0.75;
+}
+
+/* Interactive variant: the chip is a team picker for multi-team members. */
+.ai-dna-chip-menu {
+  position: relative;
+  display: block;
+  width: fit-content;
+  margin: -10px 0 18px;
+}
+
+.ai-dna-badge--picker {
+  margin: 0;
+  border: 1px solid rgba(var(--team-dna-ink-rgb, 29, 25, 37), 0.08);
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 150ms ease, border-color 150ms ease;
+}
+
+.ai-dna-badge--picker:hover,
+.ai-dna-badge--picker[aria-expanded='true'] {
+  background: var(--white, #fff);
+  border-color: rgba(var(--team-dna-ink-rgb, 29, 25, 37), 0.16);
+}
+
+.ai-dna-badge-caret {
+  width: 12px;
+  height: 12px;
+  stroke: currentColor;
+  stroke-width: 2;
+  opacity: 0.6;
+}
+
+.ai-dna-chip-pop {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  z-index: 30;
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 12px;
+  background: var(--white, #fff);
+  border: 1px solid rgba(var(--team-dna-ink-rgb, 29, 25, 37), 0.08);
+  box-shadow: 0 14px 32px rgba(29, 25, 37, 0.14);
+}
+
+.ai-dna-chip-pop button {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+  padding: 8px 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font-family: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.ai-dna-chip-pop button:hover,
+.ai-dna-chip-pop button[data-active] {
+  background: rgba(var(--team-dna-ink-rgb, 29, 25, 37), 0.05);
+}
+
+.ai-dna-chip-pop-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--team-dna-ink);
+}
+
+.ai-dna-chip-pop button[data-active] .ai-dna-chip-pop-name {
+  font-weight: 600;
+}
+
+.ai-dna-chip-pop-meta {
+  font-size: 11px;
+  color: rgba(29, 25, 37, 0.5);
+  white-space: nowrap;
+}
+
+@media (max-width: 900px) {
+  .ai-dna-starters {
+    flex-direction: column;
+  }
 }
 
 /* --- Orb --- */

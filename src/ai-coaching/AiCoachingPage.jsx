@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MonolithPrimaryNav } from '../team-dna/dev/MonolithTeamShell.jsx';
+import { teamDnaDataset } from '../team-dna/data/teamDnaMock.js';
 import './aiCoaching.css';
 
 /**
@@ -67,8 +68,75 @@ const SESSIONS = [
   { id: 'work-stress', emoji: '🤝', title: 'Work Stress' },
 ];
 
+const HANDOFF_STORAGE_KEY = 'ai-coaching.handoff';
+
+// Reads (and clears) a prompt handed off from Team DNA's "Discuss with AI
+// coach" CTAs — mirrors monolith ChatRouter's `LH.initial-user-message`.
+function consumeTeamDnaHandoff() {
+  try {
+    const raw = window.sessionStorage.getItem(HANDOFF_STORAGE_KEY);
+    if (!raw) return null;
+    window.sessionStorage.removeItem(HANDOFF_STORAGE_KEY);
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+// Compact Team DNA context for chats started from the coaching side (the
+// Team DNA experience's prompt containers), where no specific card handed
+// off its content.
+const TEAM_DNA_BASE_CONTEXT = [
+  'Use the Team DNA context below when answering.',
+  `Team: ${teamDnaDataset.team.name}`,
+  `The member you are coaching (${VIEWER_NAME}) is on this team.`,
+  'Big Five scores (0-100), from each member\u2019s Team DNA assessment:',
+  ...teamDnaDataset.members.map(
+    (member) =>
+      `- ${member.name} (${member.role ?? 'teammate'}): openness ${member.bigFive?.openness}, conscientiousness ${member.bigFive?.conscientiousness}, extraversion ${member.bigFive?.extraversion}, agreeableness ${member.bigFive?.agreeableness}, emotional reactivity ${member.bigFive?.neuroticism}`
+  ),
+  'Keep advice practical, specific, and anchored in how this team can work better together.',
+].join('\n');
+
+// Teams selectable in the context chip. Only Flighthouse carries real demo
+// data; the others exist to showcase the multi-team picker interaction.
+const TEAM_DNA_CONTEXT_TEAMS = [
+  { id: 'flighthouse', name: 'Flighthouse', members: 11 },
+  { id: 'product', name: 'Product team', members: 5 },
+  { id: 'platform', name: 'Platform team', members: 7 },
+];
+
+// Sohee-style prompt containers for the Team DNA experience empty state: each
+// is a click-to-send prompt (no separate chat mode — same coach, DNA-focused
+// prompt), per the direction that AI experiences stay thin.
+const TEAM_DNA_STARTER_PROMPTS = [
+  {
+    id: 'fit',
+    label: 'Your place on the team',
+    prompt: 'Where do my strengths add the most on this team?',
+  },
+  {
+    id: 'pair',
+    label: 'Working with a teammate',
+    prompt: 'Help me work better with one of my teammates.',
+  },
+  {
+    id: 'team',
+    label: 'How the team works',
+    prompt: 'What should our team watch out for, given our mix of styles?',
+  },
+];
+
 // Production AI experiences (STUDIO_CARDS + en.yaml titles/descriptions).
 const AI_EXPERIENCES = [
+  {
+    slug: 'team-dna',
+    title: 'Team DNA',
+    description: 'Talk through how you and your team work together.',
+    // Rendered as a mini face-field pair (avatars + dashed connector) instead
+    // of a flat image — see TeamDnaExperienceThumb.
+    image: null,
+  },
   {
     slug: 'core-values',
     title: 'Core values exercise',
@@ -104,9 +172,23 @@ const COACH_REPLIES = [
   },
 ];
 
+// Scripted fallback turns for Team DNA-seeded chats (no API key connected).
+const TEAM_DNA_COACH_REPLIES = [
+  {
+    text: "I've pulled up your Team DNA results, so I have a picture of how you and your teammates tend to work.\nLooking at what's in front of you right now, what feels most worth digging into together?",
+    note: 'Team DNA context loaded from your latest results',
+  },
+  {
+    text: "That tracks with what your team's profile shows — the mix of styles here is a real strength, and also where most of the friction will come from.\nWhere have you felt that difference most in the last few weeks?",
+  },
+  {
+    text: 'That sounds like a concrete place to start. Naming the pattern out loud with the person involved is usually the step that changes things.\nWhat would feel like a good first move this week?',
+  },
+];
+
 // Streams a Claude reply through the Anthropic Messages API directly from the
 // browser (demo-only pattern; a real product proxies this server-side).
-async function streamClaudeReply(apiKey, history, onDelta) {
+async function streamClaudeReply(apiKey, history, onDelta, context = '') {
   const response = await fetch(`${ANTHROPIC_BASE_URL}/v1/messages`, {
     method: 'POST',
     headers: {
@@ -124,7 +206,9 @@ async function streamClaudeReply(apiKey, history, onDelta) {
       model: ANTHROPIC_MODEL,
       max_tokens: 500,
       stream: true,
-      system: COACH_SYSTEM_PROMPT,
+      system: context
+        ? `${COACH_SYSTEM_PROMPT}\n\n${context}`
+        : COACH_SYSTEM_PROMPT,
       messages: history.map((message) => ({
         role: message.role === 'user' ? 'user' : 'assistant',
         content: message.text,
@@ -325,7 +409,106 @@ function ClaudeConnectControl({ connected, error, onSaveKey }) {
   );
 }
 
-function LeftNav({ onNewSession, activeSessionId, onSelectSession }) {
+// Team DNA tile: a miniature of the face-field pair view. The viewer (Jordan
+// Rivera in the demo) is the large, front face with the rubine ring; a
+// teammate sits smaller behind her with a dashed connector between them.
+function TeamDnaExperienceThumb() {
+  return (
+    <span className="ai-dna-thumb" aria-hidden="true">
+      <span className="ai-dna-thumb-line" />
+      <img
+        className="ai-dna-thumb-face ai-dna-thumb-face--teammate"
+        src="/team-dna/avatars/darshan-bhatt.png"
+        alt=""
+      />
+      <img
+        className="ai-dna-thumb-face ai-dna-thumb-face--viewer"
+        src="/team-dna/avatars/demo-indian-woman.png"
+        alt=""
+      />
+    </span>
+  );
+}
+
+// Context chip as a working team picker: shows which team's Team DNA grounds
+// the chat and lets multi-team members switch. Same quiet-pill pattern as the
+// production memory-recall badge, upgraded to a dropdown.
+function TeamDnaContextChip({ team, onSelectTeam }) {
+  const [open, setOpen] = useState(false);
+  const rootRef = useRef(null);
+
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const handlePointerDown = (event) => {
+      if (rootRef.current?.contains(event.target)) return;
+      setOpen(false);
+    };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') setOpen(false);
+    };
+
+    document.addEventListener('mousedown', handlePointerDown);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handlePointerDown);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [open]);
+
+  return (
+    <div className="ai-dna-chip-menu" ref={rootRef}>
+      <button
+        type="button"
+        className="ai-dna-badge ai-dna-badge--picker"
+        aria-haspopup="menu"
+        aria-expanded={open}
+        onClick={() => setOpen((current) => !current)}
+      >
+        <span className="ai-dna-badge-dot" aria-hidden="true" />
+        Using your Team DNA · {team.name}
+        <svg
+          className="ai-dna-badge-caret"
+          viewBox="0 0 24 24"
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d="M6 9l6 6 6-6" />
+        </svg>
+      </button>
+      {open ? (
+        <div className="ai-dna-chip-pop" role="menu" aria-label="Choose a team">
+          {TEAM_DNA_CONTEXT_TEAMS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={option.id === team.id}
+              data-active={option.id === team.id || undefined}
+              onClick={() => {
+                onSelectTeam(option);
+                setOpen(false);
+              }}
+            >
+              <span className="ai-dna-chip-pop-name">{option.name}</span>
+              <span className="ai-dna-chip-pop-meta">
+                {option.members} members
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function LeftNav({
+  onNewSession,
+  activeSessionId,
+  onSelectSession,
+  activeExperience,
+  onOpenExperience,
+}) {
   return (
     <aside className="ai-leftnav" aria-label="Sessions">
       <button type="button" className="ai-leftnav-new" onClick={onNewSession}>
@@ -357,9 +540,18 @@ function LeftNav({ onNewSession, activeSessionId, onSelectSession }) {
       <ul className="ai-leftnav-experiences">
         {AI_EXPERIENCES.map((experience) => (
           <li key={experience.slug}>
-            <button type="button" title={experience.description}>
+            <button
+              type="button"
+              title={experience.description}
+              data-active={experience.slug === activeExperience || undefined}
+              onClick={() => onOpenExperience?.(experience.slug)}
+            >
               <span className="ai-experience-thumb">
-                <img src={experience.image} alt="" aria-hidden="true" />
+                {experience.slug === 'team-dna' ? (
+                  <TeamDnaExperienceThumb />
+                ) : (
+                  <img src={experience.image} alt="" aria-hidden="true" />
+                )}
               </span>
               <span className="ai-experience-title">{experience.title}</span>
             </button>
@@ -424,8 +616,14 @@ export function AiCoachingPage() {
   const [isThinking, setIsThinking] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [activeSessionId, setActiveSessionId] = useState(null);
+  const [activeExperience, setActiveExperience] = useState(null);
   const [anthropicKey, setAnthropicKey] = useState(readAnthropicKey);
   const [claudeError, setClaudeError] = useState('');
+  // Team DNA context for the current session: the chip label users see, and
+  // the custom instructions silently appended to Claude's system prompt.
+  const [dnaBadge, setDnaBadge] = useState('');
+  const [contextTeam, setContextTeam] = useState(TEAM_DNA_CONTEXT_TEAMS[0]);
+  const dnaContextRef = useRef('');
   const threadRef = useRef(null);
   const replyIndexRef = useRef(0);
 
@@ -450,18 +648,61 @@ export function AiCoachingPage() {
     });
   }, [messages, isThinking]);
 
+  // A "Discuss with AI coach" CTA on Team DNA landed us here: pick up its
+  // prompt + context and start the conversation immediately.
+  const handoffConsumedRef = useRef(false);
+  useEffect(() => {
+    if (handoffConsumedRef.current) return;
+    handoffConsumedRef.current = true;
+
+    const handoff = consumeTeamDnaHandoff();
+    if (!handoff?.message) return;
+
+    dnaContextRef.current = handoff.instructions || TEAM_DNA_BASE_CONTEXT;
+    setDnaBadge(handoff.title || 'Team DNA');
+    sendMessage(handoff.message);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const resetSession = () => {
     setMessages([]);
     setDraft('');
     setIsThinking(false);
     setIsStreaming(false);
     setActiveSessionId(null);
+    setActiveExperience(null);
+    setDnaBadge('');
+    dnaContextRef.current = '';
     replyIndexRef.current = 0;
   };
 
+  const applyContextTeam = (team) => {
+    setContextTeam(team);
+    setDnaBadge(`Team DNA · ${team.name}`);
+    // Only Flighthouse has real demo data; other teams get a light stub so the
+    // picker interaction still visibly changes what the coach is told.
+    dnaContextRef.current =
+      team.id === 'flighthouse'
+        ? TEAM_DNA_BASE_CONTEXT
+        : [
+            'Use the Team DNA context below when answering.',
+            `Team: ${team.name} (${team.members} members).`,
+            `The member you are coaching (${VIEWER_NAME}) is on this team.`,
+            'Detailed Big Five results for this team are not loaded in this demo; coach from general Team DNA principles.',
+          ].join('\n');
+  };
+
+  const openTeamDnaExperience = () => {
+    resetSession();
+    setActiveExperience('team-dna');
+    applyContextTeam(TEAM_DNA_CONTEXT_TEAMS[0]);
+  };
+
   const appendScriptedReply = () => {
-    const reply =
-      COACH_REPLIES[Math.min(replyIndexRef.current, COACH_REPLIES.length - 1)];
+    const script = dnaContextRef.current
+      ? TEAM_DNA_COACH_REPLIES
+      : COACH_REPLIES;
+    const reply = script[Math.min(replyIndexRef.current, script.length - 1)];
     replyIndexRef.current += 1;
 
     window.setTimeout(() => {
@@ -498,25 +739,30 @@ export function AiCoachingPage() {
     setClaudeError('');
 
     try {
-      await streamClaudeReply(anthropicKey, history, (delta) => {
-        if (!started) {
-          started = true;
-          setIsThinking(false);
-          setIsStreaming(true);
-          setMessages((current) => [
-            ...current,
-            { id: coachId, role: 'coach', text: delta, live: true },
-          ]);
-        } else {
-          setMessages((current) =>
-            current.map((message) =>
-              message.id === coachId
-                ? { ...message, text: message.text + delta }
-                : message
-            )
-          );
-        }
-      });
+      await streamClaudeReply(
+        anthropicKey,
+        history,
+        (delta) => {
+          if (!started) {
+            started = true;
+            setIsThinking(false);
+            setIsStreaming(true);
+            setMessages((current) => [
+              ...current,
+              { id: coachId, role: 'coach', text: delta, live: true },
+            ]);
+          } else {
+            setMessages((current) =>
+              current.map((message) =>
+                message.id === coachId
+                  ? { ...message, text: message.text + delta }
+                  : message
+              )
+            );
+          }
+        },
+        dnaContextRef.current
+      );
       setMessages((current) =>
         current.map((message) =>
           message.id === coachId ? { ...message, live: false } : message
@@ -554,6 +800,10 @@ export function AiCoachingPage() {
           onNewSession={resetSession}
           activeSessionId={activeSessionId}
           onSelectSession={(id) => setActiveSessionId(id)}
+          activeExperience={activeExperience}
+          onOpenExperience={(slug) => {
+            if (slug === 'team-dna') openTeamDnaExperience();
+          }}
         />
 
         <main className="ai-main" aria-label="AI coaching session">
@@ -568,7 +818,50 @@ export function AiCoachingPage() {
           </button>
 
           <div className="ai-thread" ref={threadRef}>
-            {!userHasActed ? (
+            {dnaBadge && userHasActed ? (
+              <p className="ai-dna-badge" role="status">
+                <span className="ai-dna-badge-dot" aria-hidden="true" />
+                Using your Team DNA · {dnaBadge}
+              </p>
+            ) : null}
+            {!userHasActed && activeExperience === 'team-dna' ? (
+              <div className="ai-empty-header ai-empty-header--dna">
+                <CoachOrb size={120} />
+                <h1>Explore your Team DNA</h1>
+                <TeamDnaContextChip
+                  team={contextTeam}
+                  onSelectTeam={applyContextTeam}
+                />
+                <div className="ai-empty-greeting">
+                  <p>
+                    Let&rsquo;s talk through how you and your team work
+                    together — your strengths, your teammates&rsquo; styles,
+                    and where they meet. Pick a starting point, or ask
+                    anything.
+                  </p>
+                </div>
+                <div
+                  className="ai-dna-starters"
+                  aria-label="Team DNA conversation starters"
+                >
+                  {TEAM_DNA_STARTER_PROMPTS.map((starter) => (
+                    <button
+                      key={starter.id}
+                      type="button"
+                      className="ai-dna-starter"
+                      onClick={() => sendMessage(starter.prompt)}
+                    >
+                      <span className="ai-dna-starter-label">
+                        {starter.label}
+                      </span>
+                      <span className="ai-dna-starter-prompt">
+                        {starter.prompt}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            ) : !userHasActed ? (
               <div className="ai-empty-header">
                 <CoachOrb size={120} />
                 <h1>Welcome back, {VIEWER_NAME}</h1>

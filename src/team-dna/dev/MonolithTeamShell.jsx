@@ -144,7 +144,11 @@ export function MonolithPrimaryNav({
               href="/platform/member/profile"
               aria-label="Profile"
             >
-              <span className="monolith-primary-avatar" />
+              <img
+                className="monolith-primary-avatar"
+                src="/team-dna/avatars/demo-indian-woman.png"
+                alt=""
+              />
             </a>
           </nav>
         </div>

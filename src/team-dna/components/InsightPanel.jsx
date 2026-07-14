@@ -827,7 +827,6 @@ function InsightWaitingState({
   const viewerNeedsAssessment = viewer && viewer.assessmentComplete === false;
   const completed = target?.completedCount ?? 0;
   const total = target?.totalCount ?? 0;
-  const minimum = target?.minimumCompletedCount ?? 0;
   // Count teammates other than the viewer so the "lots of people are pending"
   // context can show alongside the viewer's own "Your turn" call to action,
   // instead of the two being mutually exclusive.
@@ -878,10 +877,6 @@ function InsightWaitingState({
               className="insight-waiting-progress-fill"
               style={{ width: `${progressPct}%` }}
             />
-          </div>
-          <div className="insight-waiting-progress-meta">
-            <span>Unlocks at {minimum}/{total}</span>
-            <span>{completed}/{total} done</span>
           </div>
         </div>
       ) : null}

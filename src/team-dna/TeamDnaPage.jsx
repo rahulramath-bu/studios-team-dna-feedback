@@ -722,13 +722,13 @@ export function TeamDnaPage() {
   };
 
   const handleGrowChatPrompt = (action) => {
-    // What: prototype-only Grow Chat seam for the bottom Team DNA ask box.
-    // How: emits a local event with the exact monolith route/search-param shape;
-    // no Lighthouse request is made from this standalone surface.
-    // Port: replace this dispatch with `setLocation('lighthouse.chat', {
-    // searchParams: action.payload.monolith.searchParams })`. Monolith ChatRouter
-    // already stores `initial_user_message` as `LH.initial-user-message`, creates
-    // the conversation, and lets MainArea send it when the socket is ready.
+    // What: hands the section's context off to the AI Coaching page.
+    // How: mirrors monolith ChatRouter's `LH.initial-user-message` pattern —
+    // the message + Team DNA custom instructions are stashed in sessionStorage
+    // and the coaching page sends them when it mounts.
+    // Port: replace with `setLocation('lighthouse.chat', { searchParams:
+    // action.payload.monolith.searchParams })`; ChatRouter creates the
+    // conversation and MainArea sends the message once the socket is ready.
     window.dispatchEvent(new CustomEvent('team-dna:grow-chat-prompt', {
       detail: action,
     }));
@@ -736,6 +736,36 @@ export function TeamDnaPage() {
     if (import.meta.env.DEV) {
       console.info('[Team DNA Grow Chat prompt]', action);
     }
+
+    const params = action?.payload?.monolith?.searchParams;
+    if (!params?.initial_user_message) return;
+
+    try {
+      window.sessionStorage.setItem(
+        'ai-coaching.handoff',
+        JSON.stringify({
+          message: params.initial_user_message,
+          instructions: params.custom_instructions,
+          title: params.title,
+        })
+      );
+    } catch {
+      // Storage unavailable (e.g. sandboxed iframe): fall through and let the
+      // coaching page open without the pre-seeded prompt.
+    }
+
+    // The demo flow renders Team DNA inside an iframe; break out to the top
+    // window so the coaching page takes over the full tab.
+    const destination = '/ai-coaching';
+    try {
+      if (window.top && window.top !== window) {
+        window.top.location.href = destination;
+        return;
+      }
+    } catch {
+      // Cross-origin top frame: fall back to navigating this frame.
+    }
+    window.location.href = destination;
 
     // When the coach CTA fires from a single-person profile, move the user into
     // the AI coach: surface the GROW onboarding stand-in. Other scopes (team /

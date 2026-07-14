@@ -437,6 +437,7 @@ button {
   height: 29px;
   padding: 0 !important;
   border-radius: 999px;
+  object-fit: cover;
   background:
     linear-gradient(135deg, rgba(var(--team-aggregate-rgb), 0.95), rgba(var(--team-aggregate-rgb), 0.42) 46%, rgba(var(--team-dna-ink-rgb), 0.16));
 }
@@ -1039,31 +1040,6 @@ button {
 .team-management-section--members {
   flex: 0 0 auto;
   margin-top: 0;
-}
-
-.team-management-consent {
-  flex: 0 0 auto;
-  padding: 16px 32px;
-  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
-}
-
-.team-management-consent-row {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  cursor: pointer;
-  color: rgba(var(--team-dna-copy-rgb), 0.82);
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.team-management-consent-row input {
-  margin-top: 2px;
-  flex: 0 0 auto;
-  width: 16px;
-  height: 16px;
-  accent-color: var(--primary);
-  cursor: pointer;
 }
 
 .team-management-field {
@@ -2566,7 +2542,6 @@ button.team-management-row {
 
 .insight-waiting-header,
 .insight-waiting-footer,
-.insight-waiting-progress-meta,
 .insight-waiting-callout {
   display: flex;
   align-items: center;
@@ -2618,11 +2593,6 @@ button.team-management-row {
   height: 100%;
   border-radius: inherit;
   background: var(--primary);
-}
-
-.insight-waiting-progress-meta {
-  color: rgba(var(--team-dna-ink-rgb), 0.56);
-  font-size: 12px;
 }
 
 .insight-waiting-callout {

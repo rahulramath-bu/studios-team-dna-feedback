@@ -52,8 +52,11 @@ function buildGrowChatPromptPayload({ dataset, insight, message, scope, selected
     `Team: ${dataset.team.name}`,
     `Current view: ${scope}`,
     `Current selection: ${selectionSummary}`,
+    serializeInsightForCoach(insight, dataset, selectedMembers),
     'Keep advice practical, specific, and anchored in how this team can work better together.',
-  ].join('\n');
+  ]
+    .filter(Boolean)
+    .join('\n');
 
   return {
     initialUserMessage: message,
@@ -77,6 +80,69 @@ function buildGrowChatPromptPayload({ dataset, insight, message, scope, selected
       },
     },
   };
+}
+
+/**
+ * Flattens the on-screen insight cards into plain text so the AI coach starts
+ * the conversation already knowing exactly what the member was reading —
+ * strengths, growth opportunities, collaboration tips, and Big Five scores for
+ * whichever view (person / pair / team) launched the handoff.
+ */
+function serializeInsightForCoach(insight, dataset, selectedMembers) {
+  const lines = [];
+  const subjects =
+    selectedMembers.length > 0 ? selectedMembers : dataset.members;
+
+  const scoreLine = (member) =>
+    `- ${member.name} (${member.role ?? 'teammate'}): openness ${member.bigFive?.openness}, conscientiousness ${member.bigFive?.conscientiousness}, extraversion ${member.bigFive?.extraversion}, agreeableness ${member.bigFive?.agreeableness}, emotional reactivity ${member.bigFive?.neuroticism}`;
+
+  lines.push('Big Five scores (0-100):');
+  subjects.forEach((member) => lines.push(scoreLine(member)));
+
+  const pushItems = (heading, items) => {
+    const usable = (items ?? []).filter((item) => item?.title || item?.body);
+    if (!usable.length) return;
+    lines.push(`${heading}:`);
+    usable.forEach((item) => {
+      const tip = item.tip ? ` So ${item.tip}` : '';
+      lines.push(`- ${[item.title, item.body].filter(Boolean).join(' — ')}${tip}`);
+    });
+  };
+
+  (insight.cards ?? []).forEach((card) => {
+    if (card.kind === 'strengthsList') {
+      const data = card.data?.strengths;
+      pushItems('Strengths', data?.items ?? (data ? [data] : []));
+    } else if (card.kind === 'watchOut') {
+      const data = card.data?.watchOut;
+      pushItems('Growth opportunities', data?.items ?? (data ? [data] : []));
+    } else if (card.kind === 'guidance') {
+      const guidance = card.data?.guidance;
+      const sections = guidance?.sections?.length
+        ? guidance.sections
+        : guidance?.body
+          ? [{ body: guidance.body }]
+          : [];
+      const parts = sections
+        .map((section) =>
+          [section.label, section.body, ...(section.bullets ?? [])]
+            .filter(Boolean)
+            .join(' — ')
+        )
+        .filter(Boolean);
+      if (parts.length) {
+        lines.push(`${card.label ?? 'Guidance'}:`);
+        parts.forEach((part) => lines.push(`- ${part}`));
+      }
+      const discussion = guidance?.discussion;
+      if (discussion?.bullets?.length) {
+        lines.push(`${discussion.label ?? 'Discussion questions'}:`);
+        discussion.bullets.forEach((bullet) => lines.push(`- ${bullet}`));
+      }
+    }
+  });
+
+  return lines.join('\n');
 }
 
 /**

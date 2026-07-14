@@ -330,8 +330,6 @@ export function buildTeamDnaDatasetFromTeamRecord(
 export const TEAM_TYPE_OPTIONS = [
   'Direct reports',
   'Cross-functional',
-  'Project team',
-  'Custom',
 ];
 
 // The signed-in manager building the team. Prototype-only: in the monolith this
