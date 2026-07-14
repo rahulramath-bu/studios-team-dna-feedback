@@ -820,8 +820,7 @@ function AccountStep({ onContinue }) {
   const [email, setEmail] = useState('jordan.rivera@biomarin.com');
   const [password, setPassword] = useState('teamdna2026');
   const [agreeTerms, setAgreeTerms] = useState(true);
-  const [agreeShare, setAgreeShare] = useState(true);
-  const canContinue = email.trim() && password.trim() && agreeTerms && agreeShare;
+  const canContinue = email.trim() && password.trim() && agreeTerms;
 
   const handleSubmit = (event) => {
     event.preventDefault();
@@ -880,17 +879,6 @@ function AccountStep({ onContinue }) {
                 <a href="#consent">Privacy Policy</a>.
               </span>
             </label>
-            <label className="tdna-consent-row">
-              <input
-                type="checkbox"
-                checked={agreeShare}
-                onChange={(event) => setAgreeShare(event.target.checked)}
-              />
-              <span>
-                I understand my profile and Big Five results will be{' '}
-                <strong>visible to everyone in my organization</strong>.
-              </span>
-            </label>
           </div>
 
           <button
@@ -908,6 +896,11 @@ function AccountStep({ onContinue }) {
 }
 
 function ValueStep({ onStart }) {
+  // Visibility consent lives here (not on account creation) because this is
+  // the one gate every user passes through — including existing accounts that
+  // deep-link straight from the invite.
+  const [agreeShare, setAgreeShare] = useState(false);
+
   return (
     <motion.section
       className="tdna-onboarding tdna-onboarding--value"
@@ -937,22 +930,30 @@ function ValueStep({ onStart }) {
             <li>Practical ways to work better with anyone on your team.</li>
           </ul>
 
+          <label className="tdna-consent-row tdna-onboarding-value-consent">
+            <input
+              type="checkbox"
+              checked={agreeShare}
+              onChange={(event) => setAgreeShare(event.target.checked)}
+            />
+            <span>
+              I understand my profile and Team DNA results will be{' '}
+              <strong>visible to everyone in my organization</strong>.
+            </span>
+          </label>
+
           <div className="tdna-onboarding-value-actions">
             <button
               type="button"
               className="bu-button bu-button--primary tdna-onboarding-submit"
               onClick={onStart}
+              disabled={!agreeShare}
             >
               Get started
               <span aria-hidden="true">&rarr;</span>
             </button>
             <span className="tdna-onboarding-value-meta">Takes about 10 min</span>
           </div>
-
-          <p className="tdna-onboarding-value-footnote">
-            <BetterUpIcon name="Info" size={13} strokeWidth={2} />
-            Your Team DNA profile is visible to everyone in your organization.
-          </p>
         </div>
       </aside>
 

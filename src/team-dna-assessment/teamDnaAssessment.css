@@ -2614,13 +2614,32 @@
   font-size: 13px;
 }
 
-.tdna-onboarding-value-footnote {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  margin: 4px 0 0;
-  color: rgba(var(--white-rgb), 0.5);
-  font-size: 12.5px;
+/* Consent checkbox on the dark invite aside: light-on-dark variant of the
+   account-card consent row. Gates the Get started CTA. */
+.tdna-onboarding-value-consent {
+  margin-top: 2px;
+  max-width: 480px;
+  color: rgba(var(--white-rgb), 0.72);
+  font-size: 13.5px;
+}
+
+.tdna-onboarding-value-consent input {
+  border-color: rgba(var(--white-rgb), 0.38);
+  background: transparent;
+}
+
+.tdna-onboarding-value-consent input:checked {
+  border-color: var(--rubine);
+  background-color: var(--rubine);
+}
+
+.tdna-onboarding-value-consent strong {
+  color: var(--white);
+}
+
+.tdna-onboarding--value .tdna-onboarding-submit:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
 }
 
 /* Beige half: connects visually to the (beige) quiz screen that follows. */

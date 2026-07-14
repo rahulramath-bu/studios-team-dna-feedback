@@ -1,21 +1,32 @@
 import React, { useEffect, useRef, useState } from 'react';
 
 const primaryLinks = [
-  { label: 'Home', href: '/', icon: 'Home', top: true },
+  {
+    label: 'Home',
+    // Product home stand-in: lands on the Team tooling home page rather than
+    // resetting the demo (the BetterUp logo handles the reset to the
+    // manager / direct-report chooser).
+    href: '/team-dna',
+    icon: 'Home',
+    top: true,
+  },
   { label: 'Insights', href: '/frontend/grow/insights/me', icon: 'TrendingUp' },
   {
     label: 'AI Coaching',
-    href: '/platform/lighthouse/chat?behavior=orchestration',
+    // Local prototype of the Lighthouse member chat (production:
+    // /platform/lighthouse/chat?behavior=orchestration). target=_top so it
+    // breaks out of the demo iframe into the full-page experience.
+    href: '/ai-coaching',
     icon: 'Sparkles',
+    top: true,
   },
   {
     label: 'Team',
-    // Active product tab. Inside the demo iframe this resets the tour back to
-    // the prototype hub (manager vs direct-report flows), targeting the top
-    // window just like the BetterUp logo / Home links.
+    // Inside the demo iframe this resets the tour back to the prototype hub
+    // (manager vs direct-report flows), targeting the top window just like
+    // the BetterUp logo.
     href: '/',
     icon: 'Users',
-    active: true,
     top: true,
   },
   { label: 'Discover', href: '/platform/member/discover', icon: 'Globe' },
@@ -70,7 +81,12 @@ export function MonolithTeamShell({
   );
 }
 
-function MonolithPrimaryNav({ viewerPersona = 'manager', onSelectPersona = null }) {
+export function MonolithPrimaryNav({
+  viewerPersona = 'manager',
+  onSelectPersona = null,
+  activeLabel = 'Team',
+  endExtra = null,
+}) {
   return (
     <header className="monolith-primary-nav" data-test-primary-nav>
       <div className="monolith-primary-nav-inner">
@@ -91,8 +107,12 @@ function MonolithPrimaryNav({ viewerPersona = 'manager', onSelectPersona = null 
               key={link.label}
               href={link.href}
               target={link.top ? '_top' : undefined}
-              className={link.active ? 'monolith-primary-link-active' : undefined}
-              aria-current={link.active ? 'page' : undefined}
+              className={
+                link.label === activeLabel
+                  ? 'monolith-primary-link-active'
+                  : undefined
+              }
+              aria-current={link.label === activeLabel ? 'page' : undefined}
             >
               <MonolithNavIcon name={link.icon} />
               <span>{link.label}</span>
@@ -100,6 +120,7 @@ function MonolithPrimaryNav({ viewerPersona = 'manager', onSelectPersona = null 
           ))}
         </nav>
         <div className="monolith-primary-end">
+          {endExtra}
           {onSelectPersona ? (
             <MonolithPersonaToggle
               viewerPersona={viewerPersona}

@@ -2,11 +2,13 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { TeamDnaPage } from './team-dna/TeamDnaPage.jsx';
 import { TeamDnaAssessmentPage } from './team-dna-assessment/TeamDnaAssessmentPage.jsx';
 import { DemoFlowPage } from './demo-flow/DemoFlowPage.jsx';
+import { AiCoachingPage } from './ai-coaching/AiCoachingPage.jsx';
 import { DEMO_FLOW_PATH } from './demo-flow/demoFlowMoments.js';
 import './app-shell/appHub.css';
 
 const TEAM_DNA_PATH = '/team-dna';
 const ASSESSMENT_PATH = '/assessment';
+const AI_COACHING_PATH = '/ai-coaching';
 
 function getRoute(pathname) {
   // Static hosts (S3/CloudFront/Amplify) often 301 a path like `/team-dna` to
@@ -15,6 +17,7 @@ function getRoute(pathname) {
     pathname !== '/' ? pathname.replace(/\/+$/, '') : pathname;
   if (normalized === TEAM_DNA_PATH) return 'team-dna';
   if (normalized === ASSESSMENT_PATH) return 'assessment';
+  if (normalized === AI_COACHING_PATH) return 'ai-coaching';
   if (normalized === DEMO_FLOW_PATH) return 'flow-demo';
   if (normalized === '/' || normalized === '') return 'hub';
   return 'unknown';
@@ -176,6 +179,10 @@ export function App() {
 
   if (route === 'assessment') {
     return <TeamDnaAssessmentPage key={routeKey} onNavigate={navigate} />;
+  }
+
+  if (route === 'ai-coaching') {
+    return <AiCoachingPage key={routeKey} />;
   }
 
   if (route === 'flow-demo') {

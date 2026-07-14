@@ -4,3 +4,6 @@ dist
 .vercel
 tmp
 src/team-dna/image-tests
+.env
+.env.local
+.env.*.local
