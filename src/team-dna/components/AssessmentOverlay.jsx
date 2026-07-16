@@ -37,8 +37,8 @@ export function AssessmentOverlay({ viewerName, onComplete, onClose }) {
             <p className="assessment-eyebrow">Team DNA</p>
             <h2 id="assessment-title">
               {firstName
-                ? `${firstName}, your Big Five assessment`
-                : 'Your Big Five assessment'}
+                ? `${firstName}, you'll take your assessment now`
+                : "You'll take your assessment now"}
             </h2>
           </div>
           <button
@@ -52,8 +52,12 @@ export function AssessmentOverlay({ viewerName, onComplete, onClose }) {
         </header>
 
         <p className="assessment-copy">
-          This is where you’d complete the Big Five assessment to add your DNA to
-          the team. For this demo, you can skip ahead — we’ll assume it’s done.
+          This is where you&rsquo;d give your consent to share your results,
+          then complete the Big Five assessment.
+        </p>
+        <p className="assessment-copy">
+          For this manager flow demo, you can skip it and we&rsquo;ll assume
+          it&rsquo;s done.
         </p>
 
         <footer className="assessment-footer">

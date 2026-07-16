@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { MonolithPrimaryNav } from '../team-dna/dev/MonolithTeamShell.jsx';
 import { teamDnaDataset } from '../team-dna/data/teamDnaMock.js';
+import { getMemberRoles } from '../team-dna/data/teamDnaRoles.js';
 import './aiCoaching.css';
 
 /**
@@ -172,6 +173,39 @@ const COACH_REPLIES = [
   },
 ];
 
+// --- Mid-chat Team DNA recall + people cards -------------------------------
+// Mirrors production's memory-recall + people-card patterns (Lighthouse
+// memory feature): when the member organically mentions Team DNA or a
+// teammate, the coach pulls the context in and surfaces a person card.
+
+const TEAM_DNA_RECALL_TRIGGER = /team\s?dna|my team\b|teammates?|working styles?/i;
+
+function findMentionedMembers(text) {
+  return teamDnaDataset.members.filter((member) => {
+    const firstName = member.name.split(' ')[0];
+    return new RegExp(`\\b${firstName}\\b`, 'i').test(text);
+  });
+}
+
+// Two-line Team DNA read for a person card: their two most pronounced traits.
+const TRAIT_READS = {
+  openness: ['grounded and practical', 'drawn to new ideas'],
+  conscientiousness: ['flexible and improvisational', 'organized and thorough'],
+  extraversion: ['heads-down and reflective', 'energized by people'],
+  agreeableness: ['direct and challenging', 'collaborative and supportive'],
+  neuroticism: ['calm under pressure', 'attuned to risks early'],
+};
+
+function describeMemberFromDna(member) {
+  const standoutTraits = Object.entries(member.bigFive ?? {})
+    .map(([trait, score]) => ({ trait, score, distance: Math.abs(score - 50) }))
+    .sort((a, b) => b.distance - a.distance)
+    .slice(0, 2)
+    .map(({ trait, score }) => TRAIT_READS[trait][score >= 50 ? 1 : 0]);
+
+  return `${member.name} is a ${member.role} on ${teamDnaDataset.team.name}. Team DNA: ${standoutTraits.join(', ')}.`;
+}
+
 // Scripted fallback turns for Team DNA-seeded chats (no API key connected).
 const TEAM_DNA_COACH_REPLIES = [
   {
@@ -209,10 +243,13 @@ async function streamClaudeReply(apiKey, history, onDelta, context = '') {
       system: context
         ? `${COACH_SYSTEM_PROMPT}\n\n${context}`
         : COACH_SYSTEM_PROMPT,
-      messages: history.map((message) => ({
-        role: message.role === 'user' ? 'user' : 'assistant',
-        content: message.text,
-      })),
+      messages: history
+        // Recall pills and other UI-only entries never go to the model.
+        .filter((message) => message.role === 'user' || message.role === 'coach')
+        .map((message) => ({
+          role: message.role === 'user' ? 'user' : 'assistant',
+          content: message.text,
+        })),
     }),
   });
 
@@ -569,7 +606,33 @@ function LeftNav({
   );
 }
 
-function CoachMessage({ message }) {
+// Person card pill (production people-card pattern): appears under the coach
+// reply the first time a teammate is mentioned; tap to review what the coach
+// remembers about them.
+function PersonCard({ profile, onOpen }) {
+  if (!profile) return null;
+
+  return (
+    <button
+      type="button"
+      className="ai-person-card"
+      onClick={() => onOpen(profile.id)}
+    >
+      <img src={profile.avatarUrl} alt="" aria-hidden="true" />
+      <span>
+        {profile.name.split(' ')[0]} · {profile.role}
+      </span>
+    </button>
+  );
+}
+
+function CoachMessage({
+  message,
+  peopleProfiles = {},
+  onOpenProfile,
+  showProfileTip = false,
+  onDismissProfileTip,
+}) {
   return (
     <div className="ai-msg-coach">
       {message.note ? (
@@ -584,6 +647,32 @@ function CoachMessage({ message }) {
         <CoachOrb size={40} className="ai-orb--inline" />
         <div className="ai-msg-coach-body">
           {renderCoachText(message.text)}
+          {message.people?.length ? (
+            <div className="ai-person-cards">
+              {message.people.map((personId) => (
+                <PersonCard
+                  key={personId}
+                  profile={peopleProfiles[personId]}
+                  onOpen={onOpenProfile}
+                />
+              ))}
+              {showProfileTip ? (
+                <div className="ai-person-tip" role="status">
+                  <p className="ai-person-tip-title">Profile created</p>
+                  <p>
+                    Your AI Coach saves details about the people you mention.
+                    Tap a card to review what it remembers.
+                  </p>
+                  <button type="button" onClick={onDismissProfileTip}>
+                    <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                      <path d="M7 10.5v9M7 11l4.2-6.8a1.8 1.8 0 0 1 3.3 1L13.6 9H18a2 2 0 0 1 2 2.4l-1.2 6a2 2 0 0 1-2 1.6H7" />
+                    </svg>
+                    Got it
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
           {!message.live ? (
             <div className="ai-msg-actions" aria-label="Message actions">
               <button type="button" aria-label="Helpful">
@@ -610,6 +699,104 @@ function CoachMessage({ message }) {
   );
 }
 
+// "Review profile details" modal (production people-card review pattern):
+// shows what the coach remembers about a person; details are editable so the
+// member stays in control of the memory.
+function ReviewProfileModal({ profile, onSave, onClose }) {
+  const [notes, setNotes] = useState(profile.notes ?? '');
+  // Team DNA content comes from the dataset at render time, so the card always
+  // reflects the assessment even if the stored profile predates a reload. It
+  // reuses the member's actual profile copy (archetype + roles) rather than
+  // inventing a new visualization for this surface.
+  const member = teamDnaDataset.members.find((m) => m.id === profile.id);
+  const insight = teamDnaDataset.insights.people?.[profile.id];
+  const roles = member ? getMemberRoles(member) : null;
+  const firstName = profile.name.split(' ')[0];
+  const dnaSummary =
+    insight?.summary?.[0]?.text ?? (member ? describeMemberFromDna(member) : '');
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  return (
+    <div className="ai-profile-modal-backdrop" onClick={onClose}>
+      <div
+        className="ai-profile-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Review profile details"
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button
+          type="button"
+          className="ai-profile-modal-close"
+          aria-label="Close"
+          onClick={onClose}
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 6l12 12M18 6 6 18" />
+          </svg>
+        </button>
+        <h2>Review profile details</h2>
+        <p className="ai-profile-modal-sub">
+          Review what your AI Coach remembers about this person. These details
+          help keep your coaching relevant.
+        </p>
+        <p className="ai-profile-modal-label">Name</p>
+        <p className="ai-profile-modal-value">{profile.name}</p>
+        <p className="ai-profile-modal-label">Team DNA</p>
+        <div className="ai-profile-modal-dna">
+          {dnaSummary ? <p>{dnaSummary}</p> : null}
+          {roles ? (
+            <p>
+              In team meetings, {firstName}&rsquo;s primary role is the{' '}
+              <strong className="ai-profile-modal-role--primary">
+                {roles.primary.name}
+              </strong>
+              , and the secondary role is the{' '}
+              <strong className="ai-profile-modal-role--secondary">
+                {roles.secondary.name}
+              </strong>
+              .
+            </p>
+          ) : null}
+          <a
+            className="ai-profile-modal-dna-link"
+            href={`/team-dna?demo=person&members=${profile.id}`}
+          >
+            View full Team DNA profile
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 17 17 7M9 7h8v8" />
+            </svg>
+          </a>
+        </div>
+        <p className="ai-profile-modal-label">Your details</p>
+        <textarea
+          rows={3}
+          value={notes}
+          placeholder={`Add context you want your coach to remember about ${profile.name.split(' ')[0]}…`}
+          onChange={(event) => setNotes(event.target.value)}
+        />
+        <button
+          type="button"
+          className="ai-profile-modal-done"
+          onClick={() => {
+            onSave(profile.id, notes);
+            onClose();
+          }}
+        >
+          Done
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export function AiCoachingPage() {
   const [messages, setMessages] = useState([]);
   const [draft, setDraft] = useState('');
@@ -623,6 +810,13 @@ export function AiCoachingPage() {
   // the custom instructions silently appended to Claude's system prompt.
   const [dnaBadge, setDnaBadge] = useState('');
   const [contextTeam, setContextTeam] = useState(TEAM_DNA_CONTEXT_TEAMS[0]);
+  // People cards: profiles the coach "remembers" for teammates mentioned in
+  // this session, the modal being reviewed, and the one-time explainer tip.
+  const [peopleProfiles, setPeopleProfiles] = useState({});
+  const [openProfileId, setOpenProfileId] = useState(null);
+  const [profileTipMessageId, setProfileTipMessageId] = useState(null);
+  const profileTipShownRef = useRef(false);
+  const cardedMemberIdsRef = useRef(new Set());
   const dnaContextRef = useRef('');
   const threadRef = useRef(null);
   const replyIndexRef = useRef(0);
@@ -672,6 +866,10 @@ export function AiCoachingPage() {
     setActiveSessionId(null);
     setActiveExperience(null);
     setDnaBadge('');
+    setPeopleProfiles({});
+    setOpenProfileId(null);
+    setProfileTipMessageId(null);
+    cardedMemberIdsRef.current = new Set();
     dnaContextRef.current = '';
     replyIndexRef.current = 0;
   };
@@ -698,7 +896,7 @@ export function AiCoachingPage() {
     applyContextTeam(TEAM_DNA_CONTEXT_TEAMS[0]);
   };
 
-  const appendScriptedReply = () => {
+  const appendScriptedReply = (peopleIds = []) => {
     const script = dnaContextRef.current
       ? TEAM_DNA_COACH_REPLIES
       : COACH_REPLIES;
@@ -707,10 +905,15 @@ export function AiCoachingPage() {
 
     window.setTimeout(() => {
       setIsThinking(false);
+      const coachId = `coach-${Date.now()}`;
       setMessages((current) => [
         ...current,
-        { id: `coach-${Date.now()}`, role: 'coach', ...reply },
+        { id: coachId, role: 'coach', people: peopleIds, ...reply },
       ]);
+      if (peopleIds.length && !profileTipShownRef.current) {
+        profileTipShownRef.current = true;
+        setProfileTipMessageId(coachId);
+      }
     }, 1400);
   };
 
@@ -725,18 +928,102 @@ export function AiCoachingPage() {
     };
     const history = [...messages, userMessage];
 
+    // Mid-chat recall: the member organically brought up Team DNA or a
+    // teammate in a plain session, so pull the context in and mark the moment
+    // with a recall pill (production memory-recall pattern).
+    const mentioned = findMentionedMembers(trimmed);
+    if (
+      !dnaContextRef.current &&
+      (TEAM_DNA_RECALL_TRIGGER.test(trimmed) || mentioned.length > 0)
+    ) {
+      dnaContextRef.current = TEAM_DNA_BASE_CONTEXT;
+      setDnaBadge(`Team DNA · ${teamDnaDataset.team.name}`);
+      history.push({
+        id: `recall-${Date.now()}`,
+        role: 'recall',
+        text: `Based on your recent Team DNA results · ${teamDnaDataset.team.name}`,
+      });
+    }
+
+    // People cards: first mention of a teammate creates a profile the coach
+    // "remembers"; the card attaches to the coach's next reply. Every mention
+    // after that keeps capturing what the member says about the person into
+    // "Your details", so the memory builds up from the conversation itself.
+    const newlyMentioned = mentioned.filter(
+      (member) => !cardedMemberIdsRef.current.has(member.id)
+    );
+    newlyMentioned.forEach((member) =>
+      cardedMemberIdsRef.current.add(member.id)
+    );
+    if (mentioned.length) {
+      // Only the sentences that mention the person get captured, so notes stay
+      // scoped to them instead of mirroring the whole chat.
+      const captureNoteFor = (member) => {
+        const firstName = member.name.split(' ')[0];
+        const namePattern = new RegExp(`\\b${firstName}\\b`, 'i');
+        return trimmed
+          .split(/(?<=[.!?])\s+/)
+          .filter((sentence) => namePattern.test(sentence))
+          .join(' ');
+      };
+      setPeopleProfiles((current) => {
+        const next = { ...current };
+        mentioned.forEach((member) => {
+          const captured = captureNoteFor(member);
+          const existing = next[member.id];
+          if (existing) {
+            if (captured && !existing.notes.includes(captured)) {
+              next[member.id] = {
+                ...existing,
+                notes: existing.notes
+                  ? `${existing.notes}\n${captured}`
+                  : captured,
+              };
+            }
+          } else {
+            next[member.id] = {
+              id: member.id,
+              name: member.name,
+              role: member.role,
+              avatarUrl: member.avatarUrl,
+              // Assessment-derived, read-only: the member can't rewrite a
+              // teammate's Team DNA, only their own conversational context.
+              dnaSummary: describeMemberFromDna(member),
+              notes: captured,
+            };
+          }
+        });
+        return next;
+      });
+    }
+    const peopleIds = newlyMentioned.map((member) => member.id);
+
     setDraft('');
     setMessages(history);
     setIsThinking(true);
 
     if (!anthropicKey) {
-      appendScriptedReply();
+      appendScriptedReply(peopleIds);
       return;
     }
 
     const coachId = `coach-${Date.now()}`;
     let started = false;
     setClaudeError('');
+
+    // The member's own saved notes about teammates ride along with the Team
+    // DNA context, so editing a people card genuinely changes the coaching.
+    const peopleNotes = Object.values(peopleProfiles)
+      .filter((profile) => profile.notes?.trim())
+      .map((profile) => `- ${profile.name}: ${profile.notes.trim()}`);
+    const claudeContext = [
+      dnaContextRef.current,
+      peopleNotes.length
+        ? `Notes the member saved about teammates:\n${peopleNotes.join('\n')}`
+        : '',
+    ]
+      .filter(Boolean)
+      .join('\n\n');
 
     try {
       await streamClaudeReply(
@@ -761,13 +1048,19 @@ export function AiCoachingPage() {
             );
           }
         },
-        dnaContextRef.current
+        claudeContext
       );
       setMessages((current) =>
         current.map((message) =>
-          message.id === coachId ? { ...message, live: false } : message
+          message.id === coachId
+            ? { ...message, live: false, people: peopleIds }
+            : message
         )
       );
+      if (peopleIds.length && !profileTipShownRef.current) {
+        profileTipShownRef.current = true;
+        setProfileTipMessageId(coachId);
+      }
     } catch (error) {
       console.warn('[ai-coaching] Claude call failed, using script:', error);
       setClaudeError(error?.message || 'Unknown error');
@@ -776,7 +1069,7 @@ export function AiCoachingPage() {
           current.filter((message) => message.id !== coachId)
         );
       }
-      appendScriptedReply();
+      appendScriptedReply(peopleIds);
       return;
     } finally {
       setIsStreaming(false);
@@ -882,8 +1175,20 @@ export function AiCoachingPage() {
                     <div key={message.id} className="ai-msg-user">
                       {message.text}
                     </div>
+                  ) : message.role === 'recall' ? (
+                    <p key={message.id} className="ai-recall-pill" role="status">
+                      <span className="ai-dna-badge-dot" aria-hidden="true" />
+                      {message.text}
+                    </p>
                   ) : (
-                    <CoachMessage key={message.id} message={message} />
+                    <CoachMessage
+                      key={message.id}
+                      message={message}
+                      peopleProfiles={peopleProfiles}
+                      onOpenProfile={setOpenProfileId}
+                      showProfileTip={message.id === profileTipMessageId}
+                      onDismissProfileTip={() => setProfileTipMessageId(null)}
+                    />
                   )
                 )}
                 {isThinking ? (
@@ -974,6 +1279,18 @@ export function AiCoachingPage() {
           </div>
         </main>
       </div>
+      {openProfileId && peopleProfiles[openProfileId] ? (
+        <ReviewProfileModal
+          profile={peopleProfiles[openProfileId]}
+          onSave={(id, notes) =>
+            setPeopleProfiles((current) => ({
+              ...current,
+              [id]: { ...current[id], notes },
+            }))
+          }
+          onClose={() => setOpenProfileId(null)}
+        />
+      ) : null}
     </div>
   );
 }

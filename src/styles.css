@@ -1273,6 +1273,92 @@ button.team-management-row {
   vertical-align: middle;
 }
 
+/* Interim "team created" confirmation screen. Sits between saving a team and
+   Team DNA onboarding, since production gates the team page behind onboarding.
+   Mirrors the monolith confirmation pattern (RouteAssessmentConfirmation /
+   TeamPulseCompletionModal): visual on top, uppercase sans eyebrow, quiet serif
+   heading, lg body, primary button. */
+.team-created {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 220px);
+  padding: 48px 24px;
+}
+
+.team-created-inner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 576px;
+  text-align: center;
+  animation: team-dna-empty-fade 900ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* The team avatars sit in the confirmation's spot-illustration slot: the thing
+   you just created is the visual. */
+.team-created-roster {
+  margin-bottom: 36px;
+}
+
+.team-created-roster .team-dna-avatar-stack-item {
+  width: 56px;
+  height: 56px;
+  margin-left: -14px;
+  border-width: 3px;
+  /* Same tint as the default stack, but flattened onto white so the initials
+     circles read as solid chips instead of translucent ones. */
+  background: color-mix(
+    in srgb,
+    rgb(var(--team-aggregate-rgb)) 22%,
+    var(--white)
+  );
+  font-size: 16px;
+}
+
+.team-created-roster .team-dna-avatar-stack-item:first-child {
+  margin-left: 0;
+}
+
+/* Monolith eyebrow: text-xxs uppercase tracking-widest font-semibold, muted. */
+.team-created-eyebrow {
+  margin: 0 0 12px;
+  color: var(--label-color);
+  font-family: 'Söhne', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/* Monolith heading: text-3xl font-heading — quieter than the marketing hero. */
+.team-created-title {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 30px;
+  font-weight: 400;
+  letter-spacing: var(--heading-display-tracking);
+  line-height: 1.2;
+}
+
+/* Medium body (16px) — matches the Team DNA experience's own body copy
+   (insight-summary) rather than the larger marketing text-lg. One paragraph:
+   what happened, what you'll get, what to do. */
+.team-created-body {
+  max-width: 560px;
+  margin: 20px 0 0;
+  color: var(--foreground-body);
+  font-family: 'Söhne', sans-serif;
+  font-size: 16px;
+  line-height: 1.65;
+}
+
+.team-created-cta {
+  margin-top: 36px;
+}
+
 .team-creating-overlay {
   position: fixed;
   inset: 0;
@@ -2739,6 +2825,10 @@ button.team-management-row {
   color: rgba(var(--team-dna-copy-rgb), 0.82);
   font-size: 15px;
   line-height: 1.55;
+}
+
+.assessment-copy + .assessment-copy {
+  margin-top: 12px;
 }
 
 .assessment-footer {

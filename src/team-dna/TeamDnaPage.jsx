@@ -335,6 +335,11 @@ function getInitialTeamRecordsForDemo(demoConfig) {
 }
 
 function getCompletedMemberIdsForDemo(demoConfig) {
+  // A just-created team: nobody (including the manager) has shared yet.
+  if (demoConfig.mode === 'team-created') {
+    return new Set();
+  }
+
   if (demoConfig.mode === 'waiting') {
     return new Set(sampleTeamRecord.memberEmployeeIds.slice(0, 2));
   }
@@ -528,6 +533,15 @@ export function TeamDnaPage() {
   );
   const [isCreatingTeam, setIsCreatingTeam] = useState(false);
   const creatingTeamTimerRef = useRef(null);
+  // Interim "your team was created" confirmation (working-group decision):
+  // production gates the Team DNA page behind onboarding (consent + assessment),
+  // so a fresh team can't land there. Instead the manager gets a confirmation
+  // screen that acknowledges the save and hands off into onboarding.
+  const [showTeamCreatedConfirmation, setShowTeamCreatedConfirmation] =
+    useState(() => demoConfig.mode === 'team-created');
+  // After the create-team flow, land on the team page fully revealed (waiting
+  // card visible) instead of the tap-to-explore intro state.
+  const [skipIntroGate, setSkipIntroGate] = useState(false);
   const [activeGenerationTarget, setActiveGenerationTarget] = useState(null);
   const demoGenerationTimerRef = useRef(null);
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
@@ -845,16 +859,18 @@ export function TeamDnaPage() {
     setIsAssessmentOpen(true);
   };
 
-  // Completing the stand-in marks the viewer's assessment done, then lands on
-  // the viewer's own results page (the same "You are the…" read as the single
-  // profile review) before they head back to the team view.
+  // Completing the stand-in marks the viewer's assessment done and lands
+  // straight on the team page in its waiting state ("Waiting on N teammates"),
+  // clearing the team-created confirmation. The self-results overlay is
+  // intentionally skipped here so the demo goes directly to the team view.
   const handleCompleteAssessment = () => {
     setIsAssessmentOpen(false);
     if (!currentViewerMemberId) return;
     setMemberAssessmentStates([
       { memberId: currentViewerMemberId, assessmentComplete: true },
     ]);
-    setIsSelfResultsOpen(true);
+    setShowTeamCreatedConfirmation(false);
+    setSkipIntroGate(true);
   };
 
   const handleCloseSelfResults = () => {
@@ -927,6 +943,9 @@ export function TeamDnaPage() {
     const isNewTeam = !draftTeamRecord.id;
     if (isNewTeam) {
       resetMembersForFreshTeam(nextTeamRecord);
+      // New teams land on the interim confirmation screen, not the (gated)
+      // Team DNA page. Onboarding is what clears it.
+      setShowTeamCreatedConfirmation(true);
     }
     setActiveTeamId(teamId);
     setTeamManagementOverlay(null);
@@ -1140,6 +1159,7 @@ export function TeamDnaPage() {
     if (!teamRecords[teamId]) return;
 
     setTeamManagementOverlay(null);
+    setShowTeamCreatedConfirmation(false);
     setActiveTeamId(teamId);
     setActiveSurface(null);
   };
@@ -1148,6 +1168,7 @@ export function TeamDnaPage() {
   // (Team DNA / Pulse / Coaching landing) renders as the parent of this read.
   const exitToTeamHome = () => {
     setTeamManagementOverlay(null);
+    setShowTeamCreatedConfirmation(false);
     setActiveSurface(null);
     setActiveTeamId(null);
   };
@@ -1160,6 +1181,7 @@ export function TeamDnaPage() {
     );
 
     setTeamManagementOverlay(null);
+    setShowTeamCreatedConfirmation(false);
     setTeamRecords((current) => ({
       ...current,
       [sampleTeamRecord.id]: sampleRecordState,
@@ -1180,6 +1202,7 @@ export function TeamDnaPage() {
           : [];
 
     setTeamManagementOverlay(null);
+    setShowTeamCreatedConfirmation(false);
     setActiveSurface(null);
     setActiveTeamId(null);
     setEmptyDevState((current) => ({ ...current, canManageTeam: false }));
@@ -1207,6 +1230,7 @@ export function TeamDnaPage() {
   // Demo-only: flip back to the manager hub (can create teams, no teams yet).
   const resetToManagerScenario = () => {
     setTeamManagementOverlay(null);
+    setShowTeamCreatedConfirmation(false);
     setActiveSurface(null);
     setActiveTeamId(null);
     setTeamRecords({});
@@ -1248,7 +1272,13 @@ export function TeamDnaPage() {
       >
         <div className="team-dna-shell">
           <main className="team-dna-page" aria-label="Team DNA">
-            {isTrueEmptyState ? (
+            {showTeamCreatedConfirmation && !isTrueEmptyState ? (
+              <TeamCreatedConfirmation
+                dataset={scenarioDataset}
+                currentViewerMemberId={currentViewerMemberId}
+                onStartOnboarding={handleStartAssessment}
+              />
+            ) : isTrueEmptyState ? (
               <TeamDnaEmptyState
                 canManageTeam={canManageTeam}
                 currentViewerMemberId={currentViewerMemberId}
@@ -1264,7 +1294,7 @@ export function TeamDnaPage() {
                 dataset={scenarioDataset}
                 generationStatusByTargetId={generationStatusByTargetId}
                 initialSelectedIds={demoConfig.selectedMemberIds}
-                startWithIntroReleased={demoConfig.enabled}
+                startWithIntroReleased={demoConfig.enabled || skipIntroGate}
                 teamOptions={teamOptions}
                 selectedTeamId={activeTeamId}
                 teamSwitcherTopOffset={devState.showMonolithShell ? 104 : 34}
@@ -1352,6 +1382,60 @@ export function TeamDnaPage() {
         />
       )}
     </>
+  );
+}
+
+/**
+ * Interim "team created" confirmation (working-group decision, Jul 16).
+ *
+ * Production gates the Team DNA page behind onboarding (consent + assessment),
+ * so a manager can't land on the team page right after saving a team. This
+ * screen confirms the save — the team exists, invites are out — and hands off
+ * into Team DNA onboarding. Completing onboarding lands on the team page.
+ */
+function TeamCreatedConfirmation({
+  dataset,
+  currentViewerMemberId,
+  onStartOnboarding,
+}) {
+  const teamName = dataset.team?.name || 'Your team';
+  const teammates = dataset.members.filter(
+    (member) => member.id !== currentViewerMemberId
+  );
+
+  // Structure mirrors the monolith's confirmation surfaces
+  // (RouteAssessmentConfirmation / TeamPulseCompletionModal): visual on top,
+  // small uppercase eyebrow, modest serif heading, body, primary CTA. The team
+  // avatars take the spot-illustration slot — the visual IS the thing created.
+  return (
+    <section className="team-created" aria-label="Team created">
+      <div className="team-created-inner">
+        {teammates.length > 0 ? (
+          <div className="team-created-roster" aria-hidden="true">
+            <TeamAvatarStack members={teammates} max={6} />
+          </div>
+        ) : null}
+        <p className="team-created-eyebrow">Team created</p>
+        <h1 className="team-created-title">{teamName} is ready</h1>
+        <p className="team-created-body">
+          We&rsquo;ve emailed{' '}
+          {teammates.length === 1
+            ? 'your teammate'
+            : `your ${teammates.length} teammates`}{' '}
+          an invite to share their Team DNA. Complete your own assessment to
+          get started, and you&rsquo;ll see each person&rsquo;s strengths and
+          growth opportunities as results come in.
+        </p>
+        <button
+          type="button"
+          className="bu-button bu-button--primary team-created-cta"
+          onClick={onStartOnboarding}
+        >
+          Start your Team DNA assessment
+          <span aria-hidden="true">&rarr;</span>
+        </button>
+      </div>
+    </section>
   );
 }
 

@@ -32,6 +32,7 @@ export function InfoBlock({
   onCoachPrompt,
   coachScope,
   coachSubject,
+  coachIsSelf = false,
   actionLabel,
 }) {
   // Monolith integration seam: supporting cards should enter through
@@ -51,7 +52,11 @@ export function InfoBlock({
   const label = getDisplayLabel(card);
   const shouldShowLabel = card.showLabel !== false;
   const coachCta = onCoachPrompt
-    ? getCoachCta(card, { scope: coachScope, subject: coachSubject })
+    ? getCoachCta(card, {
+        scope: coachScope,
+        subject: coachSubject,
+        isSelf: coachIsSelf,
+      })
     : null;
 
   return (
@@ -105,55 +110,66 @@ export function CoachLink({ cta, onCoachPrompt }) {
  * label plus a context-aware starter prompt keyed off the section and the
  * current scope (person / duo / team).
  */
-export function getCoachCta(card, { scope = 'team', subject } = {}) {
+export function getCoachCta(card, { scope = 'team', subject, isSelf = false } = {}) {
   const who =
     subject && scope === 'person'
       ? subject.split(' ')[0]
       : subject || 'this team';
   const pair = scope === 'duo';
-  const person = scope === 'person';
+  // When the member is reading their own profile the prompt speaks as them
+  // ("How can I…"), never about them in the third person.
+  const self = scope === 'person' && isSelf;
+  const person = scope === 'person' && !isSelf;
 
   if (card.kind === 'strengthsList') {
     return {
       label: 'Discuss with AI coach',
-      prompt: person
-        ? `How can ${who} put these strengths to work?`
-        : pair
-          ? `How can ${who} make the most of their combined strengths?`
-          : `How can this team build on these strengths?`,
+      prompt: self
+        ? 'How can I put these strengths to work?'
+        : person
+          ? `How can ${who} put these strengths to work?`
+          : pair
+            ? `How can ${who} make the most of their combined strengths?`
+            : `How can this team build on these strengths?`,
     };
   }
 
   if (card.kind === 'watchOut') {
     return {
       label: 'Discuss with AI coach',
-      prompt: person
-        ? `How can ${who} make the most of these growth opportunities?`
-        : pair
-          ? `How can this pair make the most of these growth opportunities?`
-          : `How can this team make the most of these growth opportunities?`,
+      prompt: self
+        ? 'How can I make the most of these growth opportunities?'
+        : person
+          ? `How can ${who} make the most of these growth opportunities?`
+          : pair
+            ? `How can this pair make the most of these growth opportunities?`
+            : `How can this team make the most of these growth opportunities?`,
     };
   }
 
   if (card.kind === 'guidance' && isCollaborationCard(card)) {
     return {
       label: 'Discuss with AI coach',
-      prompt: person
-        ? `How should I put this into practice when working with ${who}?`
-        : pair
-          ? `How can ${who} work best together day to day?`
-          : `How can this team work better together?`,
+      prompt: self
+        ? 'How can I use this to work better with my teammates?'
+        : person
+          ? `How should I put this into practice when working with ${who}?`
+          : pair
+            ? `How can ${who} work best together day to day?`
+            : `How can this team work better together?`,
     };
   }
 
   if (card.kind === 'bigFiveSpectrumList') {
     return {
       label: 'Discuss with AI coach',
-      prompt: person
-        ? `What do ${who}'s Big Five results mean for how they work?`
-        : pair
-          ? `What do these Big Five differences mean for how ${who} work together?`
-          : `What do these Big Five results mean for how this team works?`,
+      prompt: self
+        ? 'What do my Big Five results mean for how I work?'
+        : person
+          ? `What do ${who}'s Big Five results mean for how they work?`
+          : pair
+            ? `What do these Big Five differences mean for how ${who} work together?`
+            : `What do these Big Five results mean for how this team works?`,
     };
   }
 

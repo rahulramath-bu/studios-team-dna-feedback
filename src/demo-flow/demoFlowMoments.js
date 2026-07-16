@@ -119,6 +119,14 @@ const managerJourneyMoments = [
     surfaceUrl: '/team-dna?demo=add-team-selected',
   },
   {
+    id: 'manager-team-created',
+    phase: 'Team setup',
+    label: 'Created',
+    title: 'Confirm the team was created',
+    note: 'The team page is gated behind Team DNA onboarding, so saving a team lands on an interim confirmation: the team exists, invites went out, and the manager starts onboarding (consent + assessment) from here.',
+    surfaceUrl: '/team-dna?demo=team-created',
+  },
+  {
     id: 'manager-mixed-roster',
     phase: 'Readiness',
     label: 'Readiness',

@@ -634,6 +634,7 @@ function InsightPageContent({
             editingTarget={editingTarget}
             coachScope={coachScope}
             coachSubject={coachSubject}
+            coachIsSelf={isOwnProfile}
             onCancelEdit={() => setEditingTarget(null)}
             onEditTarget={setEditingTarget}
             onCoachPrompt={onCoachPrompt}
@@ -1224,6 +1225,7 @@ function InsightBlocks({
   editingTarget,
   coachScope,
   coachSubject,
+  coachIsSelf = false,
   onCancelEdit,
   onEditTarget,
   onCoachPrompt,
@@ -1259,6 +1261,7 @@ function InsightBlocks({
             onCoachPrompt={onCoachPrompt}
             coachScope={coachScope}
             coachSubject={coachSubject}
+            coachIsSelf={coachIsSelf}
           />
         );
 
