@@ -3,14 +3,16 @@ import React, { useEffect, useRef, useState } from 'react';
 const primaryLinks = [
   {
     label: 'Home',
-    // Product home stand-in: lands on the Team tooling home page rather than
-    // resetting the demo (the BetterUp logo handles the reset to the
-    // manager / direct-report chooser).
-    href: '/team-dna',
+    // Member homepage (UME cards + AI composer). target=_top so it breaks out
+    // of the demo iframe into the full-page experience.
+    href: '/home',
     icon: 'Home',
     top: true,
   },
-  { label: 'Insights', href: '/frontend/grow/insights/me', icon: 'TrendingUp' },
+  // Links without an href are visual stand-ins for surfaces this prototype
+  // doesn't cover; they render as inert so clicks don't dump the viewer back
+  // at the prototype chooser (only the BetterUp logo resets the demo).
+  { label: 'Insights', href: null, icon: 'TrendingUp' },
   {
     label: 'AI Coaching',
     // Local prototype of the Lighthouse member chat (production:
@@ -22,15 +24,14 @@ const primaryLinks = [
   },
   {
     label: 'Team',
-    // Inside the demo iframe this resets the tour back to the prototype hub
-    // (manager vs direct-report flows), targeting the top window just like
-    // the BetterUp logo.
-    href: '/',
+    // Team tooling home (Team DNA landing). The BetterUp logo is what resets
+    // back to the prototype hub (manager vs direct-report flows).
+    href: '/team-dna',
     icon: 'Users',
     top: true,
   },
-  { label: 'Discover', href: '/platform/member/discover', icon: 'Globe' },
-  { label: 'Schedule', href: '/platform/member/schedule', icon: 'Calendar' },
+  { label: 'Discover', href: null, icon: 'Globe' },
+  { label: 'Schedule', href: null, icon: 'Calendar' },
 ];
 
 const utilityLinks = [
@@ -105,14 +106,15 @@ export function MonolithPrimaryNav({
           {primaryLinks.map((link) => (
             <a
               key={link.label}
-              href={link.href}
-              target={link.top ? '_top' : undefined}
+              href={link.href ?? undefined}
+              target={link.href && link.top ? '_top' : undefined}
               className={
                 link.label === activeLabel
                   ? 'monolith-primary-link-active'
                   : undefined
               }
               aria-current={link.label === activeLabel ? 'page' : undefined}
+              aria-disabled={link.href ? undefined : 'true'}
             >
               <MonolithNavIcon name={link.icon} />
               <span>{link.label}</span>
@@ -129,7 +131,7 @@ export function MonolithPrimaryNav({
           ) : null}
           <nav className="monolith-primary-actions" aria-label="Utilities">
             {utilityLinks.map((link) => (
-              <a key={link.label} href="/platform/member/home">
+              <a key={link.label} aria-disabled="true">
                 <span className="monolith-primary-action-icon-wrap">
                   <MonolithNavIcon name={link.icon} />
                   {link.badge && (
@@ -141,8 +143,8 @@ export function MonolithPrimaryNav({
             ))}
             <a
               className="monolith-primary-avatar-link"
-              href="/platform/member/profile"
               aria-label="Profile"
+              aria-disabled="true"
             >
               <img
                 className="monolith-primary-avatar"

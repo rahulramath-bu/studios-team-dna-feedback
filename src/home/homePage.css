@@ -1,0 +1,463 @@
+/* Member homepage. Mirrors the production UME home surface (monolith
+   MemberHome, chat input above the card stack): warm cream base with rubine +
+   purple radial washes, centered greeting, top AI composer, UME list cards. */
+
+.home-shell {
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+  background-image:
+    radial-gradient(
+      48% 44% at 12% 30%,
+      rgba(255, 55, 112, 0.18) 0%,
+      rgba(255, 55, 112, 0) 60%
+    ),
+    radial-gradient(
+      55% 52% at 90% 95%,
+      rgba(153, 19, 232, 0.3) 0%,
+      rgba(153, 19, 232, 0) 62%
+    ),
+    linear-gradient(#fffaf2, #fffaf2);
+  font-family: 'Söhne', system-ui, sans-serif;
+}
+
+.home-scroll {
+  position: relative;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.home-content {
+  display: flex;
+  flex-direction: column;
+  max-width: 1024px;
+  margin: 0 auto;
+  padding: 24px 24px 48px;
+}
+
+/* ── Greeting (centered, orb + heading, no subline) ───────────────────── */
+.home-greeting {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 72px 0 24px;
+  text-align: center;
+}
+
+.home-greeting-orb {
+  width: 56px;
+  height: 56px;
+  flex: none;
+  object-fit: contain;
+  mix-blend-mode: multiply;
+}
+
+.home-greeting h1 {
+  margin: 0;
+  font-family: var(--heading-display-font, 'Ivar Display', Georgia, serif);
+  font-size: 36px;
+  font-weight: 400;
+  line-height: 44px;
+  letter-spacing: 0.02em;
+  color: #1d1925;
+}
+
+/* ── AI composer (top, under the greeting) ────────────────────────────── */
+.home-composer {
+  display: flex;
+  justify-content: center;
+  padding: 12px 0 8px;
+}
+
+.home-composer-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  width: 100%;
+  max-width: 744px;
+  padding: 10px 10px 10px 22px;
+  border: 2px solid rgba(29, 25, 37, 0.1);
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(29, 25, 37, 0.05);
+  cursor: text;
+  font-family: inherit;
+  text-align: left;
+}
+
+.home-composer-placeholder {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 16px;
+  line-height: 24px;
+  letter-spacing: 0.02em;
+  color: #767676;
+}
+
+.home-composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: none;
+}
+
+.home-composer-mic {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  color: #4d4d4d;
+}
+
+.home-composer-voice {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  background: #1d1925;
+  color: #fff;
+}
+
+.home-composer-icon {
+  width: 20px;
+  height: 20px;
+}
+
+/* ── UME list cards ───────────────────────────────────────────────────── */
+.home-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-top: 72px;
+}
+
+.home-card {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  min-height: 120px;
+  overflow: hidden;
+  padding: 16px 24px 16px 16px;
+  border: 2px solid #fff;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 2px 10px rgba(29, 25, 37, 0.04);
+  backdrop-filter: blur(3px);
+  transition: all 200ms ease;
+}
+
+.home-card-thumb {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 112px;
+  height: 112px;
+  flex: none;
+  align-self: center;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.4);
+}
+
+.home-card-thumb-contain {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+/* ── Team DNA scenario thumbs (placeholder art) ───────────────────────── */
+
+/* Mini pair view (viewer + teammate, dashed connector) — mirrors the
+   Team DNA experience tile in AI Coaching. */
+.home-thumb-pair {
+  position: relative;
+  display: block;
+  width: 72px;
+  height: 72px;
+}
+
+.home-thumb-pair-line {
+  position: absolute;
+  top: 47%;
+  left: 50%;
+  width: 42px;
+  height: 0;
+  z-index: 0;
+  border-top: 2px dashed #ce0058;
+  opacity: 0.65;
+  transform: translate(-50%, -50%) rotate(-42deg);
+}
+
+.home-thumb-pair-face {
+  position: absolute;
+  border-radius: 50%;
+  object-fit: cover;
+  background: #fff;
+}
+
+.home-thumb-pair-face--viewer {
+  width: 46px;
+  height: 46px;
+  bottom: 0;
+  left: 0;
+  z-index: 2;
+  border: 2px solid #ce0058;
+  box-shadow: 0 0 0 2.5px #fff;
+}
+
+.home-thumb-pair-face--teammate {
+  width: 31px;
+  height: 31px;
+  top: 1px;
+  right: 1px;
+  z-index: 1;
+  border: 1.5px solid rgba(206, 0, 88, 0.55);
+  box-shadow: 0 0 0 2px #fff;
+}
+
+/* ── Scenario dropdown (demo chrome, extends the persona-menu pattern) ── */
+.home-scenario-menu .monolith-persona-menu-value {
+  max-width: 170px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.home-scenario-menu-pop {
+  min-width: 268px;
+  max-height: min(70vh, 480px);
+  overflow-y: auto;
+}
+
+.home-scenario-menu-group + .home-scenario-menu-group {
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(29, 25, 37, 0.08);
+}
+
+.home-scenario-menu-group-label {
+  margin: 0;
+  padding: 4px 10px 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #9b9b9b;
+}
+
+.home-acme {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  color: #9b9b9b;
+}
+
+.home-acme-mark {
+  width: 44px;
+  height: 38px;
+}
+
+.home-acme-word {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+}
+
+.home-card-content {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+  margin-left: 24px;
+  align-self: center;
+}
+
+.home-card-badges {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.home-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  height: 20px;
+  width: fit-content;
+  padding: 0 8px;
+  border: 1px solid #cdcdcd;
+  border-radius: 10px;
+  background: #fff;
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #4d4d4d;
+}
+
+.home-badge-icon {
+  width: 12px;
+  height: 12px;
+}
+
+/* Filled launch pill, per the production "NEW · TEAM TOOLING" card. */
+.home-badge--new {
+  border-color: #ce0058;
+  background: #ce0058;
+  color: #fff;
+  font-weight: 600;
+}
+
+.home-card-title {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 18px;
+  font-weight: 500;
+  line-height: 24px;
+  letter-spacing: 0.02em;
+  color: #1d1925;
+}
+
+.home-card-subtitle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin: 0;
+  overflow: hidden;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: #767676;
+}
+
+.home-card-subtitle-icon {
+  width: 13px;
+  height: 13px;
+  flex: none;
+}
+
+.home-card-body {
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 14px;
+  line-height: 20px;
+  letter-spacing: 0.02em;
+  color: #4d4d4d;
+}
+
+.home-card-cta {
+  margin-left: 32px;
+  flex: none;
+  align-self: center;
+}
+
+.home-cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 24px;
+  border-radius: 999px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 15px;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  transition: background-color 160ms ease;
+}
+
+.home-cta--primary {
+  border: none;
+  background: #ce0058;
+  color: #fff;
+}
+
+.home-cta--primary:hover {
+  background: #e80063;
+}
+
+.home-cta--secondary {
+  border: 1px solid #1d1925;
+  background: transparent;
+  color: #1d1925;
+}
+
+.home-cta--secondary:hover {
+  background: rgba(0, 0, 0, 0.05);
+}
+
+/* ── AI disclaimer (below the cards, per production) ──────────────────── */
+.home-disclaimer {
+  max-width: 744px;
+  margin: 32px auto 0;
+  text-align: center;
+  font-size: 12px;
+  line-height: 16px;
+  letter-spacing: 0.01em;
+  color: #4d4d4d;
+}
+
+.home-disclaimer strong {
+  font-weight: 600;
+}
+
+.home-disclaimer-link {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-decoration: underline;
+}
+
+@media (max-width: 767px) {
+  .home-greeting {
+    padding-top: 40px;
+  }
+
+  .home-greeting h1 {
+    font-size: 28px;
+    line-height: 36px;
+  }
+
+  .home-cards {
+    margin-top: 40px;
+  }
+
+  .home-card {
+    flex-direction: column;
+  }
+
+  .home-card-content {
+    margin-left: 0;
+    margin-top: 16px;
+  }
+
+  .home-card-cta {
+    margin-left: 0;
+    margin-top: 16px;
+    align-self: flex-start;
+  }
+}

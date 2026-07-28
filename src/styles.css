@@ -181,6 +181,13 @@ button {
   font: inherit;
 }
 
+/* Reserve the scrollbar gutter at all times so centered chrome (the monolith
+   nav) doesn't shift horizontally between scrolling pages (Team) and
+   fixed-height pages (Home, AI Coaching). */
+html {
+  scrollbar-gutter: stable;
+}
+
 .team-dna-page {
   min-height: 100vh;
   background: var(--page-background);
@@ -198,6 +205,11 @@ button {
 }
 
 .monolith-primary-nav {
+  /* Defined here (not just on .monolith-shell-preview) so the nav keeps the
+     same height when rendered standalone on Home / AI Coaching — otherwise
+     the bar collapses slightly and jumps between tabs. */
+  --monolith-nav-height: 70px;
+
   position: sticky;
   top: 0;
   z-index: 70;
@@ -340,6 +352,12 @@ button {
   flex: 1;
   align-items: stretch;
   gap: 12px;
+}
+
+/* Inert stand-in tabs (no real surface behind them in this prototype). */
+.monolith-primary-links a:not([href]),
+.monolith-primary-actions a:not([href]) {
+  cursor: default;
 }
 
 .monolith-primary-links a {
