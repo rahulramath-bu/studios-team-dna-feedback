@@ -186,6 +186,26 @@ function PairThumb() {
   );
 }
 
+/* In-progress thumb (production coaching-plan card pattern): the pair visual
+   with a "remaining" pill and a progress bar along the bottom of the tile. */
+function ProgressThumb({ completed = 3, total = 5 }) {
+  const remaining = total - completed;
+  return (
+    <span className="home-thumb-progress" aria-hidden="true">
+      <PairThumb />
+      <span className="home-thumb-progress-pill">
+        {remaining} remaining
+      </span>
+      <span className="home-thumb-progress-track">
+        <span
+          className="home-thumb-progress-fill"
+          style={{ width: `${Math.round((completed / total) * 100)}%` }}
+        />
+      </span>
+    </span>
+  );
+}
+
 /* ── Team DNA UME card scenarios (Rahul x Sam, Jul 14) ──────────────────────
    Sam: "there may be states — one is for the manager to kick off Team DNA,
    and then for all the direct reports to either complete the assessment or
@@ -220,15 +240,20 @@ const TEAM_DNA_SCENARIOS = [
     },
   },
   {
-    id: 'manager-results',
+    // Between kick-off and results: enough teammates are in to unlock the
+    // team view (3-person minimum), the rest are still pending. Mirrors the
+    // production coaching-plan progress card.
+    id: 'manager-progress',
     group: 'Manager',
-    menuLabel: 'Team results are in',
+    menuLabel: 'Assessments in progress',
+    wip: true,
     card: {
       badgeLabel: 'Team DNA',
-      title: 'Your team\u2019s results are in',
-      body: 'Everyone on your team has shared their Team DNA. See the team\u2019s strengths, growth opportunities, and how you work together.',
-      thumb: 'pair',
-      ctaLabel: 'See team results',
+      title: 'Your Team DNA is taking shape',
+      subtitle: '3 of 5 teammates completed',
+      body: 'Three teammates have shared their Team DNA so far. Take an early look at how your team works, or check back when everyone\u2019s in.',
+      thumb: 'progress',
+      ctaLabel: 'See early insights',
       ctaVariant: 'primary',
       onCta: goTo('/team-dna'),
     },
@@ -249,31 +274,19 @@ const TEAM_DNA_SCENARIOS = [
     },
   },
   {
-    id: 'dr-results',
-    group: 'Direct report',
-    menuLabel: 'Team results are ready',
+    // Same moment for managers and direct reports: everyone's results are in,
+    // so both roles get the identical card.
+    id: 'team-results',
+    group: 'Everyone',
+    menuLabel: 'Team results are in',
     card: {
       badgeLabel: 'Team DNA',
-      title: 'Your team\u2019s DNA is ready',
-      body: 'Everyone on Flighthouse has shared their results. See your team\u2019s strengths and how you work together.',
+      title: 'Your team\u2019s results are in',
+      body: 'Everyone on Flighthouse has shared their Team DNA. See the team\u2019s strengths, growth opportunities, and how you work together.',
       thumb: 'pair',
-      ctaLabel: 'View Team DNA',
+      ctaLabel: 'See team results',
       ctaVariant: 'primary',
       onCta: goTo('/team-dna'),
-    },
-  },
-  {
-    id: 'dr-locked',
-    group: 'Direct report',
-    menuLabel: 'No Team DNA yet',
-    card: {
-      badgeLabel: 'Team DNA',
-      title: 'Get to know your teammates better',
-      body: 'Team DNA shows everyone\u2019s strengths and work styles, and it starts with your manager. Let Sam know you\u2019d like to try it with your team.',
-      thumb: 'tooling',
-      ctaLabel: 'Ask your manager',
-      ctaVariant: 'secondary',
-      onCta: null,
     },
   },
   {
@@ -326,6 +339,8 @@ function renderScenarioThumb(kind) {
   switch (kind) {
     case 'pair':
       return <PairThumb />;
+    case 'progress':
+      return <ProgressThumb completed={3} total={5} />;
     case 'bigfive':
       return (
         <img
@@ -351,6 +366,17 @@ function renderScenarioThumb(kind) {
 
 function TeamDnaScenarioCard({ card }) {
   if (!card) return null;
+
+  const cta = (
+    <button
+      type="button"
+      className={`home-cta home-cta--${card.ctaVariant}`}
+      onClick={card.onCta ?? undefined}
+    >
+      {card.ctaLabel}
+    </button>
+  );
+
   return (
     <HomeCard
       badge={
@@ -367,15 +393,7 @@ function TeamDnaScenarioCard({ card }) {
       subtitle={card.subtitle}
       body={card.body}
       thumb={renderScenarioThumb(card.thumb)}
-      cta={
-        <button
-          type="button"
-          className={`home-cta home-cta--${card.ctaVariant}`}
-          onClick={card.onCta ?? undefined}
-        >
-          {card.ctaLabel}
-        </button>
-      }
+      cta={cta}
     />
   );
 }
@@ -468,6 +486,9 @@ function HomeScenarioMenu({ scenarioId, onSelect }) {
                   }}
                 >
                   {scenario.menuLabel}
+                  {scenario.wip ? (
+                    <span className="home-scenario-menu-wip">WIP</span>
+                  ) : null}
                 </button>
               ))}
             </div>
