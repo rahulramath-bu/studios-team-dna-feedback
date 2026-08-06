@@ -247,6 +247,7 @@ const TEAM_DNA_SCENARIOS = [
     id: 'dr-assessment',
     group: 'Direct report',
     menuLabel: 'Complete your assessment',
+    ready: true,
     card: {
       badgeLabel: 'Team DNA',
       title: 'Sam Ryu invited you to join Flighthouse',
@@ -264,6 +265,7 @@ const TEAM_DNA_SCENARIOS = [
     id: 'team-results',
     group: 'Everyone',
     menuLabel: 'Team results are in',
+    ready: true,
     card: {
       badgeLabel: 'Team DNA',
       title: 'Your team\u2019s results are in',
@@ -278,6 +280,7 @@ const TEAM_DNA_SCENARIOS = [
     id: 'awareness-all',
     group: 'Awareness',
     menuLabel: 'All team tools (new org)',
+    ready: true,
     card: {
       badgeLabel: 'Team Tooling',
       isNew: true,
@@ -293,6 +296,7 @@ const TEAM_DNA_SCENARIOS = [
     id: 'awareness-dna',
     group: 'Awareness',
     menuLabel: 'Team DNA added (has Pulse + Coaching)',
+    ready: true,
     card: {
       badgeLabel: 'Team Tooling',
       isNew: true,
@@ -473,6 +477,11 @@ function HomeScenarioMenu({ scenarioId, onSelect }) {
                   {scenario.menuLabel}
                   {scenario.wip ? (
                     <span className="home-scenario-menu-wip">WIP</span>
+                  ) : null}
+                  {scenario.ready ? (
+                    <span className="home-scenario-menu-ready">
+                      Ready {'\u2713'}
+                    </span>
                   ) : null}
                 </button>
               ))}
