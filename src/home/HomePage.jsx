@@ -225,21 +225,6 @@ const TEAM_DNA_SCENARIOS = [
     card: null,
   },
   {
-    id: 'manager-kickoff',
-    group: 'Manager',
-    menuLabel: 'Kick off Team DNA',
-    card: {
-      badgeLabel: 'Team DNA',
-      isNew: true,
-      title: 'Get to know how your team works',
-      body: 'Invite your team to share their Team DNA. As results come in, you\u2019ll see each person\u2019s strengths and how your team fits together.',
-      thumb: 'tooling',
-      ctaLabel: 'Set up your team',
-      ctaVariant: 'primary',
-      onCta: goTo('/team-dna'),
-    },
-  },
-  {
     // Between kick-off and results: enough teammates are in to unlock the
     // team view (3-person minimum), the rest are still pending. Mirrors the
     // production coaching-plan progress card.
@@ -500,8 +485,10 @@ function HomeScenarioMenu({ scenarioId, onSelect }) {
 }
 
 export function HomePage() {
-  // Sam's stated priority is the manager awareness card, so it leads by default.
-  const [scenarioId, setScenarioId] = useState('manager-kickoff');
+  // Sam's stated priority is manager awareness, so the Team DNA launch card
+  // leads by default. (The old "Kick off Team DNA" card was dropped: it said
+  // the same thing as this awareness card.)
+  const [scenarioId, setScenarioId] = useState('awareness-dna');
   const activeScenario =
     TEAM_DNA_SCENARIOS.find((scenario) => scenario.id === scenarioId) ??
     TEAM_DNA_SCENARIOS[0];
