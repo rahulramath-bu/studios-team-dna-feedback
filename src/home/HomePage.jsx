@@ -248,11 +248,15 @@ const TEAM_DNA_SCENARIOS = [
     group: 'Direct report',
     menuLabel: 'Complete your assessment',
     ready: true,
+    // Generic on purpose (Facundo, Aug 11): the assessment is taken once and
+    // counts for every team, and owners were never "invited", so the card
+    // names no inviter or team. The personal invite moment lives in the email
+    // and the assessment onboarding page instead.
     card: {
       badgeLabel: 'Team DNA',
-      title: 'Sam Ryu invited you to join Flighthouse',
+      title: 'Share your Team DNA',
       subtitle: 'Assessment \u2022 10 mins',
-      body: 'You\u2019ve been added to a team. Answer a few quick questions to unlock how you and your teammates work best together.',
+      body: 'Answer a few quick questions to unlock how you and your teammates work best together.',
       thumb: 'bigfive',
       ctaLabel: 'Start assessment',
       ctaVariant: 'primary',
