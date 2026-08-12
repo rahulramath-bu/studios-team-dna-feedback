@@ -1182,6 +1182,9 @@ export function TeamDnaPage() {
 
     setTeamManagementOverlay(null);
     setShowTeamCreatedConfirmation(false);
+    // Land on the team view directly, same as the create-team flow: the
+    // tap-to-explore intro was a dead end here (nothing told you to click).
+    setSkipIntroGate(true);
     setTeamRecords((current) => ({
       ...current,
       [sampleTeamRecord.id]: sampleRecordState,
