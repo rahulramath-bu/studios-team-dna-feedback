@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Face,
   CoachFootLink,
@@ -237,6 +237,7 @@ export function ConceptFive({
   viewerId,
   isOwnProfile,
   insight,
+  teamName,
   onCoachPrompt,
   onSelectMember,
   onSelectPair,
@@ -283,6 +284,7 @@ export function ConceptFive({
       insight={insight}
       allSubjects={allSubjects}
       viewerId={viewerId}
+      teamName={teamName}
       onCoachPrompt={onCoachPrompt}
       onSelectMember={onSelectMember}
     />
@@ -565,6 +567,7 @@ function OverviewView({
   insight,
   allSubjects,
   viewerId,
+  teamName,
   onCoachPrompt,
   onSelectMember,
 }) {
@@ -601,63 +604,44 @@ function OverviewView({
 
   return (
     <div className="fivex-stack" aria-label="Team profile">
-      {/* 0 · The story in one line: a quiet stepper whose numbers reappear
-          as chapter marks on the sections below, so the agenda and the page
-          are visibly the same thing. */}
-      <nav className="fvx-steps" aria-label="How teams use this page">
-        {[
-          ['01', 'See who you are together', 'fvsec-hero'],
-          ['02', 'Talk through strengths & growth areas', 'fvsec-growth'],
-          ['03', 'Agree how you like to work', 'fvsec-work'],
-        ].map(([num, label, target], index) => (
-          <React.Fragment key={num}>
-            {index > 0 ? (
-              <span className="fvx-step-line" aria-hidden="true" />
-            ) : null}
-            <button
-              type="button"
-              className="fvx-step"
-              onClick={() =>
-                document
-                  .getElementById(target)
-                  ?.scrollIntoView({ behavior: 'smooth', block: 'start' })
-              }
-            >
-              <span className="fvx-step-num">{num}</span>
-              {label}
-            </button>
-          </React.Fragment>
-        ))}
-      </nav>
-
-      {/* 1 · Who you are together. Header outside the cards (same as 02),
-          then the individual profile's exact structure: identity card on
-          the left, spectrum card on the right. */}
+      {/* 1 · Who you are together. Header outside the cards (same as every
+          section), then the individual profile's exact structure: the
+          team's identity card on the left, spectrum card on the right. */}
       <section className="fvg" id="fvsec-hero">
         <p className="fvx-chapnum">01</p>
         <h2 className="fvc-title">Who you are together</h2>
-        <p className="fvc-lead">{summaryText(insight)}</p>
+        <p className="fvc-lead">
+          The team&rsquo;s own profile: what kind of team this is, the roles
+          people naturally play, and where everyone lands on the five traits.
+        </p>
         <div className="fivex-profile">
           <section className="fvc fvc--id">
-            <p className="fvc-kicker">Archetype mix</p>
-            <TeamShapeContributions
-              contributions={contributions}
-              gaps={showGaps ? chem.open : []}
-              onSelectMember={onSelectMember}
-            />
-            {chem.open.length > 0 ? (
-              <button
-                type="button"
-                className="fvh-gaps-toggle"
-                onClick={() => setShowGaps((value) => !value)}
-              >
-                {showGaps
-                  ? 'Hide archetypes nobody covers'
-                  : `Show ${chem.open.length} archetypes nobody covers`}
-              </button>
-            ) : null}
+            <p className="fvc-kicker">Team profile</p>
+            <div className="fvx-persona">
+              <p className="fvx-persona-title">{teamName ?? 'This team'}</p>
+              <p className="fvx-persona-body">{summaryText(insight)}</p>
+            </div>
+            <div className="fvx-fit">
+              <p className="fvc-kicker fvc-kicker--tight">Archetype mix</p>
+              <TeamShapeContributions
+                contributions={contributions}
+                gaps={showGaps ? chem.open : []}
+                onSelectMember={onSelectMember}
+              />
+              {chem.open.length > 0 ? (
+                <button
+                  type="button"
+                  className="fvh-gaps-toggle"
+                  onClick={() => setShowGaps((value) => !value)}
+                >
+                  {showGaps
+                    ? 'Hide archetypes nobody covers'
+                    : `Show ${chem.open.length} archetypes nobody covers`}
+                </button>
+              ) : null}
+            </div>
             <CardFoot
-              prompt="Walk me through my team's archetype mix: what we have, what nobody covers, and what to do about it."
+              prompt="Walk me through my team's profile: what kind of team we are, our archetype mix, and what nobody covers."
               onCoachPrompt={onCoachPrompt}
             />
           </section>
@@ -712,8 +696,8 @@ function OverviewView({
         </div>
       </section>
 
-      {/* 5 · How you like to work. */}
-      <section className="fvc" id="fvsec-work">
+      {/* 5 · How you like to work: header outside, stage in its own card. */}
+      <section className="fvg" id="fvsec-work">
         <p className="fvx-chapnum">03</p>
         <h2 className="fvc-title">How you like to work</h2>
         <p className="fvc-lead">
@@ -722,12 +706,14 @@ function OverviewView({
           once they are said out loud, they are easy to renegotiate. Pick a
           topic to see where everyone stands.
         </p>
-        {/* The section coach foot lives inside the stage: it only shows on
-            views without their own per-item "Dive deeper" links. */}
-        <WorkingStylesStage
-          subjects={allSubjects}
-          onCoachPrompt={onCoachPrompt}
-        />
+        <section className="fvc">
+          {/* The section coach foot lives inside the stage: it only shows
+              on views without their own per-item "Dive deeper" links. */}
+          <WorkingStylesStage
+            subjects={allSubjects}
+            onCoachPrompt={onCoachPrompt}
+          />
+        </section>
       </section>
     </div>
   );

@@ -11349,7 +11349,8 @@ strong.fvx-role--secondary {
 
 .wstage-groups {
   display: grid;
-  gap: 13px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
 }
 
 .wstage-group {
@@ -11416,9 +11417,9 @@ strong.fvx-role--secondary {
 /* The only marker: questions where the team genuinely divides. */
 .wstage-body {
   display: grid;
-  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
-  gap: 48px;
-  align-items: start;
+  grid-template-columns: minmax(0, 8fr) minmax(0, 5fr);
+  gap: 44px;
+  align-items: center;
 }
 
 @media (max-width: 900px) {
@@ -11429,11 +11430,8 @@ strong.fvx-role--secondary {
 
 /* Same field treatment as the map, so the two views read as siblings. */
 .wstage-canvas {
-  align-self: stretch;
-  display: flex;
-  align-items: center;
   min-width: 0;
-  padding: 18px 10px 12px;
+  padding: 26px 12px 18px;
   border: 0.5px solid rgba(0, 0, 0, 0.1);
   border-radius: 12px;
   background: rgba(194, 191, 147, 0.08);
