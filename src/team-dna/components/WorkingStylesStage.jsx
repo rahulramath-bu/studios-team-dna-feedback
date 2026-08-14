@@ -554,13 +554,13 @@ export function WorkingStylesStage({
               />
             </div>
             <div className="wstage-side">
-              {/* The active area's two questions; the tabs above picked
-                  the area. */}
-              <p className="wstage-group-label">Question</p>
+              {/* The active area's two topics; the tabs above picked the
+                  area. */}
+              <p className="wstage-group-label">Topic</p>
               <div
                 className="wstage-group-chips"
                 role="tablist"
-                aria-label="Questions"
+                aria-label="Topics"
               >
                 {activeCategory.items.map((item) => (
                   <button
@@ -582,7 +582,23 @@ export function WorkingStylesStage({
                   <p className="wstage-group-label wstage-insight-label">
                     {focusMembers.length > 0 ? 'Insight' : 'Team insight'}
                   </p>
-                  <p className="wstage-read">{renderEmphasis(readText)}</p>
+                  {focusMembers.length > 0 ? (
+                    <p className="wstage-read">{renderEmphasis(readText)}</p>
+                  ) : (
+                    <>
+                      {/* Same structure as the map: headline, then bullets. */}
+                      <p className="wstage-read">
+                        {renderEmphasis(activeRead.headline)}
+                      </p>
+                      <ul className="wsmap-notes">
+                        {activeRead.bullets.map((bullet, index) => (
+                          <li key={index} className="wsb-read">
+                            {renderEmphasis(bullet)}
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
                   {onCoachPrompt ? (
                     <CoachFootLink
                       label="Dive deeper with AI coach"

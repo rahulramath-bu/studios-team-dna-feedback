@@ -282,37 +282,59 @@ export function getWorkingReport(subjects) {
       const aCount = bins[0] + bins[1];
       const bCount = bins[3] + bins[4];
       const midCount = bins[2];
-      // Reads lead with the room's actual shape — every person accounted
-      // for, including the flexible middle — then the item's stake line
-      // carries the insight. Pole phrases stay **bold**.
-      let read;
+      // Reads come structured like the map's: a headline naming the shape,
+      // then bullets — the room's actual counts (everyone accounted for,
+      // including the flexible middle) and the item's stake line. `read`
+      // keeps the flat one-paragraph version for focused (profile/compare)
+      // contexts.
+      const topic = item.label;
+      let headline;
+      let bullets;
       if (aCount > 0 && bCount > 0 && Math.min(aCount, bCount) >= 2) {
-        read = `${aCount} people here would rather **${item.aWord}**, ${bCount} would rather **${item.bWord}**${
-          midCount > 0 ? `, and ${midCount} flex either way` : ''
-        }. ${item.stake}`;
+        headline = `${topic} is a genuine split: **${item.aPole.toLowerCase()}** against **${item.bPole.toLowerCase()}**.`;
+        bullets = [
+          `**${aCount} people** would rather **${item.aWord}**, **${bCount}** would rather **${item.bWord}**${
+            midCount > 0 ? `, and ${midCount} flex either way` : ''
+          }.`,
+          item.stake,
+        ];
       } else if (aCount > 0 && bCount > 0) {
-        const bigWord = aCount > bCount ? item.aWord : item.bWord;
+        const big = aCount > bCount ? 'a' : 'b';
+        const bigWord = big === 'a' ? item.aWord : item.bWord;
+        const bigPole = big === 'a' ? item.aPole : item.bPole;
         const bigCount = Math.max(aCount, bCount);
-        const smallWord = aCount > bCount ? item.bWord : item.aWord;
-        read = `${bigCount} of ${subjects.length} default to **${bigWord}**, ${
-          midCount > 0 ? `${midCount} flex either way, ` : ''
-        }and one person would still rather **${smallWord}**. ${item.stake}`;
+        const smallWord = big === 'a' ? item.bWord : item.aWord;
+        headline = `${topic} is mostly settled: this room defaults **${bigPole.toLowerCase()}**.`;
+        bullets = [
+          `**${bigCount} of ${subjects.length}** default to **${bigWord}**${
+            midCount > 0 ? `, ${midCount} flex either way,` : ''
+          } and one person would still rather **${smallWord}**.`,
+          item.stake,
+        ];
       } else if (aCount === 0 && bCount === 0) {
-        read = `Nobody here is locked in about ${item.label.toLowerCase()}: everyone flexes with the situation. This one takes care of itself.`;
+        headline = `${topic} takes care of itself here.`;
+        bullets = [
+          `Nobody is locked into one mode: everyone flexes with the situation.`,
+        ];
       } else {
+        const domPole = aCount > 0 ? item.aPole : item.bPole;
         const dominantWord = aCount > 0 ? item.aWord : item.bWord;
         const otherWord = aCount > 0 ? item.bWord : item.aWord;
         const domCount = Math.max(aCount, bCount);
-        read =
+        headline = `${topic} is one culture here: **${domPole.toLowerCase()}**.`;
+        bullets = [
           midCount > 0
-            ? `${domCount} here would rather **${dominantWord}**${
+            ? `**${domCount}** would rather **${dominantWord}**${
                 midCount === 1
-                  ? ' and one more flexes'
-                  : `, and the other ${midCount} flex`
-              } — nobody argues for the “${otherWord}” mode, so bring that lens in on purpose when stakes are high.`
-            : `The whole room would rather **${dominantWord}** — zero friction, and zero pressure-testing. Bring the “${otherWord}” lens in on purpose when stakes are high.`;
+                  ? '; one more flexes'
+                  : `; the other ${midCount} flex`
+              }.`
+            : `The whole room would rather **${dominantWord}**.`,
+          `Nobody argues for the “${otherWord}” mode — bring that lens in on purpose when stakes are high.`,
+        ];
       }
-      return { ...item, bins, aCount, bCount, midCount, read };
+      const read = `${bullets.join(' ')}`;
+      return { ...item, bins, aCount, bCount, midCount, headline, bullets, read };
     }),
   }));
 }
