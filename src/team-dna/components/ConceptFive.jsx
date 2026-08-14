@@ -616,40 +616,31 @@ function OverviewView({
           The team&rsquo;s own profile: what kind of team this is, the roles
           people naturally play, and where everyone lands on the five traits.
         </p>
-        <div className="fvx-hero-stack">
-          {/* Signature card: generated name and summary left, the archetype
-              mix (and what nobody covers) right. */}
-          <section className="fvc">
-            <div className="fvsig">
-              <div className="fvsig-main">
-                <p className="fvc-kicker">Team signature</p>
-                <h3 className="fvsig-title">
-                  {getTeamSignature(allSubjects) ?? teamName}
-                </h3>
-                <p className="fvsig-body">{summaryText(insight)}</p>
-              </div>
-              <div className="fvsig-side">
-                <TeamShapeContributions
-                  contributions={contributions}
-                  onSelectMember={onSelectMember}
-                />
-                {chem.open.length > 0 ? (
-                  <p className="fvsig-open">
-                    Nobody defaults to{' '}
-                    {chem.open
-                      .map((role) => role.singular.toLowerCase())
-                      .join(', ')}
-                    : work that needs them has no natural owner.
-                  </p>
-                ) : null}
-              </div>
+        <div className="fivex-profile">
+          {/* Two cards, same structure as the individual profile. V4's text
+              treatment lives INSIDE this layout: a real serif signature
+              name, comfortable body spacing. */}
+          <section className="fvc fvc--id">
+            <p className="fvc-kicker">Team signature</p>
+            <div className="fvx-persona fvx-persona--lead">
+              <p className="fvx-persona-title fvx-persona-title--sig">
+                {getTeamSignature(allSubjects) ?? teamName}
+              </p>
+              <p className="fvx-persona-body">{summaryText(insight)}</p>
+            </div>
+            <div className="fvx-fit">
+              <p className="fvc-kicker fvc-kicker--tight">Archetype mix</p>
+              <TeamShapeContributions
+                contributions={contributions}
+                onSelectMember={onSelectMember}
+              />
             </div>
             <CardFoot
-              prompt="Walk me through my team's profile: what kind of team we are, our archetype mix, and what nobody covers."
+              prompt="Walk me through my team's profile: what kind of team we are and our archetype mix."
               onCoachPrompt={onCoachPrompt}
             />
           </section>
-          <section className="fvc">
+          <section className="fvc fvc--lands">
             <h2 className="fvc-title">Where everyone lands</h2>
             <p className="fvc-lead">{traitsLead}</p>
             <TraitRows
