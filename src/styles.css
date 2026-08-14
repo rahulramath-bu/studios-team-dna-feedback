@@ -335,6 +335,28 @@ html {
   font-weight: 600;
 }
 
+.demo-new-pill {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 8px;
+  padding: 2px 6px;
+  border-radius: 999px;
+  background: rgba(31, 138, 84, 0.14);
+  color: #1f8a54;
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.demo-new-pill--toggle {
+  margin-left: 6px;
+  padding: 1px 5px;
+  font-size: 8px;
+}
+
 .monolith-persona-menu-sep {
   height: 1px;
   margin: 5px 6px;
@@ -11282,11 +11304,6 @@ strong.fvx-role--secondary {
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
-/* Map: only the toggle up top, so the tab divider goes. */
-.wstage-top[data-plain] {
-  border-bottom: 0;
-  margin-bottom: 10px;
-}
 
 /* Demo annotation: label OUTSIDE the card, in the right gutter; the arrow
    runs from the text down-left onto the MAP pill. */
@@ -11508,12 +11525,13 @@ strong.fvx-role--secondary {
   display: grid;
   gap: 10px;
   justify-items: start;
-  max-width: 520px;
+  max-width: 450px;
+  margin: 0 16px 0 8px;
 }
 
 /* Coach exit under the insight, clearly separated (same as the stage). */
 .wsmap-side .info-block-coach-link {
-  margin-top: 26px;
+  margin-top: 38px;
 }
 
 /* Quiet how-to next to the TEAM INSIGHT label. */
@@ -11540,7 +11558,7 @@ strong.fvx-role--secondary {
 }
 
 .wsmap-side .wsmap-insight-label {
-  margin-top: 44px;
+  margin-top: 58px;
 }
 
 /* Shared insight-voice text for the working-style views. */

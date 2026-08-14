@@ -45,7 +45,7 @@ import { ConceptFive } from './ConceptFive.jsx';
 /* The two variations that matter, then the runner-ups behind a submenu. */
 const PRIMARY_VARIATIONS = [
   { id: 'original', menuLabel: 'Original' },
-  { id: 'five', menuLabel: 'V5' },
+  { id: 'five', menuLabel: 'V5', isNew: true },
 ];
 
 const DISCARDED_VARIATIONS = [
@@ -140,6 +140,9 @@ export function PageVariationMenu({ variationId, onSelect }) {
               onClick={() => pick(variation.id)}
             >
               {variation.menuLabel}
+              {variation.isNew ? (
+                <span className="demo-new-pill">New</span>
+              ) : null}
             </button>
           ))}
           <div className="monolith-persona-menu-sep" role="separator" />

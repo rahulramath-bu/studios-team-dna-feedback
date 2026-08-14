@@ -519,10 +519,7 @@ export function WorkingStylesStage({
     <div className="wstage" data-compact={subjects.length <= 3 || undefined}>
       {/* One row: the five areas as tabs (stage view), chart switcher right. */}
       {!compactView || showViews ? (
-        <div
-          className="wstage-top"
-          data-plain={compactView === 'map' || undefined}
-        >
+        <div className="wstage-top">
           {!compactView ? (
             <div className="wstage-tabs" role="tablist" aria-label="Areas">
               {WORKING_STYLE_CATEGORIES.map((category) => (
@@ -563,6 +560,11 @@ export function WorkingStylesStage({
                   onClick={() => setView(id)}
                 >
                   {label}
+                  {id === 'map' ? (
+                    <span className="demo-new-pill demo-new-pill--toggle">
+                      New
+                    </span>
+                  ) : null}
                 </button>
               ))}
             </div>
