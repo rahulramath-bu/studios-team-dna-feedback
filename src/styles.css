@@ -9588,64 +9588,50 @@ button.team-management-row {
   margin: 0;
 }
 
-/* ── V5 hero: signature card over the full-width spectrum card ─────────── */
+/* ── V5 hero: two cards on the profile grid; V4's text treatment ────────── */
 
-.fvx-hero-stack {
-  display: grid;
-  gap: 16px;
-  margin-top: 24px;
+/* The signature name reads like a real title, not a label. */
+.fvx-persona-title--sig {
+  font-size: 24px;
+  line-height: 31px;
 }
 
-.fvsig {
-  display: grid;
-  grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-  gap: 56px;
-  align-items: start;
-}
-
-@media (max-width: 900px) {
-  .fvsig {
-    grid-template-columns: 1fr;
-    gap: 28px;
-  }
-}
-
-.fvsig-title {
-  margin: 16px 0 0;
-  color: #1e1a26;
-  font-family: var(--heading-display-font);
-  font-size: 27px;
-  font-weight: 400;
-  line-height: 34px;
-}
-
-.fvsig-body {
-  margin: 12px 0 0;
-  color: #1e1a26;
+.fvx-persona--lead .fvx-persona-body {
+  margin-top: 12px;
   font-size: 14.5px;
-  letter-spacing: 0.1px;
   line-height: 22px;
 }
 
-.fvsig-side {
-  padding-top: 6px;
-}
-
-.fvsig-side .team-shape-block {
+.fvc--id .team-shape-block {
   margin: 0;
 }
 
-.fvsig-side .team-shape-contribution-copy strong {
+.fvc--id .team-shape-contribution-copy {
+  font-size: 13.5px;
+}
+
+.fvc--id .team-shape-contribution-copy strong {
   color: #1e1a26;
   font-weight: 600;
 }
 
-.fvsig-open {
-  margin: 14px 0 0;
-  color: #717070;
-  font-size: 12.5px;
-  letter-spacing: 0.1px;
-  line-height: 18px;
+/* Trait rows tightened to fit the right-hand card. */
+.fvc--lands .fva-row,
+.fvc--lands .fva-detail {
+  grid-template-columns: 118px 56px minmax(0, 1fr) 56px 28px;
+  column-gap: 12px;
+}
+
+.fvc--lands .fva-name {
+  font-size: 13.5px;
+}
+
+.fvc--lands .fva-insight {
+  grid-column: 2 / 5;
+}
+
+.fvc--lands .fva-rows {
+  margin-top: 16px;
 }
 
 /* Accordion rows: name, mini distribution, state, number, chevron. */
