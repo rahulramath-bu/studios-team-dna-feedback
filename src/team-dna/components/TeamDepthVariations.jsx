@@ -669,6 +669,7 @@ export function TeamDepthPage({
         viewerId={viewerId}
         isOwnProfile={isOwnProfile}
         insight={insight}
+        teamName={teamName}
         onCoachPrompt={onCoachPrompt}
         onSelectMember={onSelectMember}
         onSelectPair={onSelectPair}

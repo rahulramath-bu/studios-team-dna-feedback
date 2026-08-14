@@ -335,9 +335,9 @@ export function WorkingStylesStage({
   // Stable geometry: the tallest stack across every question fixes the
   // stage height so nothing jumps between questions.
   const geometry = useMemo(() => {
-    // Sized to fill the map-width left column edge to edge, so the faces
-    // render at the same scale as the map's.
-    const width = 460;
+    // Sized to fill the wider stage column edge to edge, so the faces
+    // render near the map's scale.
+    const width = 560;
     const radius = 12;
     const gap = 5;
     let maxStack = 1;
