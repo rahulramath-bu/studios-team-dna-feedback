@@ -80,6 +80,9 @@ export function DemoFlowPage({ onNavigate }) {
   const [activeIndex, setActiveIndex] = useState(0);
   const [surfaceIndex, setSurfaceIndex] = useState(0);
   const [isPinnedOpen, setIsPinnedOpen] = useState(false);
+  // Closing removes the whole remote (handle included) until reload, so a
+  // customer session can watch the surface without demo chrome.
+  const [isDismissed, setIsDismissed] = useState(false);
   const activeMoment = demoFlowMoments[activeIndex];
   const surfaceMoment = demoFlowMoments[surfaceIndex];
   const activeSurfaceUrl = useMemo(
@@ -131,6 +134,7 @@ export function DemoFlowPage({ onNavigate }) {
         />
       </section>
 
+      {isDismissed ? null : (
       <aside
         className="team-dna-demo-flow-remote"
         data-expanded={isPinnedOpen || undefined}
@@ -160,14 +164,26 @@ export function DemoFlowPage({ onNavigate }) {
               <i aria-hidden="true">·</i>
               {activeMoment.phase}
             </span>
-            <button
-              type="button"
-              className="team-dna-demo-flow-home"
-              onClick={goHome}
-              aria-label="Back to hub"
-            >
-              <BetterUpIcon name="Home" size={15} strokeWidth={2} />
-            </button>
+            <span className="team-dna-demo-flow-topbtns">
+              <button
+                type="button"
+                className="team-dna-demo-flow-home"
+                onClick={goHome}
+                aria-label="Back to hub"
+                title="Back to hub"
+              >
+                <BetterUpIcon name="Home" size={15} strokeWidth={2} />
+              </button>
+              <button
+                type="button"
+                className="team-dna-demo-flow-home"
+                onClick={() => setIsDismissed(true)}
+                aria-label="Close this demo flow"
+                title="Close this demo flow"
+              >
+                <BetterUpIcon name="X" size={15} strokeWidth={2} />
+              </button>
+            </span>
           </p>
           <h1>{activeMoment.title}</h1>
           <span>
@@ -213,6 +229,7 @@ export function DemoFlowPage({ onNavigate }) {
           </button>
         </div>
       </aside>
+      )}
     </main>
   );
 }

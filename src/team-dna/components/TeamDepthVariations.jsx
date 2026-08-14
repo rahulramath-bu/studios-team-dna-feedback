@@ -42,7 +42,11 @@ import { ConceptFive } from './ConceptFive.jsx';
  *             face-selection interaction; the other lenses use the space.
  */
 
-/* The two variations that matter, then the runner-ups behind a submenu. */
+/* The two variations that matter, then the runner-ups behind a submenu.
+   Customer-facing branches flip SHOW_DISCARDED off so only Original and V5
+   are reachable. */
+const SHOW_DISCARDED = true;
+
 const PRIMARY_VARIATIONS = [
   { id: 'original', menuLabel: 'Original' },
   { id: 'five', menuLabel: 'V5', isNew: true },
@@ -145,6 +149,8 @@ export function PageVariationMenu({ variationId, onSelect }) {
               ) : null}
             </button>
           ))}
+          {SHOW_DISCARDED ? (
+          <>
           <div className="monolith-persona-menu-sep" role="separator" />
           {/* Runner-up concepts, one hover away. */}
           <div
@@ -194,6 +200,8 @@ export function PageVariationMenu({ variationId, onSelect }) {
               </div>
             ) : null}
           </div>
+          </>
+          ) : null}
         </div>
       ) : null}
     </div>

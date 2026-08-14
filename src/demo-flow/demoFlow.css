@@ -168,6 +168,11 @@
   color: rgba(29, 25, 37, 0.32);
 }
 
+.team-dna-demo-flow-topbtns {
+  display: inline-flex;
+  gap: 8px;
+}
+
 .team-dna-demo-flow-home {
   display: grid;
   width: 30px;
