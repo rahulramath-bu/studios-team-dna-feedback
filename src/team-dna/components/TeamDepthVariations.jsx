@@ -42,12 +42,13 @@ import { ConceptFive } from './ConceptFive.jsx';
  *             face-selection interaction; the other lenses use the space.
  */
 
-/* Share build: the new team view is the default; the original stays
-   reachable for comparison. Retired explorations (expanded/map/tabs/one)
-   are out of the menu but still in the codebase. */
 export const PAGE_VARIATIONS = [
-  { id: 'five', menuLabel: 'New team view' },
   { id: 'original', menuLabel: 'Original' },
+  { id: 'expanded', menuLabel: '1 \u00b7 Expanded' },
+  { id: 'map', menuLabel: '2 \u00b7 The Map' },
+  { id: 'tabs', menuLabel: '3 \u00b7 Four tabs' },
+  { id: 'one', menuLabel: '4 \u00b7 One system' },
+  { id: 'five', menuLabel: '5 \u00b7 V5' },
 ];
 
 /* Concepts that fully replace the read (every scope). 'expanded' augments

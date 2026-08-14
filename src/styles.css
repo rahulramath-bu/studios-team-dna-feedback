@@ -9588,77 +9588,45 @@ button.team-management-row {
   margin: 0;
 }
 
-/* ── V5 hero: archetype mix left, trait rows right, one section ─────────── */
+/* ── V5 hero: two cards, same structure as the individual profile ──────── */
 
-.fvx-hero2 {
-  display: grid;
-  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
-  gap: 0 48px;
-  align-items: start;
+/* The archetype card centers its content like the profile identity card;
+   the mix block reads compact inside it. */
+.fvc--id .team-shape-block {
+  margin: 0;
 }
 
-@media (max-width: 900px) {
-  .fvx-hero2 {
-    grid-template-columns: 1fr;
-    row-gap: 32px;
-  }
+.fvc--id .fvh-gaps-toggle {
+  align-self: flex-start;
+  text-align: left;
 }
 
-/* The left column keeps the compact archetype styles from onex-hero-side
-   but sheds its divider: the hairline now separates the trait rows. */
-.fvx-hero2 .fvx-hero2-left {
-  padding-top: 0;
-  padding-left: 0;
-  border-left: 0;
-}
-
-.fvx-hero2-left .fvc-kicker {
-  margin-top: 28px;
-}
-
-.fvx-hero2-right {
-  padding-top: 6px;
-  padding-left: 48px;
-  border-left: 0.5px solid rgba(0, 0, 0, 0.08);
-}
-
-@media (max-width: 900px) {
-  .fvx-hero2-right {
-    padding-left: 0;
-    border-left: 0;
-  }
-}
-
-.fvx-hero2-right .fvc-def {
-  max-width: none;
-  color: #4d4d4d;
-  font-size: 14px;
-  line-height: 21px;
-}
-
-.fvx-hero2-right .fva-rows {
-  margin-top: 14px;
-}
-
-/* Tighter trait rows inside the split column. */
-.fvx-hero2-right .fva-row {
-  grid-template-columns: 118px 56px minmax(0, 1fr) 56px 28px;
-  gap: 12px;
-}
-
-.fvx-hero2-right .fva-name {
+.fvc--id .team-shape-contribution-copy {
   font-size: 13.5px;
 }
 
-/* The expanded insight matches the compact grid and spans wide enough
-   to read comfortably in the split column. */
-.fvx-hero2-right .fva-detail {
+.fvc--id .team-shape-contribution-copy strong {
+  color: #1e1a26;
+  font-weight: 600;
+}
+
+/* Trait rows tightened to fit the right-hand card. */
+.fvc--lands .fva-row,
+.fvc--lands .fva-detail {
   grid-template-columns: 118px 56px minmax(0, 1fr) 56px 28px;
   column-gap: 12px;
 }
 
-.fvx-hero2-right .fva-insight {
+.fvc--lands .fva-name {
+  font-size: 13.5px;
+}
+
+.fvc--lands .fva-insight {
   grid-column: 2 / 5;
+}
+
+.fvc--lands .fva-rows {
+  margin-top: 16px;
 }
 
 /* Accordion rows: name, mini distribution, state, number, chevron. */
@@ -11380,16 +11348,13 @@ strong.fvx-role--secondary {
 }
 
 .wstage-groups {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 16px 40px;
-  padding-bottom: 18px;
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+  display: grid;
+  gap: 13px;
 }
 
 .wstage-group {
   display: grid;
-  gap: 9px;
+  gap: 7px;
   align-content: start;
 }
 
@@ -11451,10 +11416,9 @@ strong.fvx-role--secondary {
 /* The only marker: questions where the team genuinely divides. */
 .wstage-body {
   display: grid;
-  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
   gap: 48px;
-  align-items: center;
-  margin-top: 8px;
+  align-items: start;
 }
 
 @media (max-width: 900px) {
@@ -11463,15 +11427,23 @@ strong.fvx-role--secondary {
   }
 }
 
-.wstage-stage {
+/* Same field treatment as the map, so the two views read as siblings. */
+.wstage-canvas {
+  align-self: stretch;
+  display: flex;
+  align-items: center;
   min-width: 0;
+  padding: 18px 10px 12px;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(194, 191, 147, 0.08);
 }
 
 .wstage-side {
   display: grid;
   justify-items: start;
   gap: 10px;
-  max-width: 400px;
+  max-width: 420px;
 }
 
 .wstage-side .wstage-read {
@@ -11480,6 +11452,10 @@ strong.fvx-role--secondary {
 
 .wstage-side .info-block-coach-link {
   margin-top: 4px;
+}
+
+.wstage-side .wstage-insight-label {
+  margin-top: 30px;
 }
 
 .wstage-svg {

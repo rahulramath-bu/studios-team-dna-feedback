@@ -335,7 +335,9 @@ export function WorkingStylesStage({
   // Stable geometry: the tallest stack across every question fixes the
   // stage height so nothing jumps between questions.
   const geometry = useMemo(() => {
-    const width = 720;
+    // Sized to fill the map-width left column edge to edge, so the faces
+    // render at the same scale as the map's.
+    const width = 460;
     const radius = 12;
     const gap = 5;
     let maxStack = 1;
@@ -353,8 +355,8 @@ export function WorkingStylesStage({
       radius,
       gap,
       baseline,
-      height: baseline + 30,
-      x: d3.scalePoint().domain(BUCKET_ORDER).range([70, width - 70]),
+      height: baseline + 38,
+      x: d3.scalePoint().domain(BUCKET_ORDER).range([52, width - 52]),
     };
   }, [subjects]);
 
@@ -507,36 +509,10 @@ export function WorkingStylesStage({
         <WorkingMap subjects={subjects} />
       ) : (
         <>
-          {/* Questions grouped under the four HTP areas, so the taxonomy
-              from the working-styles model is visible, not flattened away. */}
-          <div className="wstage-groups" role="tablist" aria-label="Questions">
-            {WORKING_STYLE_CATEGORIES.map((category) => (
-              <div className="wstage-group" key={category.key}>
-                <p className="wstage-group-label" title={category.sub}>
-                  {category.label}
-                </p>
-                <div className="wstage-group-chips">
-                  {category.items.map((item) => (
-                    <button
-                      key={item.key}
-                      type="button"
-                      role="tab"
-                      aria-selected={activeKey === item.key}
-                      className="wstage-row"
-                      data-active={activeKey === item.key || undefined}
-                      title={`${capitalize(item.aWord)}, or ${item.bWord}?`}
-                      onClick={() => setActiveKey(item.key)}
-                    >
-                      <span className="wstage-row-label">{item.label}</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
-          {/* Visual on the left; the insight beside it on the right. */}
+          {/* Same skeleton as the map: the visual owns the left, the topic
+              picker and the insight stack on the right. */}
           <div className="wstage-body">
-            <div className="wstage-stage">
+            <div className="wstage-canvas">
               <svg
                 ref={svgRef}
                 viewBox={`0 0 ${geometry.width} ${geometry.height}`}
@@ -545,21 +521,54 @@ export function WorkingStylesStage({
                 aria-label={`${active.label} distribution`}
               />
             </div>
-            {readText ? (
-              <div className="wstage-side">
-                <p className="wstage-group-label">
-                  {focusMembers.length > 0 ? 'Insight' : 'Team insight'}
-                </p>
-                <p className="wstage-read">{renderEmphasis(readText)}</p>
-                {onCoachPrompt ? (
-                  <CoachFootLink
-                    label="Dive deeper with AI coach"
-                    prompt={`On "${active.label}", ${String(readText).replace(/\*\*/g, '')} How do we turn this into a working agreement?`}
-                    onCoachPrompt={onCoachPrompt}
-                  />
-                ) : null}
+            <div className="wstage-side">
+              <div
+                className="wstage-groups"
+                role="tablist"
+                aria-label="Questions"
+              >
+                {WORKING_STYLE_CATEGORIES.map((category) => (
+                  <div className="wstage-group" key={category.key}>
+                    <p className="wstage-group-label" title={category.sub}>
+                      {category.label}
+                    </p>
+                    <div className="wstage-group-chips">
+                      {category.items.map((item) => (
+                        <button
+                          key={item.key}
+                          type="button"
+                          role="tab"
+                          aria-selected={activeKey === item.key}
+                          className="wstage-row"
+                          data-active={activeKey === item.key || undefined}
+                          title={`${capitalize(item.aWord)}, or ${item.bWord}?`}
+                          onClick={() => setActiveKey(item.key)}
+                        >
+                          <span className="wstage-row-label">
+                            {item.label}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
               </div>
-            ) : null}
+              {readText ? (
+                <>
+                  <p className="wstage-group-label wstage-insight-label">
+                    {focusMembers.length > 0 ? 'Insight' : 'Team insight'}
+                  </p>
+                  <p className="wstage-read">{renderEmphasis(readText)}</p>
+                  {onCoachPrompt ? (
+                    <CoachFootLink
+                      label="Dive deeper with AI coach"
+                      prompt={`On "${active.label}", ${String(readText).replace(/\*\*/g, '')} How do we turn this into a working agreement?`}
+                      onCoachPrompt={onCoachPrompt}
+                    />
+                  ) : null}
+                </>
+              ) : null}
+            </div>
           </div>
         </>
       )}
@@ -613,15 +622,28 @@ function positionMembers(svg, subjects, item, geometry, focusIds, animate) {
     return `translate(${spot.x}, ${spot.y})`;
   });
 
+  // Two-line tags (modifier over pole word) so neighbours never collide;
+  // every pole word shares the second baseline.
   const tags = {
-    5: `Strongly ${item.aPole}`,
-    4: `Leans ${item.aPole}`,
-    3: 'Flexible',
-    2: `Leans ${item.bPole}`,
-    1: `Strongly ${item.bPole}`,
+    5: ['Strongly', item.aPole],
+    4: ['Leans', item.aPole],
+    3: ['', 'Flexible'],
+    2: ['Leans', item.bPole],
+    1: ['Strongly', item.bPole],
   };
   svg.selectAll('.wst-tag').each(function setTag() {
     const node = d3.select(this);
-    node.text(tags[node.attr('data-bucket')].toUpperCase());
+    const [mod, word] = tags[node.attr('data-bucket')];
+    const anchorX = node.attr('x');
+    node.selectAll('tspan').remove();
+    node.text(null);
+    if (mod) {
+      node.append('tspan').attr('x', anchorX).text(mod.toUpperCase());
+    }
+    node
+      .append('tspan')
+      .attr('x', anchorX)
+      .attr('dy', 9)
+      .text(word.toUpperCase());
   });
 }

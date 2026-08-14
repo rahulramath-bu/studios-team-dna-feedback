@@ -466,19 +466,6 @@ function TraitRows({
 /* What to DO with a team strength, keyed by trait pole. Written as moves a
    manager or member could take this week: one line each, same rhythm as the
    discussion questions. */
-const STRENGTH_MOVES = {
-  'openness:high': 'Route new, ambiguous problems to this room first.',
-  'openness:low': 'Use this room to test plans against what has worked.',
-  'conscientiousness:high': 'Hand this team the work with hard deadlines.',
-  'conscientiousness:low': 'Put this team where priorities shift weekly.',
-  'extraversion:high': 'Work the big questions live, in the room.',
-  'extraversion:low': 'Send material ahead; thinking here starts early.',
-  'agreeableness:high': 'Route changes that need buy-in through this team.',
-  'agreeableness:low': 'Bring proposals here before they ship.',
-  'neuroticism:high': 'Ask what could go wrong before committing.',
-  'neuroticism:low': 'Lean on this room when things get tense.',
-};
-
 /* One conversation-starter per strength pattern: strengths should prompt
    discussion too, not just usage tips. */
 const STRENGTH_QUESTIONS = {
@@ -599,20 +586,17 @@ function OverviewView({
   );
   const traitsLead = getTraitsLead(strips);
 
-  // Two claims per card, then bullets. Both cards prompt conversation:
-  // strengths get usage moves AND discussion questions, growth areas get
-  // discussion questions.
-  const strengthMoves = chem.strengths
-    .map((item) => STRENGTH_MOVES[itemKey(item)])
-    .filter(Boolean)
-    .slice(0, 2);
-  const strengthQuestions = chem.strengths
-    .map((item) => STRENGTH_QUESTIONS[itemKey(item)])
-    .filter(Boolean)
-    .slice(0, 2);
+  // Two claims per card, then ONE group of three questions each: both
+  // cards prompt conversation the same way, only the heading differs.
+  const strengthQuestions = [
+    ...chem.strengths
+      .map((item) => STRENGTH_QUESTIONS[itemKey(item)])
+      .filter(Boolean),
+    'Which current project would benefit most from these strengths?',
+  ].slice(0, 3);
   const growthQuestions = [
     ...chem.watchOuts.map((item) => GROWTH_QUESTIONS[itemKey(item)]).filter(Boolean),
-    'Which of these would bite first on the current work? Start there.',
+    'Which of these would bite first on the current work?',
   ].slice(0, 3);
 
   return (
@@ -646,20 +630,16 @@ function OverviewView({
         ))}
       </nav>
 
-      {/* 1 · Who you are together: one contained block. Archetype mix on
-          the left says WHO this team is; the trait rows on the right show
-          WHERE that reading comes from. */}
-      <section className="fvc" id="fvsec-hero">
-        <div className="fvx-hero2">
-          <div className="fvx-hero2-left onex-hero-side">
-            <p className="fvx-chapnum">01</p>
-            <h2 className="fvc-title">Who you are together</h2>
-            <p className="fvc-lead">{summaryText(insight)}</p>
-            <p className="fvc-kicker fvc-kicker--tight">Archetype mix</p>
-            <p className="fvc-def">
-              Each person is grouped by their strongest trait: the role they
-              naturally play on this team.
-            </p>
+      {/* 1 · Who you are together. Header outside the cards (same as 02),
+          then the individual profile's exact structure: identity card on
+          the left, spectrum card on the right. */}
+      <section className="fvg" id="fvsec-hero">
+        <p className="fvx-chapnum">01</p>
+        <h2 className="fvc-title">Who you are together</h2>
+        <p className="fvc-lead">{summaryText(insight)}</p>
+        <div className="fivex-profile">
+          <section className="fvc fvc--id">
+            <p className="fvc-kicker">Archetype mix</p>
             <TeamShapeContributions
               contributions={contributions}
               gaps={showGaps ? chem.open : []}
@@ -676,22 +656,26 @@ function OverviewView({
                   : `Show ${chem.open.length} archetypes nobody covers`}
               </button>
             ) : null}
-          </div>
-          <div className="fvx-hero2-right">
-            <p className="fvc-kicker fvc-kicker--tight">Where everyone lands</p>
-            <p className="fvc-def">{traitsLead}</p>
+            <CardFoot
+              prompt="Walk me through my team's archetype mix: what we have, what nobody covers, and what to do about it."
+              onCoachPrompt={onCoachPrompt}
+            />
+          </section>
+          <section className="fvc fvc--lands">
+            <h2 className="fvc-title">Where everyone lands</h2>
+            <p className="fvc-lead">{traitsLead}</p>
             <TraitRows
               strips={orderedStrips}
               reads={traitReads}
               viewerId={viewerId}
               onSelectMember={onSelectMember}
             />
-          </div>
+            <CardFoot
+              prompt="Walk me through where my team is clustered and where we're spread out on each trait."
+              onCoachPrompt={onCoachPrompt}
+            />
+          </section>
         </div>
-        <CardFoot
-          prompt="Walk me through my team's profile: our archetype mix, where we cluster and where we spread on each trait, and what nobody covers."
-          onCoachPrompt={onCoachPrompt}
-        />
       </section>
 
       {/* 4 · What to lean on, what to watch. */}
@@ -707,10 +691,10 @@ function OverviewView({
             label="Team strengths"
             tone="strength"
             items={chem.strengths}
-            actions={[
-              { label: 'Ways to use these strengths', bullets: strengthMoves },
-              { label: 'Discussion questions', bullets: strengthQuestions },
-            ]}
+            actions={{
+              label: 'How will you use these strengths?',
+              bullets: strengthQuestions,
+            }}
             coachPrompt="How do we put my team's strengths to work on our current projects?"
             onCoachPrompt={onCoachPrompt}
           />
@@ -718,7 +702,10 @@ function OverviewView({
             label="Growth areas"
             tone="growth"
             items={chem.watchOuts}
-            actions={{ label: 'Discussion questions', bullets: growthQuestions }}
+            actions={{
+              label: 'How will you tackle these growth areas?',
+              bullets: growthQuestions,
+            }}
             coachPrompt="Help me run a team conversation about our growth areas, starting from these discussion questions."
             onCoachPrompt={onCoachPrompt}
           />
