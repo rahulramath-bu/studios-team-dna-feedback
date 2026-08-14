@@ -560,11 +560,6 @@ export function WorkingStylesStage({
                   onClick={() => setView(id)}
                 >
                   {label}
-                  {id === 'map' ? (
-                    <span className="demo-new-pill demo-new-pill--toggle">
-                      New
-                    </span>
-                  ) : null}
                 </button>
               ))}
             </div>
