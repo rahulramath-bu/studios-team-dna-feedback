@@ -548,14 +548,11 @@ export function TeamDnaPage() {
   const [pageVariation, setPageVariation] = useState(() => {
     try {
       const stored = sessionStorage.getItem('teamDnaPageVariation');
-      // Retired variation ids may linger in the session; fall back cleanly.
-      return ['original', 'expanded', 'map', 'tabs', 'one', 'five'].includes(
-        stored
-      )
-        ? stored
-        : 'original';
+      // Share build: the new team view is the default. Retired variation
+      // ids may linger in the session; fall back cleanly.
+      return ['original', 'five'].includes(stored) ? stored : 'five';
     } catch {
-      return 'original';
+      return 'five';
     }
   });
   const selectPageVariation = (id) => {

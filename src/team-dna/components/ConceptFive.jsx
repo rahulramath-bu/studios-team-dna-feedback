@@ -361,26 +361,19 @@ function claimLine(text = '') {
  * and the insight sits directly under that column so everything between
  * the two poles stays aligned.
  */
-function TraitSection({
-  title,
-  lead,
+function TraitRows({
   strips,
   reads,
   viewerId,
   onSelectMember,
   defaultOpenKey = null,
-  prompt,
-  onCoachPrompt,
 }) {
   // Per-row accordion: the insight opens directly under its own trait, and
   // the chevron doubles as the collapse control. Row height is fixed, so
   // opening only reveals the insight line below the strip.
   const [openKey, setOpenKey] = useState(defaultOpenKey);
   return (
-    <section className="fvc">
-      <h2 className="fvc-title">{title}</h2>
-      <p className="fvc-lead">{lead}</p>
-      <div className="fva-rows">
+    <div className="fva-rows">
         {strips.map((strip) => {
           const open = openKey === strip.trait.key;
           const scores = strip.members.map(({ score }) => score);
@@ -466,9 +459,7 @@ function TraitSection({
             </div>
           );
         })}
-      </div>
-      <CardFoot prompt={prompt} onCoachPrompt={onCoachPrompt} />
-    </section>
+    </div>
   );
 }
 
@@ -486,6 +477,31 @@ const STRENGTH_MOVES = {
   'agreeableness:low': 'Bring proposals here before they ship.',
   'neuroticism:high': 'Ask what could go wrong before committing.',
   'neuroticism:low': 'Lean on this room when things get tense.',
+};
+
+/* One conversation-starter per strength pattern: strengths should prompt
+   discussion too, not just usage tips. */
+const STRENGTH_QUESTIONS = {
+  'openness:high':
+    'Which current problem deserves a genuinely new approach from us?',
+  'openness:low':
+    'Which proven playbook of ours should we double down on right now?',
+  'conscientiousness:high':
+    'Which commitment matters most to protect this quarter?',
+  'conscientiousness:low':
+    'Where has our flexibility saved a project recently, and how do we repeat it?',
+  'extraversion:high':
+    'Which stalled question should we just talk out live this week?',
+  'extraversion:low':
+    'Which decision deserves a written round of thinking before we meet?',
+  'agreeableness:high':
+    'Where would early buy-in change the outcome of our current work?',
+  'agreeableness:low':
+    'Which plan needs our toughest pre-ship critique next?',
+  'neuroticism:high':
+    'What risk have we spotted that nobody has written down yet?',
+  'neuroticism:low':
+    'Which high-pressure moment ahead should we volunteer for?',
 };
 
 /* One discussion question per growth pattern, for the team to answer
@@ -534,16 +550,19 @@ function ListCard({ label, tone, items, actions, coachPrompt, onCoachPrompt }) {
           <p className="fvl-line">{claimLine(item.body)}</p>
         </div>
       ))}
-      {actions?.bullets?.length ? (
-        <div className="fvl-actions">
-          <p className="fvl-actions-label">{actions.label}</p>
-          <ul className="fvl-bullets">
-            {actions.bullets.map((bullet) => (
-              <li key={bullet}>{bullet}</li>
-            ))}
-          </ul>
-        </div>
-      ) : null}
+      {[]
+        .concat(actions ?? [])
+        .filter((group) => group?.bullets?.length)
+        .map((group) => (
+          <div className="fvl-actions" key={group.label}>
+            <p className="fvl-actions-label">{group.label}</p>
+            <ul className="fvl-bullets">
+              {group.bullets.map((bullet) => (
+                <li key={bullet}>{bullet}</li>
+              ))}
+            </ul>
+          </div>
+        ))}
       {coachPrompt ? (
         <div className="fvl-foot">
           <CoachFootLink prompt={coachPrompt} onCoachPrompt={onCoachPrompt} />
@@ -580,12 +599,17 @@ function OverviewView({
   );
   const traitsLead = getTraitsLead(strips);
 
-  // Two claims per card, then three bullets: moves for the strengths,
-  // discussion questions for the growth areas.
-  const strengthMoves = [
-    ...chem.strengths.map((item) => STRENGTH_MOVES[itemKey(item)]).filter(Boolean),
-    'Pick one live project and name where these show up.',
-  ].slice(0, 3);
+  // Two claims per card, then bullets. Both cards prompt conversation:
+  // strengths get usage moves AND discussion questions, growth areas get
+  // discussion questions.
+  const strengthMoves = chem.strengths
+    .map((item) => STRENGTH_MOVES[itemKey(item)])
+    .filter(Boolean)
+    .slice(0, 2);
+  const strengthQuestions = chem.strengths
+    .map((item) => STRENGTH_QUESTIONS[itemKey(item)])
+    .filter(Boolean)
+    .slice(0, 2);
   const growthQuestions = [
     ...chem.watchOuts.map((item) => GROWTH_QUESTIONS[itemKey(item)]).filter(Boolean),
     'Which of these would bite first on the current work? Start there.',
@@ -622,15 +646,15 @@ function OverviewView({
         ))}
       </nav>
 
-      {/* 1 · Who you are together. */}
+      {/* 1 · Who you are together: one contained block. Archetype mix on
+          the left says WHO this team is; the trait rows on the right show
+          WHERE that reading comes from. */}
       <section className="fvc" id="fvsec-hero">
-        <div className="onex-hero-grid">
-          <div>
+        <div className="fvx-hero2">
+          <div className="fvx-hero2-left onex-hero-side">
             <p className="fvx-chapnum">01</p>
             <h2 className="fvc-title">Who you are together</h2>
             <p className="fvc-lead">{summaryText(insight)}</p>
-          </div>
-          <div className="onex-hero-side">
             <p className="fvc-kicker fvc-kicker--tight">Archetype mix</p>
             <p className="fvc-def">
               Each person is grouped by their strongest trait: the role they
@@ -653,26 +677,22 @@ function OverviewView({
               </button>
             ) : null}
           </div>
+          <div className="fvx-hero2-right">
+            <p className="fvc-kicker fvc-kicker--tight">Where everyone lands</p>
+            <p className="fvc-def">{traitsLead}</p>
+            <TraitRows
+              strips={orderedStrips}
+              reads={traitReads}
+              viewerId={viewerId}
+              onSelectMember={onSelectMember}
+            />
+          </div>
         </div>
         <CardFoot
-          prompt="Walk me through my team's profile: the archetypes we have, what nobody covers, and what to do about it."
+          prompt="Walk me through my team's profile: our archetype mix, where we cluster and where we spread on each trait, and what nobody covers."
           onCoachPrompt={onCoachPrompt}
         />
       </section>
-
-      {/* 2 · The five traits, one section: each row's read names the shape
-          (clustered, two camps, full range) and each expansion defines the
-          trait. */}
-      <TraitSection
-        title="Where everyone lands"
-        lead={traitsLead}
-        strips={orderedStrips}
-        reads={traitReads}
-        viewerId={viewerId}
-        onSelectMember={onSelectMember}
-        prompt="Walk me through where my team is clustered, where we're spread out, and where we have gaps, and what to do about each."
-        onCoachPrompt={onCoachPrompt}
-      />
 
       {/* 4 · What to lean on, what to watch. */}
       <section className="fvg" id="fvsec-growth">
@@ -687,7 +707,10 @@ function OverviewView({
             label="Team strengths"
             tone="strength"
             items={chem.strengths}
-            actions={{ label: 'Ways to use these strengths', bullets: strengthMoves }}
+            actions={[
+              { label: 'Ways to use these strengths', bullets: strengthMoves },
+              { label: 'Discussion questions', bullets: strengthQuestions },
+            ]}
             coachPrompt="How do we put my team's strengths to work on our current projects?"
             onCoachPrompt={onCoachPrompt}
           />
@@ -707,7 +730,7 @@ function OverviewView({
         <p className="fvx-chapnum">03</p>
         <h2 className="fvc-title">How you like to work</h2>
         <p className="fvc-lead">
-          Ten everyday preferences across four areas: how people here would
+          Ten everyday preferences across five areas: how people here would
           rather plan, decide, and share work. These are not personality;
           once they are said out loud, they are easy to renegotiate. Pick a
           topic to see where everyone stands.
@@ -758,33 +781,35 @@ function shapeRead(strip, total) {
   const otherPole = side === 'high' ? lowPole : highPole;
   const does = POLE_MEANING_BASE[strip.trait.key][side];
 
+  // Reads describe the distribution and stop there: counts, spread, and
+  // what the majority mode looks like. No advice, no judgment — that
+  // lives in Strengths & growth areas.
   if (gap) {
-    return `Two camps here: ${gap.lowCount} **${lowPole}**, ${gap.highCount} **${highPole}**, and nobody in between. Not a problem, but handoffs between the two modes need to be explicit.`;
+    return `Two camps here: ${gap.lowCount} **${lowPole}**, ${gap.highCount} **${highPole}**, and nobody in between.`;
   }
   if (spread <= 26) {
-    return `Everyone lands within ${spread} points on the **${pole}** side, so as a group you ${does} by default. Coordination is cheap here; the ${otherPole} check has to come from outside the room.`;
+    return `Everyone lands within ${spread} points on the **${pole}** side: as a group you ${does}.`;
   }
   if (spread > 45) {
     const lowCount = strip.members.filter(({ score }) => score < 50).length;
     const highCount = total - lowCount;
     const minorCount = Math.min(lowCount, highCount);
     if (minorCount >= Math.ceil(total / 3)) {
-      return `A genuine split: ${lowCount} lean **${lowPole}**, ${highCount} lean **${highPole}**, with people all along the line. That is coverage, once you know who sits where.`;
+      return `A genuine split: ${lowCount} lean **${lowPole}**, ${highCount} lean **${highPole}**, with people all along the line.`;
     }
     const majorIsHigh = highCount >= lowCount;
     const majorPole = majorIsHigh ? highPole : lowPole;
     const minorPole = majorIsHigh ? lowPole : highPole;
     const majorCount = Math.max(lowCount, highCount);
-    const minorDoes = POLE_MEANING_BASE[strip.trait.key][majorIsHigh ? 'low' : 'high'];
-    return `Wide range with a lean: ${majorCount} of ${total} sit **${majorPole}**, while ${minorCount} hold${minorCount === 1 ? 's' : ''} the **${minorPole}** end \u2014 the ${minorCount === 1 ? 'person' : 'people'} to pull in when you need to ${minorDoes}.`;
+    return `Wide range with a lean: ${majorCount} of ${total} sit **${majorPole}**, while ${minorCount} hold${minorCount === 1 ? 's' : ''} the **${minorPole}** end.`;
   }
   const majorCount = strip.members.filter(({ score }) =>
     side === 'high' ? score >= 50 : score < 50
   ).length;
   if (majorCount === total) {
-    return `All ${total} of you sit on the **${pole}** side, some barely, some strongly, so as a group you ${does}. The ${otherPole} check has to come from outside the room.`;
+    return `All ${total} of you sit on the **${pole}** side, some barely, some strongly: as a group you ${does}.`;
   }
-  return `Most of the team (${majorCount} of ${total}) sits on the **${pole}** side: as a group you ${does}, while the rest balance from the ${otherPole} side.`;
+  return `Most of the team (${majorCount} of ${total}) sits on the **${pole}** side: as a group you ${does}. The other ${total - majorCount} sit${total - majorCount === 1 ? 's' : ''} **${otherPole}**.`;
 }
 
 /* The section lead: tightest trait, widest trait, and any real gap. */
@@ -796,7 +821,7 @@ function getTraitsLead(strips) {
   const gapNote = gapped
     ? ` On ${gapped.strip.trait.label.toLowerCase()}, the team splits into two camps with nobody in between.`
     : '';
-  return `Most alike on ${tightest.strip.trait.label.toLowerCase()}, most spread out on ${widest.strip.trait.label.toLowerCase()}.${gapNote} Open a row to see who sits where and what to do with it.`;
+  return `Most alike on ${tightest.strip.trait.label.toLowerCase()}, most spread out on ${widest.strip.trait.label.toLowerCase()}.${gapNote} Open a row to see who sits where.`;
 }
 
 /* ── Lens 2 · Individual profiles ────────────────────────────────────────── */

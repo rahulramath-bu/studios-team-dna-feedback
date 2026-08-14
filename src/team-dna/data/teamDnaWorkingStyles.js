@@ -53,7 +53,7 @@ export const WORKING_STYLE_CATEGORIES = [
     items: [
       {
         key: 'clarity',
-        stake: 'The structured half writes the plans; the casual half feels policed by them.',
+        stake: 'The same plan reads as clarity to one half of this room and as red tape to the other.',
         label: 'Structure',
         aWord: 'work from clear structure',
         bWord: 'keep it casual',
@@ -77,9 +77,9 @@ export const WORKING_STYLE_CATEGORIES = [
     ],
   },
   {
-    key: 'communication',
-    label: 'Communication & collaboration',
-    sub: 'How the team communicates and handles conflict.',
+    key: 'collaboration',
+    label: 'Collaboration',
+    sub: 'How closely the team works together and shares ownership.',
     items: [
       {
         key: 'closeness',
@@ -104,6 +104,13 @@ export const WORKING_STYLE_CATEGORIES = [
           { trait: 'extraversion', dir: 'high', weight: 0.4 },
         ],
       },
+    ],
+  },
+  {
+    key: 'communication',
+    label: 'Communication',
+    sub: 'How the team gives feedback and handles disagreement.',
+    items: [
       {
         key: 'directness',
         stake: 'The same sentence lands as honesty for some and harshness for others — name which one you’re using.',
@@ -136,7 +143,7 @@ export const WORKING_STYLE_CATEGORIES = [
     items: [
       {
         key: 'focus',
-        stake: 'One-taskers need protection from context switching; jugglers create it without noticing.',
+        stake: 'Switching costs are invisible to jugglers and expensive for one-taskers.',
         label: 'Focus',
         aWord: 'concentrate on one task',
         bWord: 'juggle several at once',

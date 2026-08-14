@@ -8,7 +8,6 @@ import {
   getFocusRead,
 } from '../data/teamDnaWorkingStyles.js';
 import { CoachFootLink, Face, renderEmphasis } from './conceptPrimitives.jsx';
-import { BigFiveBloom } from './BigFiveBloom.jsx';
 
 /**
  * Working styles, as an experience rather than a chart.
@@ -52,120 +51,6 @@ const ITEM_BY_KEY = new Map(
     category.items.map((item) => [item.key, item])
   )
 );
-
-/* Five bloom axes, not four: communication and collaboration are genuinely
-   different topics, and five petals read as a shape instead of an oval.
-   Each axis carries a flagship question whose pole words are clean enough
-   to label the team's lean. */
-const WORK_AXES = [
-  { key: 'pace', shortLabel: 'Pace', items: ['speed', 'decisions'], flag: 'speed' },
-  { key: 'structure', shortLabel: 'Structure', items: ['clarity', 'checkins'], flag: 'clarity' },
-  { key: 'communication', shortLabel: 'Communication', items: ['directness', 'conflict'], flag: 'directness' },
-  { key: 'approach', shortLabel: 'Approach', items: ['focus', 'sharing'], flag: 'sharing' },
-  { key: 'collaboration', shortLabel: 'Collaboration', items: ['closeness', 'ownership'], flag: 'closeness' },
-];
-
-const AXIS_BY_KEY = new Map(WORK_AXES.map((axis) => [axis.key, axis]));
-
-function categoryScore(member, axisKey) {
-  const axis = AXIS_BY_KEY.get(axisKey);
-  return (
-    axis.items.reduce(
-      (sum, key) => sum + displayPos(member, ITEM_BY_KEY.get(key)),
-      0
-    ) / axis.items.length
-  );
-}
-
-function joinList(parts) {
-  if (parts.length <= 1) return parts[0] ?? '';
-  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
-}
-
-/* Whole-team synthesis: the culture this team falls into when nobody
-   decides, plus the questions still genuinely open. */
-function cultureRead(subjects) {
-  const rows = WORKING_STYLE_CATEGORIES.flatMap((category) =>
-    category.items.map((item) => {
-      let aCount = 0;
-      let bCount = 0;
-      subjects.forEach((member) => {
-        const bucket = getWorkingBucket(member, item);
-        if (bucket >= 4) aCount += 1;
-        else if (bucket <= 2) bCount += 1;
-      });
-      return { item, aCount, bCount, margin: Math.abs(aCount - bCount) };
-    })
-  );
-  const decided = rows
-    .filter((row) => row.margin > 1)
-    .sort((x, y) => y.margin - x.margin);
-  const splits = rows.filter((row) => row.margin <= 1);
-
-  // "consensus decisions", but just "structured" when the pole word
-  // already contains the topic word.
-  const phrase = (row) => {
-    const pole = (row.aCount > row.bCount
-      ? row.item.aPole
-      : row.item.bPole
-    ).toLowerCase();
-    const label = row.item.label.toLowerCase();
-    return label.includes(pole) || pole.includes(label)
-      ? `**${pole}**`
-      : `**${pole}** ${label}`;
-  };
-  const lead = decided.length
-    ? `Left to itself, this team runs on ${joinList(
-        decided.slice(0, 3).map(phrase)
-      )}. That is the culture that happens when nobody decides it.`
-    : `This team has no strong defaults: almost every preference splits the room, so working agreements have to be explicit.`;
-  const follow = splits.length
-    ? `Still open: ${joinList(
-        splits.map((row) => `**${row.item.label.toLowerCase()}**`)
-      )} split${splits.length === 1 ? 's' : ''} the room. Agree per project which mode wins — or the defaults above decide for you.`
-    : `Nothing splits the room. Comfortable — and unchallenged; worth inviting a dissenting voice on big bets.`;
-  return { lead, follow };
-}
-
-/* Compact variant · BLOOM: the team bloom on five working-style axes.
-   Each axis label carries the team's lean, so the shape itself says
-   something before anyone reads a sentence. */
-function WorkingBloom({ subjects }) {
-  const { lead, follow } = cultureRead(subjects);
-  const axes = useMemo(
-    () =>
-      WORK_AXES.map((axis) => {
-        const item = ITEM_BY_KEY.get(axis.flag);
-        const mean =
-          subjects.reduce((sum, member) => sum + displayPos(member, item), 0) /
-          subjects.length;
-        const subLabel =
-          mean < 45
-            ? `leans ${item.aPole.toLowerCase()}`
-            : mean > 55
-              ? `leans ${item.bPole.toLowerCase()}`
-              : 'mixed';
-        return { key: axis.key, shortLabel: axis.shortLabel, subLabel };
-      }),
-    [subjects]
-  );
-  return (
-    <div className="wsbloom">
-      <div className="wsbloom-chart">
-        <BigFiveBloom
-          subjects={subjects}
-          traits={axes}
-          getScore={categoryScore}
-        />
-      </div>
-      <div className="wsbloom-side">
-        <p className="wstage-group-label">The default culture</p>
-        <p className="wsb-read wsbloom-lead">{renderEmphasis(lead)}</p>
-        <p className="wsb-read">{renderEmphasis(follow)}</p>
-      </div>
-    </div>
-  );
-}
 
 /* Compact variant · MAP: two questions become a field. Distance between
    people is literally distance, so clusters and lone outliers appear
@@ -418,80 +303,6 @@ function WorkingMap({ subjects }) {
   );
 }
 
-/* Compact variant · COMBS: the reporting spec drawn literally: a count at
-   each of the five points for one flagship question per area. Shape reads
-   instantly: single peak, two camps, or flat. */
-const COMB_ITEM_KEYS = ['speed', 'clarity', 'closeness', 'sharing'];
-
-function WorkingCombs({ subjects, onCoachPrompt }) {
-  const readByKey = useMemo(
-    () =>
-      new Map(
-        getWorkingReport(subjects).flatMap((category) =>
-          category.items.map((item) => [item.key, item.read])
-        )
-      ),
-    [subjects]
-  );
-  return (
-    <div className="wscombs">
-      {COMB_ITEM_KEYS.map((key) => {
-        const item = ITEM_BY_KEY.get(key);
-        const binMembers = [[], [], [], [], []];
-        subjects.forEach((member) => {
-          binMembers[5 - getWorkingBucket(member, item)].push(member);
-        });
-        const max = Math.max(...binMembers.map((bin) => bin.length), 1);
-        return (
-          <article className="wscomb" key={key}>
-            <p className="wstage-group-label">{item.label}</p>
-            <div className="wscomb-bars">
-              {binMembers.map((bin, index) => {
-                const height = Math.max((bin.length / max) * 100, 3);
-                return (
-                  <div className="wscomb-slot" key={index}>
-                    {bin.length > 0 ? (
-                      <span
-                        className="wscomb-people"
-                        style={{ bottom: `calc(${height}% + 22px)` }}
-                      >
-                        {bin.map((member) => (
-                          <Face key={member.id} member={member} size={20} />
-                        ))}
-                      </span>
-                    ) : null}
-                    {/* Count sits right on top of its bar, not in the air. */}
-                    {bin.length > 0 ? (
-                      <span className="wscomb-count">{bin.length}</span>
-                    ) : null}
-                    <i
-                      data-tone={index}
-                      data-zero={bin.length === 0 || undefined}
-                      style={{ height: `${height}%` }}
-                    />
-                  </div>
-                );
-              })}
-            </div>
-            <div className="wscomb-poles">
-              <span className="wsb-item-pole">{item.aPole}</span>
-              <span className="wsb-item-pole wsb-item-pole--b">
-                {item.bPole}
-              </span>
-            </div>
-            <p className="wsb-read">{renderEmphasis(readByKey.get(key))}</p>
-            <CoachFootLink
-              label="Dive deeper with AI coach"
-              prompt={`Our team splits on ${item.label.toLowerCase()}: some of us would rather ${item.aWord}, others would rather ${item.bWord}. How do we set a working agreement?`}
-              onCoachPrompt={onCoachPrompt}
-            />
-          </article>
-        );
-      })}
-    </div>
-  );
-}
-
 export function WorkingStylesStage({
   subjects,
   focusIds = [],
@@ -542,7 +353,7 @@ export function WorkingStylesStage({
       radius,
       gap,
       baseline,
-      height: baseline + 40,
+      height: baseline + 30,
       x: d3.scalePoint().domain(BUCKET_ORDER).range([70, width - 70]),
     };
   }, [subjects]);
@@ -570,18 +381,18 @@ export function WorkingStylesStage({
         .attr('y2', baseline + 3)
         .attr('stroke', 'rgba(30,26,38,0.28)');
     });
-    svg
-      .append('text')
-      .attr('class', 'wst-pole-a')
-      .attr('x', 24)
-      .attr('y', baseline + 32)
-      .attr('text-anchor', 'start');
-    svg
-      .append('text')
-      .attr('class', 'wst-pole-b')
-      .attr('x', width - 24)
-      .attr('y', baseline + 32)
-      .attr('text-anchor', 'end');
+    // One tag per position so the scale is speakable: "strongly fast",
+    // "leans fast", "flexible"... Text is set per-question in
+    // positionMembers.
+    BUCKET_ORDER.forEach((bucket) => {
+      svg
+        .append('text')
+        .attr('class', 'wst-tag')
+        .attr('data-bucket', bucket)
+        .attr('x', x(bucket))
+        .attr('y', baseline + 18)
+        .attr('text-anchor', 'middle');
+    });
 
     const focus = new Set(focusIds);
     const members = svg
@@ -675,9 +486,7 @@ export function WorkingStylesStage({
           <div className="wstage-views" role="tablist" aria-label="Chart style">
             {[
               ['stage', 'Stage'],
-              ['bloom', 'Bloom'],
               ['map', 'Map'],
-              ['combs', 'Combs'],
             ].map(([id, label]) => (
               <button
                 key={id}
@@ -694,12 +503,8 @@ export function WorkingStylesStage({
           </div>
         </div>
       ) : null}
-      {compactView === 'bloom' ? (
-        <WorkingBloom subjects={subjects} />
-      ) : compactView === 'map' ? (
+      {compactView === 'map' ? (
         <WorkingMap subjects={subjects} />
-      ) : compactView === 'combs' ? (
-        <WorkingCombs subjects={subjects} onCoachPrompt={onCoachPrompt} />
       ) : (
         <>
           {/* Questions grouped under the four HTP areas, so the taxonomy
@@ -729,31 +534,38 @@ export function WorkingStylesStage({
               </div>
             ))}
           </div>
-          <div className="wstage-stage">
-            <svg
-              ref={svgRef}
-              viewBox={`0 0 ${geometry.width} ${geometry.height}`}
-              className="wstage-svg"
-              role="img"
-              aria-label={`${active.label} distribution`}
-            />
-            {/* The takeaway sits under the visual it summarizes. */}
-            {readText ? (
-              <p className="wstage-read">{renderEmphasis(readText)}</p>
-            ) : null}
-            {readText && onCoachPrompt ? (
-              <CoachFootLink
-                label="Dive deeper with AI coach"
-                prompt={`On "${active.label}", ${String(readText).replace(/\*\*/g, '')} How do we turn this into a working agreement?`}
-                onCoachPrompt={onCoachPrompt}
+          {/* Visual on the left; the insight beside it on the right. */}
+          <div className="wstage-body">
+            <div className="wstage-stage">
+              <svg
+                ref={svgRef}
+                viewBox={`0 0 ${geometry.width} ${geometry.height}`}
+                className="wstage-svg"
+                role="img"
+                aria-label={`${active.label} distribution`}
               />
+            </div>
+            {readText ? (
+              <div className="wstage-side">
+                <p className="wstage-group-label">
+                  {focusMembers.length > 0 ? 'Insight' : 'Team insight'}
+                </p>
+                <p className="wstage-read">{renderEmphasis(readText)}</p>
+                {onCoachPrompt ? (
+                  <CoachFootLink
+                    label="Dive deeper with AI coach"
+                    prompt={`On "${active.label}", ${String(readText).replace(/\*\*/g, '')} How do we turn this into a working agreement?`}
+                    onCoachPrompt={onCoachPrompt}
+                  />
+                ) : null}
+              </div>
             ) : null}
           </div>
         </>
       )}
       {/* Section-level coach foot, only on views without their own
           per-item "Dive deeper" links. */}
-      {onCoachPrompt && (compactView === 'bloom' || compactView === 'map') ? (
+      {onCoachPrompt && compactView === 'map' ? (
         <div className="fvc-foot">
           <CoachFootLink
             prompt="Which of my team's working-style splits most need an explicit norm, and what should the norm say?"
@@ -801,6 +613,15 @@ function positionMembers(svg, subjects, item, geometry, focusIds, animate) {
     return `translate(${spot.x}, ${spot.y})`;
   });
 
-  svg.select('.wst-pole-a').text(item.aPole.toUpperCase());
-  svg.select('.wst-pole-b').text(item.bPole.toUpperCase());
+  const tags = {
+    5: `Strongly ${item.aPole}`,
+    4: `Leans ${item.aPole}`,
+    3: 'Flexible',
+    2: `Leans ${item.bPole}`,
+    1: `Strongly ${item.bPole}`,
+  };
+  svg.selectAll('.wst-tag').each(function setTag() {
+    const node = d3.select(this);
+    node.text(tags[node.attr('data-bucket')].toUpperCase());
+  });
 }

@@ -9588,6 +9588,79 @@ button.team-management-row {
   margin: 0;
 }
 
+/* ── V5 hero: archetype mix left, trait rows right, one section ─────────── */
+
+.fvx-hero2 {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 7fr);
+  gap: 0 48px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .fvx-hero2 {
+    grid-template-columns: 1fr;
+    row-gap: 32px;
+  }
+}
+
+/* The left column keeps the compact archetype styles from onex-hero-side
+   but sheds its divider: the hairline now separates the trait rows. */
+.fvx-hero2 .fvx-hero2-left {
+  padding-top: 0;
+  padding-left: 0;
+  border-left: 0;
+}
+
+.fvx-hero2-left .fvc-kicker {
+  margin-top: 28px;
+}
+
+.fvx-hero2-right {
+  padding-top: 6px;
+  padding-left: 48px;
+  border-left: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 900px) {
+  .fvx-hero2-right {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+.fvx-hero2-right .fvc-def {
+  max-width: none;
+  color: #4d4d4d;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.fvx-hero2-right .fva-rows {
+  margin-top: 14px;
+}
+
+/* Tighter trait rows inside the split column. */
+.fvx-hero2-right .fva-row {
+  grid-template-columns: 118px 56px minmax(0, 1fr) 56px 28px;
+  gap: 12px;
+}
+
+.fvx-hero2-right .fva-name {
+  font-size: 13.5px;
+}
+
+/* The expanded insight matches the compact grid and spans wide enough
+   to read comfortably in the split column. */
+.fvx-hero2-right .fva-detail {
+  grid-template-columns: 118px 56px minmax(0, 1fr) 56px 28px;
+  column-gap: 12px;
+}
+
+.fvx-hero2-right .fva-insight {
+  grid-column: 2 / 5;
+}
+
 /* Accordion rows: name, mini distribution, state, number, chevron. */
 .bfx-rows {
   margin-top: 16px;
@@ -11135,69 +11208,6 @@ strong.fvx-role--secondary {
 
 /* ── Compact variant: bloom + area cards ────────────────────────────────── */
 
-.wsbloom {
-  display: grid;
-  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
-  gap: 56px;
-  align-items: center;
-}
-
-@media (max-width: 900px) {
-  .wsbloom {
-    grid-template-columns: 1fr;
-  }
-}
-
-.wsbloom-chart {
-  display: flex;
-  justify-content: flex-start;
-}
-
-.wsbloom-chart .big-five-bloom-card {
-  width: min(100%, 440px);
-}
-
-.wsbloom-side {
-  display: grid;
-  gap: 12px;
-  align-content: center;
-  justify-items: start;
-  max-width: 440px;
-}
-
-.wsbloom-side .wsb-read {
-  margin: 0;
-}
-
-
-
-.wsb-read {
-  margin: 8px 0 0;
-  color: #1e1a26;
-  font-size: 14px;
-  letter-spacing: 0.1px;
-  line-height: 21px;
-}
-
-.wsb-read strong {
-  font-weight: 600;
-}
-
-.wsb-item-pole {
-  color: rgba(30, 26, 38, 0.45);
-  font-family: var(--label-font);
-  font-size: 8px;
-  font-weight: 400;
-  letter-spacing: 0.06em;
-  line-height: 1.4;
-  text-align: right;
-  text-transform: uppercase;
-}
-
-.wsb-item-pole--b {
-  text-align: left;
-}
-
 /* ── Compact variant: map (two questions as a field) ────────────────────── */
 
 .wsmap {
@@ -11320,8 +11330,17 @@ strong.fvx-role--secondary {
   margin-top: 44px;
 }
 
-.wsmap-side .wsb-read {
+/* Shared insight-voice text for the working-style views. */
+.wsb-read {
   margin: 0;
+  color: #1e1a26;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 21px;
+}
+
+.wsb-read strong {
+  font-weight: 600;
 }
 
 .wsmap-lead {
@@ -11360,127 +11379,18 @@ strong.fvx-role--secondary {
   color: #17716e;
 }
 
-/* ── Compact variant: combs (counts at each of the five points) ─────────── */
-
-.wscombs {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 18px;
-}
-
-@media (max-width: 860px) {
-  .wscombs {
-    grid-template-columns: 1fr;
-  }
-}
-
-.wscomb {
-  display: flex;
-  flex-direction: column;
-  padding: 20px 22px 16px;
-  border-radius: 12px;
-  background: rgba(194, 191, 147, 0.13);
-}
-
-.wscomb-bars {
-  display: flex;
-  align-items: flex-end;
-  gap: 5px;
-  height: 86px;
-  margin-top: 16px;
-}
-
-.wscomb-slot {
-  position: relative;
-  display: flex;
-  flex: 1;
-  flex-direction: column;
-  align-items: stretch;
-  justify-content: flex-end;
-  height: 100%;
-}
-
-.wscomb-count {
-  margin-bottom: 4px;
-  color: #717070;
-  font-family: var(--label-font);
-  font-size: 9.5px;
-  text-align: center;
-}
-
-.wscomb-people {
-  position: absolute;
-  left: 50%;
-  z-index: 3;
-  display: inline-flex;
-  opacity: 0;
-  transform: translateX(-50%);
-  transition: opacity 160ms ease;
-  pointer-events: none;
-}
-
-.wscomb-people .dxp-face {
-  box-shadow: 0 0 0 1.5px #fff;
-}
-
-.wscomb-people .dxp-face + .dxp-face {
-  margin-left: -7px;
-}
-
-.wscomb-slot:hover .wscomb-people {
-  opacity: 1;
-}
-
-.wscomb-slot i {
-  border-radius: 4px 4px 2px 2px;
-}
-
-.wscomb-slot i[data-tone='0'],
-.wscomb-slot i[data-tone='4'] {
-  background: rgba(23, 113, 110, 0.75);
-}
-
-.wscomb-slot i[data-tone='1'],
-.wscomb-slot i[data-tone='3'] {
-  background: rgba(23, 113, 110, 0.42);
-}
-
-.wscomb-slot i[data-tone='2'] {
-  background: rgba(30, 26, 38, 0.12);
-}
-
-.wscomb-slot i[data-zero] {
-  background: rgba(30, 26, 38, 0.05);
-}
-
-.wscomb-poles {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 8px;
-}
-
-.wscomb .wsb-read {
-  margin-top: 14px;
-}
-
-.wscomb .info-block-coach-link {
-  margin-top: 12px;
-  align-self: flex-start;
-}
-
 .wstage-groups {
-  display: grid;
-  gap: 10px;
-  padding-bottom: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 40px;
+  padding-bottom: 18px;
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
 .wstage-group {
   display: grid;
-  grid-template-columns: 178px minmax(0, 1fr);
-  gap: 14px;
-  align-items: center;
+  gap: 9px;
+  align-content: start;
 }
 
 .wstage-group-label {
@@ -11498,13 +11408,6 @@ strong.fvx-role--secondary {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
-}
-
-@media (max-width: 760px) {
-  .wstage-group {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
 }
 
 .wstage-row {
@@ -11546,9 +11449,37 @@ strong.fvx-role--secondary {
 }
 
 /* The only marker: questions where the team genuinely divides. */
+.wstage-body {
+  display: grid;
+  grid-template-columns: minmax(0, 7fr) minmax(0, 5fr);
+  gap: 48px;
+  align-items: center;
+  margin-top: 8px;
+}
+
+@media (max-width: 900px) {
+  .wstage-body {
+    grid-template-columns: 1fr;
+  }
+}
+
 .wstage-stage {
   min-width: 0;
-  margin-top: 18px;
+}
+
+.wstage-side {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  max-width: 400px;
+}
+
+.wstage-side .wstage-read {
+  margin: 0;
+}
+
+.wstage-side .info-block-coach-link {
+  margin-top: 4px;
 }
 
 .wstage-svg {
@@ -11559,12 +11490,11 @@ strong.fvx-role--secondary {
   margin: 0;
 }
 
-.wstage-svg .wst-pole-a,
-.wstage-svg .wst-pole-b {
-  fill: #1e1a26;
+.wstage-svg .wst-tag {
+  fill: rgba(30, 26, 38, 0.5);
   font-family: var(--label-font);
-  font-size: 9px;
-  font-weight: 600;
+  font-size: 7.5px;
+  font-weight: 400;
   letter-spacing: 0.07em;
 }
 
