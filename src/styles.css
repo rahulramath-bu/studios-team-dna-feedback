@@ -335,6 +335,37 @@ html {
   font-weight: 600;
 }
 
+.monolith-persona-menu-sep {
+  height: 1px;
+  margin: 5px 6px;
+  background: rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+/* "Discarded ones" row: caret right, flyout to the side on hover. */
+.monolith-persona-menu-subwrap {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.monolith-persona-menu-item--sub {
+  justify-content: space-between;
+  gap: 14px;
+  width: 100%;
+}
+
+.monolith-persona-menu-item--sub svg {
+  width: 13px;
+  height: 13px;
+  color: rgba(var(--team-dna-ink-rgb), 0.45);
+}
+
+.monolith-persona-menu-pop--sub {
+  top: -6px;
+  left: calc(100% - 2px);
+  right: auto;
+}
+
 .monolith-persona-menu-trigger:focus-visible,
 .monolith-persona-menu-item:focus-visible {
   outline: 2px solid var(--ring);

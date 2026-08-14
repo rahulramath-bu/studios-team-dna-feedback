@@ -42,14 +42,20 @@ import { ConceptFive } from './ConceptFive.jsx';
  *             face-selection interaction; the other lenses use the space.
  */
 
-export const PAGE_VARIATIONS = [
+/* The two variations that matter, then the runner-ups behind a submenu. */
+const PRIMARY_VARIATIONS = [
   { id: 'original', menuLabel: 'Original' },
+  { id: 'five', menuLabel: 'V5' },
+];
+
+const DISCARDED_VARIATIONS = [
   { id: 'expanded', menuLabel: '1 \u00b7 Expanded' },
   { id: 'map', menuLabel: '2 \u00b7 The Map' },
   { id: 'tabs', menuLabel: '3 \u00b7 Four tabs' },
   { id: 'one', menuLabel: '4 \u00b7 One system' },
-  { id: 'five', menuLabel: '5 \u00b7 V5' },
 ];
+
+export const PAGE_VARIATIONS = [...PRIMARY_VARIATIONS, ...DISCARDED_VARIATIONS];
 
 /* Concepts that fully replace the read (every scope). 'expanded' augments
    the original layout instead, so it is wired inside InsightPanel. */
@@ -57,13 +63,20 @@ export const DEPTH_PAGE_IDS = ['map', 'tabs', 'one', 'five'];
 
 export function PageVariationMenu({ variationId, onSelect }) {
   const [open, setOpen] = useState(false);
+  const [subOpen, setSubOpen] = useState(false);
   const rootRef = useRef(null);
   const active =
     PAGE_VARIATIONS.find((variation) => variation.id === variationId) ??
     PAGE_VARIATIONS[0];
+  const discardedActive = DISCARDED_VARIATIONS.some(
+    (variation) => variation.id === variationId
+  );
 
   useEffect(() => {
-    if (!open) return undefined;
+    if (!open) {
+      setSubOpen(false);
+      return undefined;
+    }
     const handlePointerDown = (event) => {
       if (rootRef.current?.contains(event.target)) return;
       setOpen(false);
@@ -78,6 +91,11 @@ export function PageVariationMenu({ variationId, onSelect }) {
       document.removeEventListener('keydown', handleKeyDown);
     };
   }, [open]);
+
+  const pick = (id) => {
+    onSelect(id);
+    setOpen(false);
+  };
 
   return (
     <div className="monolith-persona-menu" ref={rootRef}>
@@ -111,7 +129,7 @@ export function PageVariationMenu({ variationId, onSelect }) {
           role="menu"
           aria-label="Demo: page concept"
         >
-          {PAGE_VARIATIONS.map((variation) => (
+          {PRIMARY_VARIATIONS.map((variation) => (
             <button
               key={variation.id}
               type="button"
@@ -119,14 +137,60 @@ export function PageVariationMenu({ variationId, onSelect }) {
               aria-checked={variation.id === variationId}
               className="monolith-persona-menu-item"
               data-active={variation.id === variationId || undefined}
-              onClick={() => {
-                onSelect(variation.id);
-                setOpen(false);
-              }}
+              onClick={() => pick(variation.id)}
             >
               {variation.menuLabel}
             </button>
           ))}
+          <div className="monolith-persona-menu-sep" role="separator" />
+          {/* Runner-up concepts, one hover away. */}
+          <div
+            className="monolith-persona-menu-subwrap"
+            onMouseEnter={() => setSubOpen(true)}
+            onMouseLeave={() => setSubOpen(false)}
+          >
+            <button
+              type="button"
+              className="monolith-persona-menu-item monolith-persona-menu-item--sub"
+              aria-haspopup="menu"
+              aria-expanded={subOpen}
+              data-active={discardedActive || undefined}
+              onClick={() => setSubOpen((value) => !value)}
+            >
+              <span>Discarded ones</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path
+                  d="M6.5 4 10 8l-3.5 4"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
+            {subOpen ? (
+              <div
+                className="monolith-persona-menu-pop monolith-persona-menu-pop--sub"
+                role="menu"
+                aria-label="Discarded concepts"
+              >
+                {DISCARDED_VARIATIONS.map((variation) => (
+                  <button
+                    key={variation.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={variation.id === variationId}
+                    className="monolith-persona-menu-item"
+                    data-active={variation.id === variationId || undefined}
+                    onClick={() => pick(variation.id)}
+                  >
+                    {variation.menuLabel}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </div>
