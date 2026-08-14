@@ -101,7 +101,7 @@ const MAP_PAIRS = [
   },
 ];
 
-function WorkingMap({ subjects }) {
+function WorkingMap({ subjects, onCoachPrompt }) {
   const [pairId, setPairId] = useState('ps');
   const [hoverIds, setHoverIds] = useState(null);
   const pair = MAP_PAIRS.find((option) => option.id === pairId);
@@ -306,6 +306,13 @@ function WorkingMap({ subjects }) {
             </li>
           ))}
         </ul>
+        {onCoachPrompt ? (
+          <CoachFootLink
+            label="Dive deeper with AI coach"
+            prompt="Which of my team's working-style splits most need an explicit norm, and what should the norm say?"
+            onCoachPrompt={onCoachPrompt}
+          />
+        ) : null}
       </div>
     </div>
   );
@@ -512,7 +519,10 @@ export function WorkingStylesStage({
     <div className="wstage" data-compact={subjects.length <= 3 || undefined}>
       {/* One row: the five areas as tabs (stage view), chart switcher right. */}
       {!compactView || showViews ? (
-        <div className="wstage-top">
+        <div
+          className="wstage-top"
+          data-plain={compactView === 'map' || undefined}
+        >
           {!compactView ? (
             <div className="wstage-tabs" role="tablist" aria-label="Areas">
               {WORKING_STYLE_CATEGORIES.map((category) => (
@@ -571,7 +581,7 @@ export function WorkingStylesStage({
         </div>
       ) : null}
       {compactView === 'map' ? (
-        <WorkingMap subjects={subjects} />
+        <WorkingMap subjects={subjects} onCoachPrompt={onCoachPrompt} />
       ) : (
         <>
           {/* Same skeleton as the map: the visual owns the left, the topic
@@ -650,16 +660,6 @@ export function WorkingStylesStage({
           </div>
         </>
       )}
-      {/* Section-level coach foot, only on views without their own
-          per-item "Dive deeper" links. */}
-      {onCoachPrompt && compactView === 'map' ? (
-        <div className="fvc-foot">
-          <CoachFootLink
-            prompt="Which of my team's working-style splits most need an explicit norm, and what should the norm say?"
-            onCoachPrompt={onCoachPrompt}
-          />
-        </div>
-      ) : null}
     </div>
   );
 }

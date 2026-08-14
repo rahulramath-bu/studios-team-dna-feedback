@@ -11251,6 +11251,12 @@ strong.fvx-role--secondary {
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
+/* Map: only the toggle up top, so the tab divider goes. */
+.wstage-top[data-plain] {
+  border-bottom: 0;
+  margin-bottom: 10px;
+}
+
 /* Demo annotation: label OUTSIDE the card, in the right gutter; the arrow
    runs from the text down-left onto the MAP pill. */
 .wstage-maphint {
@@ -11471,7 +11477,12 @@ strong.fvx-role--secondary {
   display: grid;
   gap: 10px;
   justify-items: start;
-  max-width: 400px;
+  max-width: 520px;
+}
+
+/* Coach exit under the insight, clearly separated (same as the stage). */
+.wsmap-side .info-block-coach-link {
+  margin-top: 26px;
 }
 
 /* Quiet how-to next to the TEAM INSIGHT label. */
