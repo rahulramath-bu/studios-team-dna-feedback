@@ -4196,6 +4196,13 @@ button.team-management-row {
   .team-dna-experience[data-people-selector='scaled'] .team-face-grid-scale {
     transform: scale(0.5);
   }
+
+  .team-dna-experience:has(> .fivex-bar)[data-people-selector='scaled'] {
+    --people-pane-width: 280px;
+    --detail-pane-width: 780px;
+    --pane-gap: 40px;
+    --composition-shift: -40px;
+  }
 }
 
 .team-face-field-wrap {
@@ -5498,7 +5505,7 @@ button.team-management-row {
   outline: 2px solid rgba(var(--team-dna-focus-rgb), 0.12);
 }
 
-.info-block > :not(.info-block-action) {
+.info-block > :not(.info-block-action):not(.info-block-deeper) {
   position: relative;
   z-index: 1;
 }
@@ -5774,6 +5781,23 @@ button.team-management-row {
   color: var(--muted-foreground);
 }
 
+.team-shape-contribution[data-empty] .team-shape-contribution-copy strong {
+  color: var(--muted-foreground);
+  font-weight: 620;
+}
+
+.team-shape-zero {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px dashed rgba(var(--team-dna-ink-rgb), 0.32);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 11.5px;
+}
+
 @keyframes archetype-image-drift {
   0% {
     transform: scale(1.08) translate3d(-7%, -5%, 0);
@@ -5955,6 +5979,13 @@ button.team-management-row {
   letter-spacing: 0.3px;
   line-height: 1;
   text-transform: uppercase;
+}
+
+.big-five-bloom-sublabel {
+  fill: var(--team-dna-ink);
+  font-size: 6.5px;
+  letter-spacing: 0.2px;
+  text-transform: none;
 }
 
 .big-five-bloom-legend {
@@ -6440,6 +6471,796 @@ button.team-management-row {
   gap: 8px;
 }
 
+/* ── Depth iterations (team view) ────────────────────────────────────────
+   Shared pieces for the A/B/C page structures: the fingerprint figure, the
+   per-section dive-deeper reveal, quiet tabs, and the report document. All
+   type and color values reuse the page's existing treatments. */
+
+/* Fingerprint figure */
+.fp-figure {
+  display: grid;
+  gap: 26px;
+  margin-top: 6px;
+}
+
+.fp-figure--single {
+  margin-top: 0;
+  gap: 0;
+}
+
+.fp-row {
+  position: relative;
+}
+
+.fp-row-read {
+  position: absolute;
+  top: -4px;
+  right: 0;
+  color: var(--label-color);
+  font-size: 11px;
+  letter-spacing: 0.02em;
+}
+
+.fp-track {
+  position: relative;
+  height: 26px;
+}
+
+.fp-line {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  background: rgba(var(--team-dna-ink-rgb), 0.1);
+}
+
+.fp-band {
+  position: absolute;
+  top: 50%;
+  height: 12px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.06);
+}
+
+.fp-dot {
+  position: absolute;
+  top: 50%;
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  transform: translate(-50%, -50%);
+  border: 0;
+  border-radius: 50%;
+  background: rgba(var(--team-dna-ink-rgb), 0.34);
+  cursor: pointer;
+  transition: transform 140ms ease, background 140ms ease;
+}
+
+.fp-dot:hover,
+.fp-dot:focus-visible {
+  transform: translate(-50%, -50%) scale(1.5);
+  background: rgba(var(--team-dna-ink-rgb), 0.62);
+  z-index: 3;
+}
+
+.fp-dot[data-viewer] {
+  background: var(--primary);
+  box-shadow: 0 0 0 2px var(--white);
+  z-index: 2;
+}
+
+.fp-poles {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 4px;
+  color: rgba(var(--team-dna-ink-rgb), 0.46);
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+.fp-legend {
+  margin: 2px 0 0;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+/* ── Depth pages: shared chrome ─────────────────────────────────────────── */
+
+.dxp {
+  display: grid;
+  gap: 22px;
+  animation: team-dna-empty-fade 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.dxp-face {
+  display: inline-grid;
+  place-items: center;
+  width: var(--dxp-face-size, 30px);
+  height: var(--dxp-face-size, 30px);
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--white);
+  box-shadow: 0 0 0 2px var(--white), 0 3px 8px rgba(var(--team-dna-ink-rgb), 0.14);
+  color: var(--foreground-heading);
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.dxp-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dxp-face[data-ringed] {
+  box-shadow: 0 0 0 2px var(--primary), 0 3px 8px rgba(var(--team-dna-ink-rgb), 0.18);
+}
+
+.dxp-footer {
+  display: flex;
+  align-items: center;
+  gap: 22px;
+  padding: 2px 4px 6px;
+}
+
+/* Visible, on-system report affordance (rubine outline pill). */
+.dxp-report-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 10px 18px;
+  border: 1.5px solid var(--primary);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--primary);
+  cursor: pointer;
+  font-family: 'Söhne', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: background 160ms ease, color 160ms ease;
+}
+
+.dxp-report-cta:hover,
+.dxp-report-cta:focus-visible {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.dxp-report-cta svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Highlight stat boxes (chemistry report) ────────────────────────────── */
+
+.brief-widgets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 720px) {
+  .brief-widgets {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Stat cards in the page's own card grammar: warm fill, quiet border, one
+   number, one line. No accent colors, no body text. */
+.brief-widget {
+  padding: 22px 24px 24px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 5px);
+  background: var(--card-subtle-bg);
+}
+
+.brief-widget-label {
+  margin: 0 0 12px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.brief-widget-value {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.brief-widget-trait {
+  margin: 10px 0 0;
+  color: var(--foreground-body);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.45;
+}
+
+/* ── Big Five "show all": how-to-read note (Original plus) ──────────────── */
+
+.big-five-meaning {
+  margin-bottom: 4px;
+  padding: 16px 20px;
+  border-radius: 10px;
+  background: rgba(var(--team-dna-ink-rgb), 0.045);
+}
+
+.big-five-meaning p {
+  margin: 0;
+  max-width: 640px;
+  color: rgba(var(--team-dna-copy-rgb), 0.8);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* ── "Dive deeper" overlay (Expanded concept) ─────────────────────────────
+   One modal document with three tabs (why these reads / the five spectrums /
+   working styles), shared by every scope. Type and spacing mirror the report
+   document; the spectrum rows reuse the Big Five card visuals, compact. */
+
+.ddp-root {
+  position: fixed;
+  inset: 0;
+  z-index: 170;
+  display: grid;
+  place-items: start center;
+  overflow-y: auto;
+  padding: 5vh 20px;
+}
+
+.ddp-scrim {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  background: rgba(29, 25, 37, 0.32);
+  cursor: pointer;
+  animation: team-dna-empty-fade 260ms ease both;
+}
+
+.ddp-panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(720px, 100%);
+  max-height: 90vh;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 32px 80px rgba(29, 25, 37, 0.22);
+  animation: team-dna-empty-fade 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.ddp-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 28px 34px 16px;
+}
+
+.ddp-eyebrow {
+  margin: 0 0 6px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.ddp-title {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 26px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.ddp-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+  color: var(--foreground-heading);
+  cursor: pointer;
+  flex: none;
+}
+
+.ddp-close svg {
+  width: 15px;
+  height: 15px;
+}
+
+.ddp-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 0 34px;
+  border-bottom: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.ddp-tab {
+  padding: 10px 14px 12px;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -1px;
+  background: none;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-family: 'Söhne', sans-serif;
+  font-size: 13.5px;
+  font-weight: 500;
+  transition: color 140ms ease;
+}
+
+.ddp-tab:hover {
+  color: var(--foreground-heading);
+}
+
+.ddp-tab[data-active] {
+  border-bottom-color: var(--primary);
+  color: var(--foreground-heading);
+}
+
+.ddp-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px 34px 10px;
+}
+
+.ddp-groups {
+  display: grid;
+  gap: 26px;
+}
+
+.ddp-group {
+  display: grid;
+  gap: 22px;
+}
+
+.ddp-group-label {
+  margin: 0 0 -6px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.ddp-item {
+  display: grid;
+  gap: 8px;
+}
+
+.ddp-item-title {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.ddp-item-line {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ddp-item-line strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+.ddp-item-line--why {
+  padding: 12px 16px;
+  border-radius: 10px;
+  background: rgba(var(--team-dna-ink-rgb), 0.045);
+}
+
+.ddp-item-line--why strong {
+  display: block;
+  margin-bottom: 3px;
+  font-size: 12px;
+  letter-spacing: 0.03em;
+}
+
+.ddp-item-line--sub {
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.ddp-note {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* The same faces-on-spectrum visual as the Big Five card, compact and bare. */
+.ddp-spectrum {
+  position: relative;
+  margin-top: 6px;
+}
+
+.ddp-spectrum .big-five-spectrum-view-toggle {
+  display: none;
+}
+
+.ddp-spectrum.big-five-spectrum-list[data-view='all'] .big-five-spectrum-row {
+  padding: 8px 2px 4px;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+.ddp-spectrum .big-five-spectrum-head {
+  font-size: 13.5px;
+  max-width: 100%;
+  color: var(--muted-foreground);
+}
+
+.ddp-working-list {
+  display: grid;
+  gap: 12px;
+  margin: 0;
+  padding-left: 18px;
+  color: rgba(var(--team-dna-copy-rgb), 0.82);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.ddp-working-list li::marker {
+  color: var(--primary);
+}
+
+.ddp-working-list strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+.ddp-trust {
+  margin: 30px 0 8px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.ddp-foot {
+  padding: 4px 34px 26px;
+}
+
+/* Widget extras (used by the report's highlight boxes) */
+.brief-widget-unit {
+  margin-left: 6px;
+  color: var(--muted-foreground);
+  font-family: 'Söhne', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.brief-widget-trait--solo {
+  margin-top: 2px;
+  font-size: 14.5px;
+  line-height: 1.4;
+}
+
+.brief-widget-value--row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brief-widget-faces {
+  display: inline-flex;
+}
+
+.brief-widget-faces .dxp-face + .dxp-face {
+  margin-left: -8px;
+}
+
+/* Chemistry pairing rows (kept for the dormant report overlay) */
+.chem-pairs-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 6px;
+}
+
+.chem-pair-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 140ms ease;
+}
+
+.chem-pair-row + .chem-pair-row {
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+.chem-pair-row:hover {
+  background: rgba(var(--team-dna-ink-rgb), 0.03);
+}
+
+.chem-pair-faces {
+  display: inline-flex;
+  flex: none;
+}
+
+.chem-pair-faces .dxp-face + .dxp-face {
+  margin-left: -9px;
+}
+
+.chem-pair-copy {
+  flex: 1;
+  min-width: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.chem-pair-copy strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--foreground-heading);
+  font-size: 14px;
+}
+
+.chem-pair-arrow {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--label-color);
+}
+
+/* ── Depth lenses: shared copy + action rows ─────────────────────────────
+   Signals / Day to day / Coverage / Agreements share the same body-copy
+   treatment as chemistry and one "Try / Starting point / Ask the room"
+   action-row pattern, so every lens reads as the same page family. */
+
+.dxp-copy {
+  margin: 0 0 18px;
+  max-width: 640px;
+  color: rgba(var(--team-dna-copy-rgb), 0.8);
+  font-size: 15px;
+  line-height: 1.65;
+}
+
+.dxp-copy--note {
+  margin-bottom: 0;
+  color: var(--muted-foreground);
+  font-size: 14px;
+}
+
+.dxp-copy--flush {
+  margin-bottom: 0;
+}
+
+/* One concrete move, framed quietly: small uppercase tag + one sentence. */
+.dxp-move {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  margin-top: 16px;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: rgba(var(--team-dna-ink-rgb), 0.045);
+}
+
+.dxp-move-label {
+  flex: none;
+  color: var(--primary);
+  font-family: var(--label-font);
+  font-size: 10.5px;
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.dxp-move p {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.86);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+/* Report document */
+.tdna-report-root {
+  position: fixed;
+  inset: 0;
+  z-index: 160;
+  display: grid;
+  place-items: start center;
+  overflow-y: auto;
+  padding: 4vh 20px;
+}
+
+.tdna-report-scrim {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  background: rgba(29, 25, 37, 0.32);
+  cursor: pointer;
+}
+
+.tdna-report {
+  position: relative;
+  width: min(920px, 100%);
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 14px;
+  background: var(--white);
+  box-shadow: 0 32px 80px rgba(29, 25, 37, 0.22);
+  animation: team-dna-empty-fade 420ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.tdna-report-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 34px 44px 24px;
+  border-bottom: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.tdna-report-eyebrow {
+  margin: 0 0 10px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.tdna-report-title {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.tdna-report-meta {
+  margin: 8px 0 0;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.tdna-report-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: none;
+}
+
+.tdna-report-close {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+  color: var(--foreground-heading);
+  cursor: pointer;
+}
+
+.tdna-report-close svg {
+  width: 15px;
+  height: 15px;
+}
+
+.tdna-report-body {
+  display: grid;
+  gap: 40px;
+  padding: 36px 44px 48px;
+}
+
+.tdna-report-section {
+  display: grid;
+  gap: 18px;
+}
+
+/* Section headings in the page's own serif hierarchy, not caps labels. */
+.tdna-report-section h2 {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 24px;
+  font-weight: 400;
+  letter-spacing: 0;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.tdna-report-lede {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.84);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.tdna-report-lede strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+.tdna-report-bullets {
+  margin: 0;
+}
+
+.tdna-report-note {
+  margin: -6px 0 0;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Pairings in the report are the same rows as the page, minus interaction. */
+.tdna-report-pairs .chem-pair-row {
+  cursor: default;
+}
+
+.tdna-report-pairs .chem-pair-row:hover {
+  background: none;
+}
+
+.tdna-report-foot {
+  margin: 0;
+  padding-top: 22px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+@media print {
+  .tdna-report-scrim,
+  .tdna-report-actions {
+    display: none;
+  }
+
+  .tdna-report-root {
+    position: static;
+    padding: 0;
+    overflow: visible;
+  }
+
+  .tdna-report {
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+  }
+}
+
 .guidance-card--carousel .guidance-section {
   flex: 0 0 min(265px, calc(100% - 22px));
   min-height: 108px;
@@ -6526,6 +7347,19 @@ button.team-management-row {
   letter-spacing: 0.15px;
   cursor: pointer;
   transition: color 200ms ease;
+}
+
+/* When a section has both quiet links (coach + depth), they share one row. */
+.info-block-links {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 28px;
+  margin-top: 32px;
+}
+
+.info-block-links .info-block-coach-link {
+  margin-top: 0;
 }
 
 .info-block-coach-link span {
@@ -6698,4 +7532,4055 @@ button.team-management-row {
   .team-dna-empty-preview-insight-card i {
     animation-delay: 0.01ms !important;
   }
+}
+
+/* ── Concept 1 · Expanded: highlights row + section drill entry ───────────
+   Three "what you can learn here" widgets under the hero. The whole card is
+   the button; a corner arrow is the only affordance chrome. Sections get a
+   quiet top-right "Dive deeper" pill that opens that section's own modal. */
+
+.cw-row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+@media (max-width: 720px) {
+  .cw-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.cw-widget {
+  position: relative;
+  appearance: none;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  width: 100%;
+  padding: 22px 24px 24px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 5px);
+  background: var(--card-subtle-bg);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 150ms ease, transform 150ms ease, box-shadow 150ms ease;
+}
+
+.cw-widget:hover,
+.cw-widget:focus-visible {
+  border-color: rgba(var(--team-dna-ink-rgb), 0.22);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+.cw-widget-arrow {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+  color: var(--label-color);
+  transition: background 150ms ease, color 150ms ease;
+}
+
+.cw-widget:hover .cw-widget-arrow,
+.cw-widget:focus-visible .cw-widget-arrow {
+  background: var(--primary);
+  color: var(--white);
+}
+
+.cw-widget-arrow svg {
+  width: 12px;
+  height: 12px;
+}
+
+.cw-widget-label {
+  margin: 0;
+  padding-right: 30px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.cw-widget-value {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.cw-widget-value--word {
+  font-size: 21px;
+  line-height: 1.25;
+}
+
+.cw-widget-unit {
+  color: var(--muted-foreground);
+  font-family: 'Söhne', sans-serif;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+}
+
+.cw-widget-faces {
+  display: inline-flex;
+}
+
+.cw-widget-faces .dxp-face + .dxp-face {
+  margin-left: -8px;
+}
+
+.cw-widget-line {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 13.5px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+/* Section drill entry: a quiet pill in the card's top-right corner. */
+.info-block-deeper {
+  position: absolute;
+  top: 20px;
+  right: 22px;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 13px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 999px;
+  background: var(--white);
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-family: 'Söhne', sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  transition: border-color 140ms ease, color 140ms ease;
+}
+
+.info-block-deeper:hover,
+.info-block-deeper:focus-visible {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.info-block-deeper[data-offset] {
+  right: 64px;
+}
+
+.info-block-deeper svg {
+  width: 13px;
+  height: 13px;
+}
+
+/* ── Concept 2 · The Map ──────────────────────────────────────────────────
+   A positioned face field: two traits at a time, switchable. Clusters are
+   smooth ellipses behind the points; the reads live in the same card as
+   quick bullets. */
+
+.mapx-views {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 2px 0 16px;
+}
+
+.mapx-view-chip {
+  padding: 7px 14px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted-foreground);
+  cursor: pointer;
+  font-family: 'Söhne', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  transition: border-color 140ms ease, color 140ms ease, background 140ms ease;
+}
+
+.mapx-view-chip[data-active] {
+  border-color: var(--primary);
+  background: rgba(206, 0, 88, 0.05);
+  color: var(--primary);
+}
+
+.mapx-canvas {
+  position: relative;
+  aspect-ratio: 16 / 10;
+  overflow: hidden;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 5px);
+  background: var(--card-subtle-bg);
+}
+
+.mapx-grid {
+  position: absolute;
+  background: rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.mapx-grid--h {
+  left: 3%;
+  right: 3%;
+  top: 50%;
+  height: 1px;
+}
+
+.mapx-grid--v {
+  top: 5%;
+  bottom: 5%;
+  left: 50%;
+  width: 1px;
+}
+
+.mapx-pole {
+  position: absolute;
+  z-index: 2;
+  color: rgba(var(--team-dna-ink-rgb), 0.46);
+  font-family: var(--label-font);
+  font-size: 9.5px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.mapx-pole--top {
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.mapx-pole--bottom {
+  bottom: 12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.mapx-pole--left {
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.mapx-pole--right {
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+/* Smooth ellipse: soft fill, hairline edge, tag floated above. */
+.mapx-cluster {
+  position: absolute;
+  border: 1px solid rgba(206, 0, 88, 0.16);
+  border-radius: 50%;
+  background: rgba(206, 0, 88, 0.045);
+}
+
+.mapx-cluster-tag {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--white);
+  box-shadow: 0 1px 4px rgba(var(--team-dna-ink-rgb), 0.12);
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.mapx-open {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  padding: 9px 14px;
+  border: 1.5px dashed rgba(var(--team-dna-ink-rgb), 0.22);
+  border-radius: 999px;
+  color: var(--muted-foreground);
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.mapx-connector {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.mapx-connector line {
+  stroke: rgba(206, 0, 88, 0.5);
+  stroke-width: 2;
+  stroke-dasharray: 5 5;
+}
+
+.mapx-point {
+  position: absolute;
+  z-index: 3;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+  transform: translate(-50%, -50%);
+  transition: transform 130ms ease;
+}
+
+.mapx-point:hover,
+.mapx-point:focus-visible {
+  z-index: 6;
+  transform: translate(-50%, -50%) scale(1.12);
+}
+
+.mapx-point[data-dim] {
+  opacity: 0.38;
+}
+
+.mapx-point[data-dim]:hover,
+.mapx-point[data-dim]:focus-visible {
+  opacity: 1;
+}
+
+.mapx-point[data-focus] {
+  z-index: 5;
+}
+
+.mapx-point[tabindex='-1'] {
+  cursor: default;
+}
+
+/* The reads, in the same box as the picture: three quick bullets. */
+.mapx-bullets {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0 0;
+  padding-left: 18px;
+  color: rgba(var(--team-dna-copy-rgb), 0.8);
+  font-size: 14px;
+  line-height: 1.55;
+}
+
+.mapx-bullets li::marker {
+  color: var(--primary);
+}
+
+.mapx-bullets strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+/* Pair map: what the picture means, in words. */
+.mapx-meaning {
+  margin-top: 16px;
+}
+
+.mapx-meaning-lead {
+  margin: 0 0 6px;
+  max-width: 640px;
+  color: rgba(var(--team-dna-copy-rgb), 0.86);
+  font-size: 14.5px;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.mapx-meaning-sub {
+  margin: 12px 0 0;
+  max-width: 640px;
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.mapx-meaning .mapx-meaning-sub {
+  margin-top: 0;
+}
+
+.mapx-meaning-sub strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+.mapx-pairings {
+  display: flex;
+  flex-direction: column;
+  margin-top: 14px;
+}
+
+.mapx-pairing {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  padding: 14px 4px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: background 140ms ease;
+}
+
+.mapx-pairing + .mapx-pairing {
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+.mapx-pairing:hover {
+  background: rgba(var(--team-dna-ink-rgb), 0.03);
+}
+
+.mapx-pairing-copy {
+  flex: 1;
+  min-width: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 13.5px;
+  line-height: 1.5;
+}
+
+.mapx-pairing-copy strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--foreground-heading);
+  font-size: 14px;
+}
+
+.mapx-pairing-arrow {
+  width: 15px;
+  height: 15px;
+  flex: none;
+  color: var(--label-color);
+}
+
+.mapx-coords {
+  display: grid;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.mapx-coord {
+  display: grid;
+  grid-template-columns: 92px 120px 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+
+@media (max-width: 720px) {
+  .mapx-coord {
+    grid-template-columns: 92px 1fr;
+  }
+}
+
+.mapx-coord-word {
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.mapx-coord-pole {
+  color: var(--foreground-heading);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.mapx-coord-line {
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.mapx-gaps {
+  display: grid;
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.mapx-gap {
+  display: grid;
+  grid-template-columns: 92px 1fr 56px;
+  gap: 14px;
+  align-items: center;
+}
+
+.mapx-gap-word {
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.mapx-gap-track {
+  position: relative;
+  height: 16px;
+}
+
+.mapx-gap-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  background: rgba(var(--team-dna-ink-rgb), 0.1);
+}
+
+.mapx-gap-span {
+  position: absolute;
+  top: 50%;
+  height: 6px;
+  transform: translateY(-50%);
+  border-radius: 999px;
+  background: rgba(206, 0, 88, 0.18);
+}
+
+.mapx-gap-dot {
+  position: absolute;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+.mapx-gap-dot--a {
+  background: var(--primary);
+}
+
+.mapx-gap-dot--b {
+  background: rgba(var(--team-dna-ink-rgb), 0.62);
+}
+
+.mapx-gap-count {
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+  text-align: right;
+}
+
+.mapx-legend {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 16px 0 0;
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+}
+
+.mapx-legend .mapx-gap-dot {
+  position: static;
+  display: inline-block;
+  transform: none;
+  box-shadow: none;
+}
+
+.mapx-legend .mapx-gap-dot--b {
+  margin-left: 12px;
+}
+
+/* ── Dive deeper: per-section additions ──────────────────────────────────── */
+
+.ddp-sub {
+  margin: 8px 0 0;
+  max-width: 520px;
+  color: var(--muted-foreground);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.ddx-trait-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ddx-trait-state {
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+/* ── Concept 3 · Four tabs ────────────────────────────────────────────────
+   One dashboard, four lenses. Big tabs (title + sub); each lens is built
+   from strips and rows — no radar. */
+
+.tabx-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (max-width: 860px) {
+  .tabx-bar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.tabx-tab {
+  display: grid;
+  gap: 2px;
+  padding: 13px 16px 14px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 6px);
+  background: var(--white);
+  cursor: pointer;
+  text-align: left;
+  font-family: inherit;
+  transition: border-color 150ms ease, background 150ms ease, transform 150ms ease;
+}
+
+.tabx-tab:hover {
+  border-color: rgba(var(--team-dna-ink-rgb), 0.24);
+}
+
+.tabx-tab[data-active] {
+  border-color: var(--foreground-heading);
+  background: var(--foreground-heading);
+}
+
+.tabx-tab-title {
+  color: var(--foreground-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.tabx-tab-sub {
+  color: var(--muted-foreground);
+  font-size: 11.5px;
+}
+
+.tabx-tab[data-active] .tabx-tab-title {
+  color: var(--white);
+}
+
+.tabx-tab[data-active] .tabx-tab-sub {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+/* Overview strips: one spectrum per row, faces placed by score. */
+.tabx-strips {
+  display: grid;
+  gap: 24px;
+  margin-top: 22px;
+}
+
+.tabx-strip-head {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+
+.tabx-strip-word {
+  color: var(--foreground-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tabx-strip-state,
+.tabx-cohesion-state {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.06);
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 9.5px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.tabx-strip-state[data-state='varied'],
+.tabx-cohesion-state[data-state='varied'] {
+  background: rgba(206, 0, 88, 0.07);
+  color: var(--primary);
+}
+
+.tabx-strip-avg {
+  margin-left: auto;
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tabx-strip-track {
+  position: relative;
+  height: 30px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.045);
+}
+
+.tabx-strip-tick {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 1px;
+  background: rgba(var(--team-dna-ink-rgb), 0.3);
+}
+
+.tabx-strip-face {
+  position: absolute;
+  top: 50%;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+  line-height: 0;
+  transform: translate(-50%, -50%);
+  transition: transform 130ms ease;
+}
+
+.tabx-strip-face:hover,
+.tabx-strip-face:focus-visible {
+  z-index: 4;
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+.tabx-strip-face--static {
+  position: static;
+  transform: none;
+  margin-right: -6px;
+}
+
+.tabx-strip-face--static:hover,
+.tabx-strip-face--static:focus-visible {
+  transform: scale(1.15);
+}
+
+.tabx-strip-poles {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  color: rgba(var(--team-dna-ink-rgb), 0.46);
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+.tabx-callout {
+  padding: 16px 18px 17px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 5px);
+  background: var(--card-subtle-bg);
+}
+
+.tabx-callout-label {
+  margin: 0 0 6px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.tabx-callout-word {
+  margin: 0 0 6px;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.25;
+}
+
+.tabx-callout-line {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.75);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* Profile lens */
+.tabx-person {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 20px;
+}
+
+.tabx-person--pair {
+  align-items: flex-start;
+}
+
+.tabx-person-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.tabx-person-copy strong {
+  color: var(--foreground-heading);
+  font-size: 15.5px;
+  font-weight: 600;
+}
+
+.tabx-person-copy span {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.tabx-pair-faces {
+  display: inline-flex;
+  flex: none;
+}
+
+.tabx-pair-faces .dxp-face + .dxp-face {
+  margin-left: -9px;
+}
+
+.tabx-prows {
+  display: grid;
+  gap: 15px;
+}
+
+.tabx-prow {
+  display: grid;
+  grid-template-columns: 84px 92px 1fr 84px;
+  gap: 12px;
+  align-items: center;
+}
+
+@media (max-width: 720px) {
+  .tabx-prow {
+    grid-template-columns: 84px 1fr 84px;
+  }
+
+  .tabx-prow-pole {
+    display: none;
+  }
+}
+
+.tabx-prow-word {
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.tabx-prow-pole {
+  color: var(--foreground-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.tabx-prow-track {
+  position: relative;
+  height: 14px;
+}
+
+.tabx-prow-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  background: rgba(var(--team-dna-ink-rgb), 0.1);
+}
+
+.tabx-prow-tick {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  border-radius: 1px;
+  background: rgba(var(--team-dna-ink-rgb), 0.3);
+}
+
+.tabx-prow-dot {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+.tabx-prow-delta {
+  color: var(--green-aa, #1a7f4f);
+  font-family: var(--label-font);
+  font-size: 10.5px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.04em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.tabx-prow-delta[data-negative] {
+  color: var(--primary);
+}
+
+.tabx-hint {
+  margin: 12px 0 0;
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+/* Compare lens */
+.tabx-group {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+.tabx-group-label {
+  margin: 0 0 12px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.tabx-group-row {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.tabx-group-row:last-child {
+  margin-bottom: 0;
+}
+
+.tabx-group-word {
+  flex: none;
+  width: 84px;
+  color: var(--foreground-heading);
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tabx-group-face {
+  flex: none;
+  width: 84px;
+  line-height: 0;
+}
+
+.tabx-group-row p {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 13.5px;
+  line-height: 1.55;
+}
+
+.tabx-group-row p strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+.tabx-group .dxp-move {
+  margin-top: 14px;
+}
+
+/* Chemistry lens */
+.tabx-roles {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+
+@media (max-width: 720px) {
+  .tabx-roles {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tabx-role {
+  display: grid;
+  gap: 5px;
+  padding: 15px 17px 14px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 5px);
+  background: var(--card-subtle-bg);
+}
+
+.tabx-role-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.tabx-role-head strong {
+  color: var(--foreground-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.tabx-role-count {
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 11px;
+  letter-spacing: 0.05em;
+}
+
+.tabx-role-desc {
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+}
+
+.tabx-role-faces {
+  display: inline-flex;
+  margin-top: 5px;
+  min-height: 22px;
+}
+
+.tabx-open-line {
+  margin: 16px 0 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.75);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.tabx-open-line strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+.tabx-cohesion {
+  display: grid;
+  gap: 13px;
+  margin-top: 6px;
+}
+
+.tabx-cohesion-row {
+  display: grid;
+  grid-template-columns: 84px 1fr 76px;
+  gap: 12px;
+  align-items: center;
+}
+
+.tabx-cohesion-word {
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.tabx-cohesion-track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+}
+
+.tabx-cohesion-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  background: rgba(206, 0, 88, 0.4);
+}
+
+.tabx-cohesion-state {
+  justify-self: end;
+}
+
+.tabx-duo-lists {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  margin-top: 4px;
+}
+
+@media (max-width: 720px) {
+  .tabx-duo-lists {
+    grid-template-columns: 1fr;
+  }
+}
+
+.tabx-duo-item {
+  margin-bottom: 14px;
+}
+
+.tabx-duo-item:last-child {
+  margin-bottom: 0;
+}
+
+.tabx-duo-item strong {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--foreground-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.tabx-duo-item p {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.75);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+/* ── Four tabs: page-level lens layout ────────────────────────────────────
+   The lens bar spans the whole page grid. On every lens except Compare the
+   people pane is hidden and the content column takes the full width; Compare
+   keeps the classic two-pane interaction underneath the bar. */
+
+.team-dna-experience > .lensx-bar-row {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 22px;
+  padding: 44px 0 6px;
+}
+
+.team-dna-experience[data-lens-page] {
+  /* Full-page concepts have no left pane, so the two-pane composition
+     shift (and its deeper scrolled variant) must not apply: it dragged
+     the whole centered page ~37px left once you scrolled past the
+     header. */
+  --composition-shift: 0px;
+
+  grid-template-columns: minmax(0, 1fr);
+  column-gap: 0;
+  width: min(calc(100% - 96px), 1120px);
+  transform: none;
+}
+
+.team-dna-experience[data-lens-page] .team-dna-people-pane {
+  display: none;
+}
+
+.team-dna-experience[data-lens-page] .team-dna-insight-content {
+  padding-top: 30px;
+  padding-bottom: 14vh;
+}
+
+/* Compare keeps two panes; pull the read up to sit beside the faces. */
+.team-dna-experience:not([data-lens-page]) > .lensx-bar-row + .team-dna-people-pane {
+  height: calc(100vh - 120px);
+  padding-bottom: 60px;
+}
+
+.team-dna-experience:not([data-lens-page]) > .lensx-bar-row ~ .team-dna-insight-pane .team-dna-insight-content {
+  padding-top: 34px;
+}
+
+.lensx-head {
+  display: grid;
+  gap: 10px;
+  max-width: 640px;
+}
+
+.lensx-eyebrow {
+  margin: 0;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: var(--label-size);
+  font-weight: var(--label-weight);
+  letter-spacing: var(--label-tracking);
+  text-transform: uppercase;
+}
+
+.lensx-title {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 34px;
+  font-weight: 400;
+  line-height: 1.1;
+}
+
+.lensx-intro {
+  margin: 0;
+  color: var(--muted-foreground);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* Lens content: grids of compact cards. */
+.lensx {
+  animation: team-dna-empty-fade 600ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.lensx-grid {
+  display: grid;
+  gap: 16px;
+}
+
+.lensx-grid--overview,
+.lensx-grid--profile {
+  grid-template-columns: 360px minmax(0, 1fr);
+  align-items: start;
+}
+
+.lensx-grid--chem {
+  grid-template-columns: minmax(0, 1fr) 380px;
+  align-items: start;
+}
+
+.lensx-grid--half {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.lensx-span {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 980px) {
+  .lensx-grid--overview,
+  .lensx-grid--profile,
+  .lensx-grid--chem,
+  .lensx-grid--half {
+    grid-template-columns: 1fr;
+  }
+}
+
+.lensx-col {
+  display: grid;
+  gap: 16px;
+  align-content: start;
+}
+
+/* Compact card variant for multi-column lens layouts. */
+.info-block--lens {
+  padding: 30px 34px 32px;
+}
+
+.lensx-card-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.lensx-meta {
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  text-align: right;
+}
+
+.lensx-serif {
+  margin: 0 0 12px;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 24px;
+  font-weight: 400;
+  line-height: 1.2;
+}
+
+.lensx-copy {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.8);
+  font-size: 14px;
+  line-height: 1.65;
+}
+
+/* Team signature: the five averages as a quiet numbers row. */
+.lensx-avgs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+.lensx-avg {
+  display: grid;
+  gap: 2px;
+}
+
+.lensx-avg-num {
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 21px;
+  font-weight: 400;
+  line-height: 1;
+}
+
+.lensx-avg-word {
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* Profile identity card */
+.lensx-id {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.lensx-id-copy {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.lensx-id-copy strong {
+  color: var(--foreground-heading);
+  font-size: 16.5px;
+  font-weight: 600;
+}
+
+.lensx-id-copy span {
+  color: var(--muted-foreground);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.lensx-super {
+  margin-top: 18px;
+  padding: 16px 18px 17px;
+  border: 1px solid var(--card-subtle-border);
+  border-radius: calc(var(--radius) - 5px);
+  background: var(--white);
+}
+
+/* Strengths / growth items inside lens cards. */
+.lensx-items {
+  display: grid;
+  gap: 18px;
+  margin-top: 4px;
+}
+
+.lensx-item strong {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--foreground-heading);
+  font-size: 14.5px;
+  font-weight: 600;
+}
+
+.lensx-item p {
+  margin: 0;
+  max-width: 560px;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+/* "Try" suggestion: a quiet tinted box so the action reads as its own layer. */
+.lensx-item-tip {
+  margin-top: 10px !important;
+  padding: 10px 13px;
+  border-radius: 9px;
+  background: rgba(206, 0, 88, 0.04);
+  color: rgba(var(--team-dna-copy-rgb), 0.86) !important;
+}
+
+.lensx-item-tip span {
+  margin-right: 8px;
+  color: var(--primary);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+
+
+/* ── Round-3 polish: hero widgets, strip drill-down, lighter lenses ─────── */
+
+/* Expanded: the widgets live inside the hero, between the description and
+   the archetype distribution. White cards so they read as a layer within
+   the hero box; copy at regular weight. */
+.cw-row--hero {
+  margin: 26px 0 4px;
+}
+
+/* Inside the hero the cards are narrow; keep them to label, value, line. */
+.cw-row--hero .cw-widget-faces {
+  display: none;
+}
+
+.cw-widget {
+  background: var(--white);
+  gap: 8px;
+  padding: 20px 22px 22px;
+}
+
+.cw-widget-line {
+  font-weight: 400;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+}
+
+/* Dive deeper: wider document, more air. */
+.ddp-panel {
+  width: min(880px, 100%);
+}
+
+.ddp-head {
+  padding: 32px 44px 18px;
+}
+
+.ddp-body {
+  padding: 26px 44px 12px;
+}
+
+.ddp-foot {
+  padding: 4px 44px 28px;
+}
+
+.ddp-groups {
+  gap: 36px;
+}
+
+.ddp-item {
+  gap: 10px;
+}
+
+/* The drill-down strip: one track, both poles, a dot per person, the
+   leaning half tinted, counts in plain words above. */
+.ddx-strip {
+  display: grid;
+  gap: 7px;
+  margin: 2px 0;
+}
+
+.ddx-strip-counts {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.ddx-strip-count {
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 10.5px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.ddx-strip-count[data-lean] {
+  color: var(--primary);
+}
+
+.ddx-strip-count--mid {
+  text-transform: none;
+  letter-spacing: 0.02em;
+  font-family: 'Söhne', sans-serif;
+  font-size: 11.5px;
+  font-weight: 400;
+}
+
+.ddx-strip-track {
+  position: relative;
+  height: 26px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.045);
+}
+
+.ddx-strip-half {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 50%;
+  background: rgba(206, 0, 88, 0.06);
+}
+
+.ddx-strip-half[data-side='low'] {
+  left: 0;
+  border-radius: 999px 0 0 999px;
+}
+
+.ddx-strip-half[data-side='high'] {
+  right: 0;
+  border-radius: 0 999px 999px 0;
+}
+
+.ddx-strip-center {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 50%;
+  width: 1.5px;
+  transform: translateX(-50%);
+  background: rgba(var(--team-dna-ink-rgb), 0.18);
+}
+
+.ddx-strip-dot {
+  position: absolute;
+  top: 50%;
+  width: 11px;
+  height: 11px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(var(--team-dna-ink-rgb), 0.45);
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+.ddx-strip-dot[data-focus] {
+  background: var(--primary);
+  width: 13px;
+  height: 13px;
+  z-index: 2;
+}
+
+.ddx-strip-poles {
+  display: flex;
+  justify-content: space-between;
+  color: rgba(var(--team-dna-ink-rgb), 0.46);
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.9px;
+  text-transform: uppercase;
+}
+
+/* Overview strips: small muted avatars so people are recognizable without
+   turning the row into confetti, one ink average marker everywhere, and a
+   read per line so the chart carries an insight, not just positions.
+   Spacing does the grouping: tight inside a strip, generous between strips. */
+.tabx-strip-track {
+  height: 26px;
+}
+
+.tabx-strip-tick {
+  top: -5px;
+  bottom: -5px;
+  width: 3px;
+  border-radius: 2px;
+  background: rgba(var(--team-dna-ink-rgb), 0.62);
+  box-shadow: 0 0 0 2px var(--white);
+  z-index: 1;
+}
+
+.tabx-strip-tick::after {
+  content: '';
+  position: absolute;
+  top: -3px;
+  left: 50%;
+  width: 7px;
+  height: 7px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: rgba(var(--team-dna-ink-rgb), 0.78);
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+.tabx-strip-face .dxp-face {
+  box-shadow: 0 0 0 2px var(--white);
+}
+
+.tabx-strip-face .dxp-face img {
+  filter: saturate(0.55);
+}
+
+.tabx-strip-face:hover .dxp-face img,
+.tabx-strip-face:focus-visible .dxp-face img {
+  filter: none;
+}
+
+.tabx-strip-read {
+  margin: 9px 0 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.72);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.tabx-strips {
+  gap: 34px;
+  margin-top: 22px;
+}
+
+.tabx-strip-poles {
+  margin-top: 6px;
+}
+
+/* Profile rows: your avatar is the marker; more air per row. */
+.tabx-prows {
+  gap: 19px;
+  margin-top: 20px;
+}
+
+.tabx-prow-track {
+  height: 24px;
+}
+
+.tabx-prow-me {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  line-height: 0;
+}
+
+.tabx-prow-tick {
+  background: rgba(var(--team-dna-ink-rgb), 0.35);
+}
+
+/* Lens typography: mono-caps kicker so serif never stacks on serif. */
+.lensx-kicker {
+  margin: 0 0 8px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.lensx-hint {
+  margin: 6px 0 0;
+  max-width: 560px;
+  color: var(--muted-foreground);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.lensx-avgs {
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+.lensx-avgs-cap {
+  margin: 0 0 14px;
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 9.5px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.lensx-avgs-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+}
+
+.lensx-sigs {
+  display: grid;
+  gap: 26px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+.lensx-sig .lensx-kicker {
+  margin-bottom: 4px;
+}
+
+.lensx-sig p {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 13.5px;
+  line-height: 1.6;
+}
+
+.lensx-sig p strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+.lensx-sig--solo {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+/* ── Round-4 polish ──────────────────────────────────────────────────────── */
+
+/* Signature callouts: trait name in display type over a small range bar,
+   so aligned vs. varied is visible before it is read. One neutral bar
+   color; the length is the message. */
+.lensx-sig-top {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 9px;
+}
+
+.lensx-sig-top .lensx-kicker {
+  margin: 0;
+}
+
+.lensx-sig-spread {
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 9.5px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.lensx-sig-word {
+  margin: 0 0 9px;
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.15;
+}
+
+.lensx-sig-track {
+  position: relative;
+  display: block;
+  height: 7px;
+  margin-bottom: 10px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+}
+
+.lensx-sig-bar {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.4);
+}
+
+.lensx-sig-line {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.72);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+/* The card's read: an insight paragraph, not a mechanics caption. */
+.lensx-read {
+  margin: 10px 0 0;
+  max-width: 68ch;
+  color: rgba(var(--team-dna-copy-rgb), 0.8);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+/* Big Five names are longer than the friendly words: give the caps room
+   to wrap in rows, and set the averages as a quiet list so nothing
+   overlaps regardless of name length. */
+.tabx-prow {
+  grid-template-columns: 122px 88px 1fr 84px;
+}
+
+.tabx-prow-word,
+.tabx-cohesion-word {
+  line-height: 1.5;
+}
+
+.tabx-cohesion-row {
+  grid-template-columns: 104px 1fr 76px;
+}
+
+/* Averages: label and number stay adjacent (one aligned column) so each row
+   reads as a unit; row spacing separates the units. */
+.lensx-avgs {
+  display: block;
+}
+
+.lensx-avgs-row {
+  display: grid;
+  gap: 12px;
+}
+
+.lensx-avg {
+  display: grid;
+  grid-template-columns: 148px auto;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.lensx-avg-num {
+  order: 2;
+  font-size: 17px;
+}
+
+.lensx-avg-word {
+  order: 1;
+  line-height: 1.5;
+}
+
+/* Chemistry: archetypes nobody carries render as ×0 tiles, not a footnote. */
+.tabx-role[data-open] {
+  border-style: dashed;
+  background: transparent;
+}
+
+.tabx-role-count--zero {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.tabx-role-none {
+  display: flex;
+  align-items: center;
+  min-height: 22px;
+  margin-top: 5px;
+  color: var(--muted-foreground);
+  font-size: 12px;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+/* Dive deeper: insight first. A stat-led lead above each strip, a quiet
+   one-line why below it, and more air between claims. */
+.ddp-groups {
+  gap: 44px;
+}
+
+.ddp-item {
+  gap: 12px;
+}
+
+.ddp-item-lead {
+  margin: 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.9);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.55;
+}
+
+.ddp-item-line--why {
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: var(--muted-foreground);
+  font-size: 13px;
+}
+
+.ddx-strip {
+  margin: 2px 0 0;
+}
+
+/* Hero widgets: one-line labels, display-type values, quiet copy. The
+   growth-edge card has no number, so its line steps up to display type. */
+.cw-widget {
+  gap: 9px;
+}
+
+.cw-widget-label {
+  white-space: nowrap;
+}
+
+.cw-widget-line {
+  font-size: 13px;
+  font-weight: 400;
+  color: rgba(var(--team-dna-copy-rgb), 0.72);
+}
+
+.cw-widget-line--lead {
+  color: var(--foreground-heading);
+  font-family: var(--heading-display-font);
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* ── Concept 4 · One system (Four tabs, evolved) ─────────────────────────
+   Type discipline: serif for large headings only, mono for numbers and
+   labels, sans for everything else. One insight line per section; depth
+   behind accordions. */
+
+.onex {
+  display: grid;
+  gap: 18px;
+}
+
+/* Page bar: rail between the team name and the tabs, on every lens. */
+.onex-rail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px 10px;
+  margin-top: 4px;
+  padding-bottom: 6px;
+  max-width: 640px;
+}
+
+.onex-rail-face {
+  position: relative;
+  padding: 0;
+  border: 0;
+  background: none;
+  border-radius: 999px;
+  cursor: pointer;
+  line-height: 0;
+  transition: transform 130ms ease;
+}
+
+.onex-rail-face:hover,
+.onex-rail-face:focus-visible {
+  transform: translateY(-2px);
+}
+
+.onex-rail-face[data-active] {
+  transform: translateY(-2px);
+}
+
+.onex-rail-you {
+  position: absolute;
+  left: 50%;
+  bottom: -12px;
+  transform: translateX(-50%);
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 8px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.onex-tabs {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/* Type discipline: mono eyebrow above the card's one serif title. */
+.onex-eyebrow {
+  margin: 0 0 12px;
+  color: var(--label-color);
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.onex .info-block--editorial .info-block-label {
+  margin-bottom: 14px;
+  font-size: 27px;
+}
+
+.onex-body {
+  margin: 12px 0 0;
+  max-width: 520px;
+  color: rgba(var(--team-dna-copy-rgb), 0.82);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.onex-read {
+  margin: 12px 0 0;
+  max-width: 68ch;
+  color: rgba(var(--team-dna-copy-rgb), 0.8);
+  font-size: 13.5px;
+  line-height: 1.65;
+}
+
+.onex-quiet {
+  margin: 10px 0 0;
+  color: rgba(var(--team-dna-copy-rgb), 0.68);
+  font-size: 12.5px;
+  line-height: 1.6;
+}
+
+.onex-quiet strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+/* Hero: signature copy left, the original archetype block right. */
+.onex-hero-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+  gap: 36px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .onex-hero-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.onex-hero-side {
+  padding-top: 6px;
+  padding-left: 40px;
+  border-left: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+@media (max-width: 900px) {
+  .onex-hero-side {
+    padding-left: 0;
+    border-left: 0;
+  }
+}
+
+.onex-hero-side .fvc-def {
+  max-width: none;
+  color: #4d4d4d;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.onex-hero-side .team-shape-contribution-copy {
+  font-size: 13.5px;
+}
+
+.onex-hero-side .team-shape-contribution-copy strong {
+  color: #1e1a26;
+  font-weight: 600;
+}
+
+.fvh-gaps-toggle {
+  margin-top: 14px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #717070;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12.5px;
+  line-height: 18px;
+  text-decoration: underline;
+  text-decoration-color: rgba(0, 0, 0, 0.2);
+  text-underline-offset: 3px;
+}
+
+.fvh-gaps-toggle:hover {
+  color: #1e1a26;
+}
+
+.onex-hero-side .team-shape-block {
+  margin: 0;
+}
+
+/* Accordion rows: name, mini distribution, state, number, chevron. */
+.bfx-rows {
+  margin-top: 16px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.bfx-row {
+  border-bottom: 1px solid rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.bfx-head {
+  display: grid;
+  grid-template-columns: 168px minmax(0, 1fr) auto 64px 16px;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  padding: 13px 2px;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: left;
+}
+
+.bfx-name {
+  color: var(--foreground-heading);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.bfx-mini {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+}
+
+.bfx-mini i {
+  position: absolute;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: rgba(var(--team-dna-ink-rgb), 0.4);
+}
+
+.bfx-mini--blank {
+  background: none;
+}
+
+.bfx-avg {
+  color: var(--muted-foreground);
+  font-family: var(--label-font);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  text-align: right;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.bfx-chev {
+  width: 14px;
+  height: 14px;
+  color: var(--muted-foreground);
+  transition: transform 150ms ease;
+}
+
+.bfx-row[data-open] .bfx-chev {
+  transform: rotate(180deg);
+}
+
+.bfx-body {
+  padding: 4px 2px 18px;
+}
+
+.bfx-body .tabx-strip-track {
+  margin-top: 8px;
+}
+
+/* Working styles, team: one diverging bar per item (inside the accordion). */
+.wsd-rows {
+  display: grid;
+  gap: 11px;
+  margin-top: 6px;
+}
+
+.wsd-row {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr) 118px;
+  gap: 12px;
+  align-items: center;
+}
+
+.wsd-pole {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  color: rgba(var(--team-dna-ink-rgb), 0.55);
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  line-height: 1.4;
+}
+
+.wsd-pole b {
+  color: var(--foreground-heading);
+  font-family: var(--label-font);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.wsd-pole--right {
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.wsd-bar {
+  display: flex;
+  height: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.05);
+}
+
+.wsd-seg {
+  height: 100%;
+}
+
+.wsd-seg--a {
+  background: rgba(var(--team-dna-ink-rgb), 0.5);
+}
+
+.wsd-seg--mid {
+  background: rgba(var(--team-dna-ink-rgb), 0.12);
+}
+
+.wsd-seg--b {
+  background: rgba(206, 0, 88, 0.34);
+}
+
+/* Profile: identity extras. */
+.onex-arch-line {
+  color: var(--muted-foreground);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.onex-arch-line strong {
+  color: var(--foreground-heading);
+  font-weight: 600;
+}
+
+.onex-super-title {
+  margin: 6px 0 0;
+  color: var(--foreground-heading);
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+.onex-lean {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(var(--team-dna-ink-rgb), 0.07);
+}
+
+/* Profile working styles: same track + marker language as the rows above. */
+.wpx-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 26px 44px;
+  margin-top: 20px;
+}
+
+@media (max-width: 860px) {
+  .wpx-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wpx-cat {
+  display: grid;
+  gap: 14px;
+  align-content: start;
+}
+
+.wpx-cat-title {
+  margin: 0;
+  color: var(--foreground-heading);
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.wpx-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 96px;
+  grid-template-areas:
+    'track stance'
+    'poles stance';
+  column-gap: 14px;
+  row-gap: 4px;
+  align-items: center;
+}
+
+.wpx-track {
+  grid-area: track;
+  position: relative;
+  height: 22px;
+}
+
+.wpx-track::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 2px;
+  transform: translateY(-50%);
+  border-radius: 1px;
+  background: rgba(var(--team-dna-ink-rgb), 0.1);
+}
+
+.wpx-poles {
+  grid-area: poles;
+  display: flex;
+  justify-content: space-between;
+  color: rgba(var(--team-dna-ink-rgb), 0.46);
+  font-family: var(--label-font);
+  font-size: 8.5px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wpx-stance {
+  grid-area: stance;
+  color: rgba(var(--team-dna-copy-rgb), 0.72);
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.onex-pairings {
+  margin-top: 16px;
+}
+
+/* ── Concept 5 · V5: the Terra rebuild ─────────────────────────────────────
+   Tokens and patterns lifted from betterup/vasil's Terra implementation:
+   product crumb row, centered serif page title (serif is ONLY the page
+   title, section insight lines, and big display numbers), the contained
+   toggle group (sand track, white active pill), white cards at radius 12
+   with elev-1, mono badge pills, and Vasil's report-card anatomy for every
+   small card (badge / name / big number + strip / one line / one link). */
+
+.fivex-stack {
+  display: grid;
+  gap: 32px;
+}
+
+.fivex-profile {
+  display: grid;
+  grid-template-columns: 360px minmax(0, 1fr);
+  gap: 24px;
+  align-items: stretch;
+}
+
+.fvc--id {
+  display: flex;
+  flex-direction: column;
+}
+
+.fvc--id .fvc-foot {
+  margin-top: auto;
+}
+
+.fvc--id .fvx-fit {
+  margin-bottom: 24px;
+}
+
+@media (max-width: 900px) {
+  .fivex-profile {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Page chrome ─────────────────────────────────────────────────────────── */
+
+.fivex-bar {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+/* ONE product row: breadcrumb left, page title center, team switcher
+   right. Keeps the page a product screen without eating half the fold. */
+.fivex-chrome {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 16px;
+  width: 100%;
+  text-align: left;
+}
+
+.fivex-crumbs {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  justify-self: start;
+}
+
+.fivex-right {
+  justify-self: end;
+}
+
+.fivex-crumb {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 8px 6px 5px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: #717070;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fivex-crumb:hover {
+  background: rgba(194, 191, 147, 0.2);
+  color: #1e1a26;
+}
+
+.fivex-crumb-sep {
+  color: rgba(30, 26, 38, 0.25);
+  font-size: 13px;
+}
+
+.fivex-team {
+  position: relative;
+}
+
+.fivex-team-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 10px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  color: #4d4d4d;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  transition: background 0.15s ease;
+}
+
+.fivex-team-btn:hover {
+  background: rgba(194, 191, 147, 0.2);
+}
+
+.fivex-team-btn[data-static] {
+  cursor: default;
+}
+
+.fivex-team-btn[data-static]:hover {
+  background: none;
+}
+
+.fivex-team-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 30;
+  min-width: 220px;
+  padding: 6px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow:
+    0 4px 8px rgba(0, 0, 0, 0.05),
+    0 16px 40px rgba(0, 0, 0, 0.1);
+}
+
+.fivex-team-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: #1e1a26;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13.5px;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.fivex-team-item:hover {
+  background: rgba(194, 191, 147, 0.2);
+}
+
+.fivex-team-item[data-selected] {
+  font-weight: 500;
+}
+
+.fivex-head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  justify-self: stretch;
+  width: 100%;
+  margin-top: 2px;
+  text-align: left;
+}
+
+.fivex-kicker {
+  margin: 0;
+  color: #717070;
+  font-family: var(--label-font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.66px;
+  text-transform: uppercase;
+}
+
+.fivex-title {
+  margin: 3px 0 0;
+  color: #1e1a26;
+  font-family: var(--heading-display-font);
+  font-size: 30px;
+  font-weight: 400;
+  line-height: 36px;
+}
+
+.fivex-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+@media (max-width: 900px) {
+  .fivex-head {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+}
+
+.fivex-rail {
+  justify-content: center;
+  max-width: none;
+  margin-top: 14px;
+  padding-bottom: 4px;
+}
+
+/* Manager edit: a quiet icon at the end of the roster. */
+.fivex-edit-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #717070;
+  cursor: pointer;
+  align-self: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.fivex-edit-icon:hover {
+  background: rgba(194, 191, 147, 0.25);
+  color: #1e1a26;
+}
+
+/* Terra contained toggle group: sand track, white active pill. */
+.fivex-tabbar {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 12px;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(194, 191, 147, 0.2);
+}
+
+.fivex-tab {
+  height: 40px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #1e1a26;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 20px;
+  white-space: nowrap;
+  transition:
+    background 0.15s ease,
+    transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.fivex-tab:active {
+  transform: scale(0.96);
+  transition-duration: 0.08s;
+}
+
+.fivex-tab[data-active] {
+  background: #ffffff;
+  font-weight: 500;
+}
+
+/* ── The section card ────────────────────────────────────────────────────── */
+
+.fvc {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 28px;
+  box-shadow: 0 2px 4px -1px rgba(26, 26, 26, 0.12);
+}
+
+.fvc-kicker {
+  margin: 0 0 10px;
+  color: #717070;
+  font-family: var(--label-font);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.66px;
+  text-transform: uppercase;
+}
+
+.fvc-kicker--tight {
+  margin-bottom: 10px;
+}
+
+/* Section title: serif, SHORT (a noun phrase, never a sentence). */
+.fvc-title {
+  margin: 0;
+  color: #1e1a26;
+  font-family: var(--heading-display-font);
+  font-size: 23px;
+  font-weight: 400;
+  line-height: 30px;
+}
+
+.fvc-title--gap {
+  margin-top: 24px;
+}
+
+/* The insight lives here: one or two human lines, in sans. */
+.fvc-lead {
+  margin: 10px 0 0;
+  max-width: 820px;
+  color: #4d4d4d;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 21px;
+}
+
+/* The one-line self-explanation each section carries. */
+.fvc-def {
+  margin: 0;
+  max-width: 620px;
+  color: #717070;
+  font-size: 13.5px;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+}
+
+.onex-hero-side .team-shape-block {
+  margin-top: 20px;
+}
+
+.onex-hero-side .team-shape-contributions {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+
+.fvc-sub {
+  margin: 8px 0 0;
+  max-width: 560px;
+  color: #4d4d4d;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 22px;
+}
+
+.fvc-sub--copy {
+  margin-top: 12px;
+}
+
+.fvc-note {
+  margin: 10px 0 0;
+  color: #717070;
+  font-size: 13px;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+}
+
+.fvc-note strong {
+  color: #1e1a26;
+  font-weight: 500;
+}
+
+.fvc-foot {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.fvc-foot .info-block-coach-link {
+  margin-top: 0;
+}
+
+/* ── Claim cards: ONE strengths card, ONE growth card ───────────────────── */
+
+.fivex-two {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+@media (max-width: 760px) {
+  .fivex-two {
+    grid-template-columns: 1fr;
+  }
+}
+
+.fivex-two--stack {
+  grid-template-columns: 1fr;
+}
+
+.fvs-badge {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  padding: 3px 10px;
+  border-radius: 20px;
+  background: rgba(194, 191, 155, 0.3);
+  color: #1e1a26;
+  font-family: var(--label-font);
+  font-size: 11px;
+  font-weight: 400;
+  letter-spacing: 0.66px;
+  line-height: 1.6;
+  text-transform: uppercase;
+}
+
+.fvs-badge[data-tone='growth'] {
+  background: rgba(206, 0, 88, 0.08);
+  color: #ce0058;
+}
+
+.fvl {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 28px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px -1px rgba(26, 26, 26, 0.12);
+}
+
+.fvl-item {
+  width: 100%;
+  padding: 26px 0 0;
+}
+
+.fvl-item:first-of-type {
+  padding-top: 22px;
+}
+
+.fvl-item:last-of-type {
+  padding-bottom: 4px;
+}
+
+.fvl-title {
+  margin: 0;
+  color: #1e1a26;
+  font-size: 15px;
+  font-weight: 500;
+  line-height: 21px;
+}
+
+.fvl-line {
+  margin: 6px 0 0;
+  color: #4d4d4d;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 21px;
+}
+
+/* The action block: a tinted box that separates "what we found" from
+   "what to do with it", bullets in the original collaboration-tips style. */
+.fvl-actions {
+  width: 100%;
+  margin-top: 26px;
+  padding: 16px 18px 18px;
+  border-radius: 10px;
+  background: rgba(194, 191, 147, 0.14);
+}
+
+.fvl-actions-label {
+  margin: 0 0 12px;
+  color: #1e1a26;
+  font-size: 13.5px;
+  font-weight: 600;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+}
+
+.fvl-bullets {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fvl-bullets li {
+  position: relative;
+  padding-left: 16px;
+  color: #4d4d4d;
+  font-size: 13.5px;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+}
+
+.fvl-bullets li::before {
+  content: '';
+  position: absolute;
+  top: 7.5px;
+  left: 0;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--primary);
+}
+
+/* ── Trait accordion: the original capped line, faces on demand ──────────── */
+
+.fva-rows {
+  display: grid;
+  gap: 2px;
+  margin-top: 26px;
+}
+
+.fva-row {
+  display: grid;
+  grid-template-columns: 152px 64px minmax(0, 1fr) 64px 36px;
+  gap: 16px;
+  align-items: center;
+  width: 100%;
+  padding: 8px 0;
+  cursor: pointer;
+}
+
+.fva-name {
+  color: #1e1a26;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+}
+
+.fva-pole {
+  color: rgba(30, 26, 38, 0.45);
+  font-family: var(--label-font);
+  font-size: 8.5px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.fva-pole--right {
+  text-align: right;
+}
+
+/* The strip: a line with small end caps, the green density, the mean. */
+.fva-mini {
+  position: relative;
+  height: 40px;
+}
+
+.fva-mini::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: rgba(30, 26, 38, 0.16);
+}
+
+.fva-cap {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 1px;
+  height: 9px;
+  background: rgba(30, 26, 38, 0.35);
+  transform: translateY(-50%);
+}
+
+.fva-cap--end {
+  right: 0;
+  left: auto;
+}
+
+/* The affordance: it says what opening gives you. */
+.fva-more {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  justify-self: end;
+  padding: 0;
+  border: 1px solid rgba(30, 26, 38, 0.18);
+  border-radius: 999px;
+  background: none;
+  color: #4d4d4d;
+  cursor: pointer;
+}
+
+.fva-more:hover {
+  border-color: rgba(30, 26, 38, 0.45);
+  background: #fff;
+  color: #1e1a26;
+}
+
+.fva-more svg {
+  width: 12px;
+  height: 12px;
+  transition: transform 150ms ease;
+}
+
+.fva[data-open] .fva-more {
+  border-color: rgba(30, 26, 38, 0.45);
+  color: #1e1a26;
+}
+
+.fva[data-open] .fva-more svg {
+  transform: rotate(180deg);
+}
+
+/* The insight opens under its own row, aligned with the strip column. */
+.fva-detail {
+  display: grid;
+  grid-template-columns: 152px 64px minmax(0, 1fr) 64px 36px;
+  column-gap: 16px;
+  row-gap: 4px;
+}
+
+.fva-insight {
+  grid-column: 3;
+  margin: 2px 0 12px;
+  color: #1e1a26;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 21px;
+}
+
+.fva-insight strong {
+  font-weight: 600;
+}
+
+/* Avatars land on the same line when the row is open. */
+.fvp-row {
+  display: grid;
+  grid-template-columns: 152px 64px minmax(0, 1fr) 64px;
+  gap: 16px;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.fvp-me {
+  cursor: default;
+}
+
+.fvp-mini::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 0;
+  left: 0;
+  height: 1px;
+  background: rgba(30, 26, 38, 0.12);
+  transform: translateY(-50%);
+}
+
+.fvp-tick {
+  position: absolute;
+  top: 50%;
+  width: 2.5px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgb(53, 154, 147);
+  transform: translate(-50%, -50%);
+}
+
+.fvp-me {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  line-height: 0;
+}
+
+.fvp-tip {
+  position: absolute;
+  bottom: calc(100% + 9px);
+  left: 50%;
+  z-index: 6;
+  display: none;
+  width: max-content;
+  max-width: 250px;
+  padding: 8px 11px 9px;
+  border-radius: 8px;
+  background: #1e1a26;
+  text-align: left;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.fvp-tip strong {
+  display: block;
+  color: #fff;
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.fvp-tip span {
+  display: block;
+  margin-top: 3px;
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 12px;
+  letter-spacing: 0.1px;
+  line-height: 16px;
+}
+
+.fvp-me:hover .fvp-tip {
+  display: block;
+}
+
+
+.fvr-face {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: pointer;
+  transform: translate(-50%, -50%);
+  line-height: 0;
+}
+
+.fvr-face .dxp-face {
+  box-shadow: 0 0 0 1.5px #ffffff;
+}
+
+/* ── The team wave (the original page's distribution, ported) ────────────── */
+
+.fvw {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.fvw-range {
+  position: absolute;
+  top: 50%;
+  height: 9px;
+  border-radius: 999px;
+  background: rgba(73, 181, 174, 0.12);
+  transform: translateY(-50%);
+}
+
+.fvw-density {
+  position: absolute;
+  top: 50%;
+  height: 22px;
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    rgba(73, 181, 174, 0.38) 0%,
+    rgba(73, 181, 174, 0.18) 48%,
+    rgba(73, 181, 174, 0) 76%
+  );
+  transform: translateY(-50%);
+}
+
+.fvw-mean {
+  position: absolute;
+  top: 50%;
+  width: 2.5px;
+  height: 16px;
+  border-radius: 999px;
+  background: rgb(53, 154, 147);
+  transform: translate(-50%, -50%);
+}
+
+/* Headed card grid: kicker + serif line + def on the page background,
+   the cards, then ONE coach handoff for the whole group. */
+.fvg {
+  padding: 4px 2px 0;
+}
+
+.fvg .fivex-two {
+  margin-top: 24px;
+}
+
+.fvl-foot {
+  width: 100%;
+  margin-top: auto;
+  padding-top: 18px;
+}
+
+.fvl-foot .info-block-coach-link {
+  margin-top: 0;
+}
+
+/* ── Compare rows: compact, no valence ───────────────────────────────────── */
+
+.fivex-stack .tabx-prow-word {
+  color: #1e1a26;
+  font-family: var(--body-font);
+  font-size: 13.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.fvp-band {
+  position: absolute;
+  top: 50%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(30, 26, 38, 0.14);
+  transform: translateY(-50%);
+  transition: background 0.15s ease;
+}
+
+/* The tip is dark, so the band it reads darkens with it. */
+.fvp-mini:has(.fvp-mid:hover) .fvp-band {
+  background: #1e1a26;
+}
+
+.fvp-me--pair {
+  cursor: default;
+}
+
+.fvp-mid {
+  position: absolute;
+  top: 50%;
+  z-index: 4;
+  width: 44px;
+  height: 26px;
+  transform: translate(-50%, -50%);
+}
+
+.fvp-mid .fvp-tip {
+  bottom: calc(100% - 1px);
+}
+
+.fvp-mid:hover .fvp-tip {
+  display: block;
+}
+
+/* ── Identity blocks ─────────────────────────────────────────────────────── */
+
+.fvx-idrow {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+}
+
+.fvx-idcopy {
+  display: grid;
+  gap: 3px;
+}
+
+/* ── Page agenda: three numbered steps, quiet, doubling as navigation ───── */
+
+.fvx-steps {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 18px;
+  padding: 2px 10px 0;
+}
+
+.fvx-step-line {
+  flex: 1 1 24px;
+  min-width: 24px;
+  height: 0.5px;
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.fvx-chapnum {
+  margin: 0 0 6px;
+  color: var(--primary);
+  font-family: var(--label-font);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+}
+
+.fvx-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: #4d4d4d;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13.5px;
+  letter-spacing: 0.1px;
+  transition: color 0.15s ease;
+}
+
+.fvx-step:hover {
+  color: #1e1a26;
+}
+
+.fvx-step-num {
+  color: var(--primary);
+  font-family: var(--label-font);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+#fvsec-hero,
+#fvsec-growth,
+#fvsec-work {
+  scroll-margin-top: 24px;
+}
+
+/* ── Compare picker: open layout, no card ──────────────────────────────── */
+
+.fvx-pick {
+  padding: 10px 6px 0;
+}
+
+.fvx-pick-head {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 56px;
+  align-items: center;
+}
+
+.fvx-pick-head .fvc-lead {
+  max-width: 500px;
+}
+
+.fvx-pick-list {
+  margin-top: 36px;
+}
+
+.fvx-pick-list .mapx-pairings {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.fvx-pick-list .mapx-pairing {
+  padding: 18px 20px;
+  border-radius: 12px;
+  background: #ffffff;
+  box-shadow: 0 2px 4px -1px rgba(26, 26, 26, 0.12);
+}
+
+.fvx-pick-list .mapx-pairing + .mapx-pairing {
+  border-top: 0;
+}
+
+.fvx-pick-list .mapx-pairing:hover {
+  background: #ffffff;
+  box-shadow: 0 5px 12px -3px rgba(26, 26, 26, 0.18);
+}
+
+.fvx-duo-title {
+  font-size: 28px;
+  line-height: 1.25;
+}
+
+.fvx-duo-line {
+  margin-top: 8px;
+}
+
+.fvx-duo-line strong {
+  color: #1e1a26;
+  font-weight: 600;
+}
+
+.wstage[data-compact] .wstage-svg {
+  max-width: 540px;
+}
+
+.fvx-pick-list > .fvc-kicker {
+  margin-bottom: 4px;
+  padding-bottom: 12px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.fvx-pick .fvc-foot {
+  margin-top: 18px;
+}
+
+.fvx-hint {
+  position: relative;
+  flex: none;
+  width: 170px;
+  height: 110px;
+}
+
+.fvx-hint-card {
+  position: absolute;
+  top: 0;
+  right: 0;
+  z-index: 1;
+  display: block;
+  width: 88px;
+  padding: 9px 11px 11px;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(29, 25, 37, 0.1);
+  transform: rotate(3deg);
+  animation: fvx-hint-pop 620ms cubic-bezier(0.22, 1, 0.36, 1) 1150ms both;
+}
+
+.fvx-hint-metric {
+  display: block;
+  margin-bottom: 6px;
+  color: #1e1a26;
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.fvx-hint-card i {
+  display: block;
+  height: 4px;
+  margin-top: 4px;
+  border-radius: 2px;
+  background: rgba(30, 26, 38, 0.1);
+}
+
+.fvx-hint-card i:last-child {
+  width: 62%;
+}
+
+.fvx-hint-line {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  width: 100%;
+  height: 100%;
+}
+
+.fvx-hint-line path {
+  fill: none;
+  stroke: var(--primary);
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1 9;
+  animation:
+    fvx-hint-line-in 420ms ease 900ms both,
+    fvx-hint-dash 1400ms linear 900ms infinite;
+}
+
+.fvx-hint-face {
+  position: absolute;
+  z-index: 3;
+  transition: opacity 420ms ease;
+}
+
+.fvx-hint-face[data-dim] {
+  opacity: 0.32;
+}
+
+/* The walking cursor: same asset as the home preview, clicks on arrival. */
+.fvx-hint-cursor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 4;
+  display: block;
+  width: 22px;
+  height: 28px;
+  transition: transform 850ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.fvx-hint-cursor i {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: url('/team-dna/cursor.png') center / contain no-repeat;
+  transform-origin: 3px 3px;
+  animation: fvx-hint-click 3600ms ease both;
+}
+
+@keyframes fvx-hint-dash {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
+@keyframes fvx-hint-line-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fvx-hint-pop {
+  from {
+    opacity: 0;
+    transform: rotate(3deg) translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: rotate(3deg) translateY(0);
+  }
+}
+
+@keyframes fvx-hint-click {
+  0%,
+  22% {
+    transform: scale(1);
+  }
+
+  26% {
+    transform: scale(0.82);
+  }
+
+  30% {
+    transform: scale(1);
+  }
+
+  100% {
+    transform: scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fvx-hint-card,
+  .fvx-hint-line path,
+  .fvx-hint-cursor i {
+    animation: none;
+    opacity: 1;
+  }
+
+  .fvx-hint-cursor {
+    display: none;
+  }
+}
+
+@media (max-width: 900px) {
+  .fvx-pick-head {
+    grid-template-columns: 1fr;
+  }
+
+  .fvx-hint {
+    display: none;
+  }
+}
+
+/* The top tab bar is the way back in V5, and the page header already
+   carries the breadcrumb; the rail's own back pill and breadcrumb would
+   duplicate both, so they go. */
+.team-dna-experience > .fivex-bar ~ .team-dna-people-pane .team-face-context-back,
+.team-dna-experience > .fivex-bar ~ .team-dna-people-pane .team-face-context-breadcrumb {
+  display: none;
+}
+
+.fvx-idcopy strong {
+  color: #1e1a26;
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+
+.fvx-idcopy span {
+  color: #717070;
+  font-size: 13px;
+  letter-spacing: 0.1px;
+  line-height: 1.5;
+}
+
+.fvx-persona {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.fvx-persona-title {
+  margin: 0;
+  color: #1e1a26;
+  font-family: var(--heading-display-font);
+  font-size: 19px;
+  font-weight: 400;
+  line-height: 26px;
+}
+
+.fvx-persona-body {
+  margin: 10px 0 0;
+  color: #4d4d4d;
+  font-size: 13.5px;
+  letter-spacing: 0.1px;
+  line-height: 20px;
+}
+
+.fvx-persona-body strong {
+  color: #1e1a26;
+  font-weight: 600;
+}
+
+.fvx-fit {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.fvx-fit .fvx-persona-body--flush {
+  margin-top: 0;
+}
+
+strong.fvx-role--primary {
+  color: var(--primary);
+}
+
+strong.fvx-role--secondary {
+  color: var(--purple);
+}
+
+
+
+/* Compare pair. */
+.fvx-ids {
+  display: flex;
+  align-items: center;
+  gap: 28px;
+  margin-top: 16px;
+}
+
+.fvx-x {
+  color: rgba(30, 26, 38, 0.3);
+  font-family: var(--heading-display-font);
+  font-size: 20px;
+}
+
+.fivex-stack .tabx-prows {
+  margin-top: 24px;
+}
+
+.fivex-stack .tabx-prow {
+  padding: 8px 0;
+}
+
+/* Deltas and gaps are facts, not verdicts: no green/red valence here. */
+.fivex-stack .tabx-prow-delta,
+.fivex-stack .tabx-prow-delta[data-negative] {
+  color: #717070;
+}
+
+.fivex-stack .onex-pairings {
+  margin-top: 18px;
+}
+
+/* ── The working-styles stage ────────────────────────────────────────────── */
+
+/* Questions on top as chips grouped by area; the stage takes the full card
+   width below, so neither side fights for space. */
+.wstage {
+  margin-top: 20px;
+}
+
+.wstage-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 12px;
+}
+
+.wstage-views {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 999px;
+  background: rgba(194, 191, 147, 0.22);
+}
+
+.wstage-view {
+  padding: 4px 11px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: #4d4d4d;
+  cursor: pointer;
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wstage-view[data-active] {
+  background: #ffffff;
+  color: #1e1a26;
+  box-shadow: 0 1px 2px rgba(26, 26, 26, 0.14);
+}
+
+/* ── Compact variant: bloom + area cards ────────────────────────────────── */
+
+.wsbloom {
+  display: grid;
+  grid-template-columns: minmax(0, 480px) minmax(0, 1fr);
+  gap: 56px;
+  align-items: center;
+}
+
+@media (max-width: 900px) {
+  .wsbloom {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wsbloom-chart {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.wsbloom-chart .big-five-bloom-card {
+  width: min(100%, 440px);
+}
+
+.wsbloom-side {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+  justify-items: start;
+  max-width: 440px;
+}
+
+.wsbloom-side .wsb-read {
+  margin: 0;
+}
+
+
+
+.wsb-read {
+  margin: 8px 0 0;
+  color: #1e1a26;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 21px;
+}
+
+.wsb-read strong {
+  font-weight: 600;
+}
+
+.wsb-item-pole {
+  color: rgba(30, 26, 38, 0.45);
+  font-family: var(--label-font);
+  font-size: 8px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  line-height: 1.4;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.wsb-item-pole--b {
+  text-align: left;
+}
+
+/* ── Compact variant: map (two questions as a field) ────────────────────── */
+
+.wsmap {
+  display: grid;
+  grid-template-columns: minmax(0, 460px) minmax(0, 1fr);
+  gap: 48px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .wsmap {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wsmap-field {
+  position: relative;
+  aspect-ratio: 1;
+  border: 0.5px solid rgba(0, 0, 0, 0.1);
+  border-radius: 12px;
+  background: rgba(194, 191, 147, 0.08);
+}
+
+.wsmap-axis {
+  position: absolute;
+  background: rgba(30, 26, 38, 0.1);
+}
+
+.wsmap-axis--v {
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  width: 1px;
+}
+
+.wsmap-axis--h {
+  top: 50%;
+  right: 8px;
+  left: 8px;
+  height: 1px;
+}
+
+.wsmap-pole {
+  position: absolute;
+  color: rgba(30, 26, 38, 0.52);
+  font-family: var(--label-font);
+  font-size: 8.5px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.wsmap-pole--l {
+  top: calc(50% - 7px);
+  left: 10px;
+  transform: translateY(-100%);
+}
+
+.wsmap-pole--r {
+  top: calc(50% - 7px);
+  right: 10px;
+  transform: translateY(-100%);
+}
+
+.wsmap-pole--t {
+  top: 8px;
+  left: calc(50% + 8px);
+}
+
+.wsmap-pole--b {
+  bottom: 8px;
+  left: calc(50% + 8px);
+}
+
+.wsmap-hull {
+  position: absolute;
+  z-index: 1;
+  border: 1.5px dashed rgba(23, 113, 110, 0.5);
+  border-radius: 38%;
+  background: rgba(73, 181, 174, 0.1);
+  pointer-events: none;
+  animation: wsmap-hull-in 200ms ease;
+}
+
+@keyframes wsmap-hull-in {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.wsmap-face {
+  position: absolute;
+  z-index: 2;
+  transform: translate(-50%, -50%);
+  transition: opacity 180ms ease;
+}
+
+.wsmap-face[data-dim] {
+  opacity: 0.22;
+}
+
+.wsmap-face .dxp-face {
+  box-shadow: 0 0 0 1.5px #fff;
+}
+
+.wsmap-side {
+  display: grid;
+  gap: 10px;
+  justify-items: start;
+  max-width: 400px;
+}
+
+.wsmap-pairs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.wsmap-side .wsmap-insight-label {
+  margin-top: 44px;
+}
+
+.wsmap-side .wsb-read {
+  margin: 0;
+}
+
+.wsmap-lead {
+  margin-top: 0;
+}
+
+.wsmap-notes {
+  display: grid;
+  gap: 13px;
+  margin: 8px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.wsmap-notes li {
+  position: relative;
+  padding-left: 16px;
+}
+
+.wsmap-notes li::before {
+  content: '';
+  position: absolute;
+  top: 9px;
+  left: 0;
+  width: 7px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--team-aggregate);
+}
+
+.wsmap-notes li[data-hot] {
+  cursor: default;
+}
+
+.wsmap-notes li[data-hot]:hover {
+  color: #17716e;
+}
+
+/* ── Compact variant: combs (counts at each of the five points) ─────────── */
+
+.wscombs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+@media (max-width: 860px) {
+  .wscombs {
+    grid-template-columns: 1fr;
+  }
+}
+
+.wscomb {
+  display: flex;
+  flex-direction: column;
+  padding: 20px 22px 16px;
+  border-radius: 12px;
+  background: rgba(194, 191, 147, 0.13);
+}
+
+.wscomb-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 5px;
+  height: 86px;
+  margin-top: 16px;
+}
+
+.wscomb-slot {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: flex-end;
+  height: 100%;
+}
+
+.wscomb-count {
+  margin-bottom: 4px;
+  color: #717070;
+  font-family: var(--label-font);
+  font-size: 9.5px;
+  text-align: center;
+}
+
+.wscomb-people {
+  position: absolute;
+  left: 50%;
+  z-index: 3;
+  display: inline-flex;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 160ms ease;
+  pointer-events: none;
+}
+
+.wscomb-people .dxp-face {
+  box-shadow: 0 0 0 1.5px #fff;
+}
+
+.wscomb-people .dxp-face + .dxp-face {
+  margin-left: -7px;
+}
+
+.wscomb-slot:hover .wscomb-people {
+  opacity: 1;
+}
+
+.wscomb-slot i {
+  border-radius: 4px 4px 2px 2px;
+}
+
+.wscomb-slot i[data-tone='0'],
+.wscomb-slot i[data-tone='4'] {
+  background: rgba(23, 113, 110, 0.75);
+}
+
+.wscomb-slot i[data-tone='1'],
+.wscomb-slot i[data-tone='3'] {
+  background: rgba(23, 113, 110, 0.42);
+}
+
+.wscomb-slot i[data-tone='2'] {
+  background: rgba(30, 26, 38, 0.12);
+}
+
+.wscomb-slot i[data-zero] {
+  background: rgba(30, 26, 38, 0.05);
+}
+
+.wscomb-poles {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.wscomb .wsb-read {
+  margin-top: 14px;
+}
+
+.wscomb .info-block-coach-link {
+  margin-top: 12px;
+  align-self: flex-start;
+}
+
+.wstage-groups {
+  display: grid;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.wstage-group {
+  display: grid;
+  grid-template-columns: 178px minmax(0, 1fr);
+  gap: 14px;
+  align-items: center;
+}
+
+.wstage-group-label {
+  margin: 0;
+  color: #717070;
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.wstage-group-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+@media (max-width: 760px) {
+  .wstage-group {
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+.wstage-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 14px;
+  border: 1px solid rgba(30, 26, 38, 0.16);
+  border-radius: 999px;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
+}
+
+.wstage-row:hover {
+  background: rgba(194, 191, 147, 0.2);
+  border-color: transparent;
+}
+
+.wstage-row[data-active] {
+  background: #1e1a26;
+  border-color: #1e1a26;
+}
+
+.wstage-row-label {
+  color: #1e1a26;
+  font-size: 13px;
+  font-weight: 400;
+  line-height: 18px;
+  white-space: nowrap;
+}
+
+.wstage-row[data-active] .wstage-row-label {
+  color: #faf9f5;
+  font-weight: 500;
+}
+
+/* The only marker: questions where the team genuinely divides. */
+.wstage-stage {
+  min-width: 0;
+  margin-top: 18px;
+}
+
+.wstage-svg {
+  display: block;
+  width: 100%;
+  max-width: 760px;
+  height: auto;
+  margin: 0;
+}
+
+.wstage-svg .wst-pole-a,
+.wstage-svg .wst-pole-b {
+  fill: #1e1a26;
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+}
+
+.wstage-read {
+  margin: 18px 0 0;
+  max-width: 820px;
+  color: #1e1a26;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 21px;
+}
+
+.wstage-read strong {
+  font-weight: 600;
+}
+
+.wstage-stage .info-block-coach-link {
+  margin-top: 14px;
 }

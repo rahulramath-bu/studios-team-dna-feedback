@@ -97,9 +97,10 @@ function TeamShapeFaceCarousel({ members, onSelectMember }) {
  */
 export function TeamShapeContributions({
   contributions = [],
+  gaps = [],
   onSelectMember,
 }) {
-  if (!contributions.length) {
+  if (!contributions.length && !gaps.length) {
     return null;
   }
 
@@ -120,6 +121,23 @@ export function TeamShapeContributions({
             <span className="team-shape-contribution-copy">
               <strong>{contribution.label}</strong>
               <span>{contribution.description}</span>
+            </span>
+          </div>
+        ))}
+        {gaps.map((role) => (
+          <div
+            className="team-shape-contribution"
+            data-empty
+            key={role.key}
+          >
+            <span className="team-shape-contribution-faces">
+              <span className="team-shape-zero" aria-label="Nobody">
+                0
+              </span>
+            </span>
+            <span className="team-shape-contribution-copy">
+              <strong>{role.label}</strong>
+              <span>{role.description}</span>
             </span>
           </div>
         ))}

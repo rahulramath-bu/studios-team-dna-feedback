@@ -56,6 +56,7 @@ export function MonolithTeamShell({
   toolbar = null,
   viewerPersona = 'manager',
   onSelectPersona = null,
+  navEndExtra = null,
 }) {
   if (!enabled) {
     return (
@@ -71,6 +72,7 @@ export function MonolithTeamShell({
       <MonolithPrimaryNav
         viewerPersona={viewerPersona}
         onSelectPersona={onSelectPersona}
+        endExtra={navEndExtra}
       />
       {toolbar}
       <main className="monolith-shell-main">

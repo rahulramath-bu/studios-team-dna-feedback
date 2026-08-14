@@ -30,6 +30,7 @@ export function InfoBlock({
   onAction,
   onSelectMember,
   onCoachPrompt,
+  onOpenDepth,
   coachScope,
   coachSubject,
   coachIsSelf = false,
@@ -74,12 +75,40 @@ export function InfoBlock({
           <BetterUpIcon name="Edit" size={17} strokeWidth={1.8} />
         </button>
       ) : null}
+      {onOpenDepth ? (
+        <button
+          className="info-block-deeper"
+          data-offset={onAction ? 'true' : undefined}
+          type="button"
+          aria-label={`Dive deeper into ${label}`}
+          onClick={() => onOpenDepth(card)}
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path
+              d="M12 4v10.5M12 14.5l-4.5-4.5M12 14.5l4.5-4.5"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+            <path
+              d="M5 19.5h14"
+              stroke="currentColor"
+              strokeWidth="1.7"
+              strokeLinecap="round"
+            />
+          </svg>
+          <span>Dive deeper</span>
+        </button>
+      ) : null}
       {shouldShowLabel && <p className="info-block-label">{label}</p>}
       {bodyOverride ?? (
         <InfoBlockBody card={card} onSelectMember={onSelectMember} />
       )}
       {coachCta ? (
-        <CoachLink cta={coachCta} onCoachPrompt={onCoachPrompt} />
+        <div className="info-block-links">
+          <CoachLink cta={coachCta} onCoachPrompt={onCoachPrompt} />
+        </div>
       ) : null}
     </section>
   );
@@ -210,6 +239,7 @@ function InfoBlockBody({ card, onSelectMember }) {
         subjects={card.data?.subjects ?? []}
         traits={card.data?.traits}
         reads={card.data?.reads}
+        meaningNote={card.data?.meaningNote}
       />
     );
   }

@@ -205,14 +205,16 @@ export function BigFiveSpectrumList({
   subjects,
   traits = BIG_FIVE_TRAITS,
   reads,
+  initialView = 'carousel',
+  meaningNote = null,
 }) {
   const visibleSubjects = subjects.filter((subject) => subject?.bigFive);
   const [activeTraitIndex, setActiveTraitIndex] = React.useState(0);
   const [displayedTraitIndex, setDisplayedTraitIndex] = React.useState(0);
   const [transitionPhase, setTransitionPhase] = React.useState('idle');
   const [transitionDirection, setTransitionDirection] = React.useState(1);
-  const [isPaused, setIsPaused] = React.useState(false);
-  const [viewMode, setViewMode] = React.useState('carousel');
+  const [isPaused, setIsPaused] = React.useState(initialView === 'all');
+  const [viewMode, setViewMode] = React.useState(initialView);
   const [isViewFading, setIsViewFading] = React.useState(false);
   const [bodyHeight, setBodyHeight] = React.useState(null);
   const prefersReducedMotion = usePrefersReducedMotion();
@@ -424,6 +426,11 @@ export function BigFiveSpectrumList({
       >
         {isShowingAll ? (
           <div className="big-five-spectrum-all">
+            {meaningNote ? (
+              <div className="big-five-meaning">
+                <p>{meaningNote}</p>
+              </div>
+            ) : null}
             {traits.map((trait) => (
               <SpectrumRow
                 key={trait.key}
@@ -477,7 +484,7 @@ export function BigFiveSpectrumList({
   );
 }
 
-function SpectrumRow({ trait, subjects, reads }) {
+export function SpectrumRow({ trait, subjects, reads }) {
   return (
     <div className="big-five-spectrum-row">
       <div className="big-five-spectrum-head">

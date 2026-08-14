@@ -2,6 +2,9 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useReducedMotion } from 'motion/react';
 import { TeamFaceField } from './components/TeamFaceField.jsx';
 import { InsightPanel } from './components/InsightPanel.jsx';
+import { ConceptLensBar } from './components/ConceptTabs.jsx';
+import { ConceptOneBar } from './components/ConceptOne.jsx';
+import { ConceptFiveBar } from './components/ConceptFive.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
@@ -183,9 +186,16 @@ export function TeamDnaExperience({
   onProfileCopySave,
   onStartAssessment,
   onDemoAdvance,
+  pageVariation = 'original',
 }) {
   const { selectedIds, setSelectedIds, toggleMember } = useTeamDnaSelection();
   const shouldReduceMotion = useReducedMotion();
+  // "Four tabs" concept: which page-level lens is active. Compare is the only
+  // lens that keeps the classic left-nav interaction; the others take the
+  // full page width.
+  const [tabsLens, setTabsLens] = useState(() =>
+    initialSelectedIds.length > 0 ? 'compare' : 'overview'
+  );
   const [hasReleasedIntroGate, setHasReleasedIntroGate] = useState(
     () => Boolean(shouldReduceMotion || startWithIntroReleased)
   );
@@ -207,6 +217,30 @@ export function TeamDnaExperience({
   );
 
   const isIntroGateActive = !hasReleasedIntroGate && !shouldReduceMotion;
+
+  // "Four tabs": page-level lenses. Ready once enough assessments exist for
+  // a team read; full-page mode applies to every lens except Compare.
+  // "One system" (variation 4) is full-page on every lens: it owns its own
+  // avatar rail and tabs, so the left people pane never renders.
+  const conceptReadyCount = dataset.members.filter(
+    (member) => member.assessmentComplete !== false && member.bigFive
+  ).length;
+  const isTabsPage = pageVariation === 'tabs';
+  const tabsPageReady = isTabsPage && conceptReadyCount >= 3;
+  const onePageReady = pageVariation === 'one' && conceptReadyCount >= 3;
+  const fivePageReady = pageVariation === 'five' && conceptReadyCount >= 3;
+  // Compare keeps the classic two-pane interaction on the tab concepts.
+  const isLensFullPage =
+    (tabsPageReady || onePageReady || fivePageReady) && tabsLens !== 'compare';
+
+  // The cinematic tap-a-face intro belongs to the two-pane layout; the
+  // dashboard lenses start revealed.
+  useEffect(() => {
+    if (tabsPageReady || onePageReady || fivePageReady) {
+      setHasReleasedIntroGate(true);
+      setIsIntroChromeHidden(false);
+    }
+  }, [tabsPageReady, onePageReady, fivePageReady]);
 
   useEffect(() => {
     if (startWithIntroReleased) {
@@ -389,6 +423,57 @@ export function TeamDnaExperience({
     setSelectedIds([]);
   };
 
+  // Lens switching: leaving Compare clears the selection so the full-page
+  // lenses always render the team read. Selecting people from inside a lens
+  // (overview strips, chemistry tiles, suggested pairings) jumps to Compare,
+  // which is where the classic left-nav interaction lives.
+  const handleLensSelect = (lensId) => {
+    setTabsLens(lensId);
+    if (lensId !== 'compare') setSelectedIds([]);
+  };
+  const selectMemberViaLens = (memberId, options) => {
+    setTabsLens('compare');
+    handleSelectMember(memberId, options);
+  };
+  const selectPairViaLens = (firstId, secondId) => {
+    setTabsLens('compare');
+    setSelectedIds([firstId, secondId]);
+  };
+
+  // "One system": the avatar rail is the selector. Faces open profiles;
+  // on the Compare lens they fill the two slots instead.
+  const completedRailMembers = dataset.members.filter(
+    (member) => member.assessmentComplete !== false && member.bigFive
+  );
+  const handleOneLensSelect = (lensId) => {
+    setTabsLens(lensId);
+    if (lensId === 'overview') setSelectedIds([]);
+    if (lensId === 'profile') {
+      const fallback = completedRailMembers.some(
+        (member) => member.id === currentViewerMemberId
+      )
+        ? currentViewerMemberId
+        : completedRailMembers[0]?.id;
+      setSelectedIds((current) =>
+        current.length === 1 ? current : fallback ? [fallback] : []
+      );
+    }
+  };
+  // Rail faces open profiles. (Compare hides the rail and brings back the
+  // classic left-nav picking instead.)
+  const handleOneFaceClick = (memberId) => {
+    setTabsLens('profile');
+    setSelectedIds([memberId]);
+  };
+  const selectMemberViaOne = (memberId) => {
+    setTabsLens('profile');
+    setSelectedIds([memberId]);
+  };
+  const selectPairViaOne = (firstId, secondId) => {
+    setTabsLens('compare');
+    setSelectedIds([firstId, secondId]);
+  };
+
   const handleEditTeam = (teamId) => {
     setSelectedIds([]);
     onEditTeam?.(teamId);
@@ -489,13 +574,56 @@ export function TeamDnaExperience({
     });
   };
 
+  // In V5's compare, the rail stays full-size (and keeps its connection
+  // lines) while you're still picking; the scaled-on-scroll treatment only
+  // applies once a pair is complete.
+  const peopleSelectorScaledActive =
+    isPeopleSelectorScaled && (!fivePageReady || selectedIds.length === 2);
+
   return (
     <section
       className="team-dna-experience"
       data-intro={isIntroGateActive || undefined}
       data-layout-debug={showLayoutOutlines || undefined}
-      data-people-selector={isPeopleSelectorScaled ? 'scaled' : undefined}
+      data-people-selector={peopleSelectorScaledActive ? 'scaled' : undefined}
+      data-lens-page={isLensFullPage || undefined}
     >
+      {tabsPageReady ? (
+        <ConceptLensBar
+          lens={tabsLens}
+          onSelect={handleLensSelect}
+          teamName={dataset.team.name}
+          showHeader={isLensFullPage}
+        />
+      ) : null}
+      {onePageReady ? (
+        <ConceptOneBar
+          lens={tabsLens}
+          onSelect={handleOneLensSelect}
+          teamName={dataset.team.name}
+          members={completedRailMembers}
+          selectedIds={selectedIds}
+          viewerId={currentViewerMemberId}
+          onFaceClick={handleOneFaceClick}
+        />
+      ) : null}
+      {fivePageReady ? (
+        <ConceptFiveBar
+          lens={tabsLens}
+          onSelect={handleOneLensSelect}
+          teamName={dataset.team.name}
+          members={completedRailMembers}
+          selectedIds={selectedIds}
+          viewerId={currentViewerMemberId}
+          onFaceClick={handleOneFaceClick}
+          teamOptions={teamOptions}
+          selectedTeamId={selectedTeamId}
+          canManageTeam={canManageTeam}
+          onTeamChange={onTeamChange}
+          onEditTeam={handleEditTeam}
+          onExitToTeamHome={onExitToTeamHome}
+        />
+      ) : null}
       <div className="team-dna-people-pane">
         <TeamFaceField
           teamId={dataset.team.id}
@@ -504,7 +632,7 @@ export function TeamDnaExperience({
           blockedAttempt={blockedAttempt}
           entityEyebrow={insight.entityEyebrow ?? insight.eyebrow}
           entityTitle={insight.entityTitle ?? insight.title}
-          hideConnections={isPeopleSelectorScaled}
+          hideConnections={peopleSelectorScaledActive && !fivePageReady}
           introActive={isIntroGateActive}
           showIntroHint={isIntroGateActive}
           showViewerProfileHint={showViewerProfileHint}
@@ -535,7 +663,22 @@ export function TeamDnaExperience({
         members={dataset.members}
         teamName={dataset.team?.name}
         coachScope={questionScope}
-        onSelectMember={handleSelectMember}
+        pageVariation={pageVariation}
+        tabsLens={tabsLens}
+        onSelectMember={
+          tabsPageReady
+            ? selectMemberViaLens
+            : onePageReady || fivePageReady
+              ? selectMemberViaOne
+              : handleSelectMember
+        }
+        onSelectPair={
+          tabsPageReady
+            ? selectPairViaLens
+            : onePageReady || fivePageReady
+              ? selectPairViaOne
+              : (firstId, secondId) => setSelectedIds([firstId, secondId])
+        }
         onCoachPrompt={handleCoachPrompt}
         onLifecycleAction={onInsightLifecycleAction}
         onProfileCopySave={onProfileCopySave}

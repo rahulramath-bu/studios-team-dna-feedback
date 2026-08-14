@@ -89,19 +89,19 @@ function getBloomPathFromScores(traits, getScore) {
   return getPathFromPoints(getBloomPoints(traits, getScore));
 }
 
-function getBloomPath(subject, traits) {
+function getBloomPath(subject, traits, getScore = getBigFiveScore) {
   return getBloomPathFromScores(
     traits,
-    (traitKey) => getBigFiveScore(subject, traitKey)
+    (traitKey) => getScore(subject, traitKey)
   );
 }
 
-function getAverageBloomPath(subjects, traits) {
+function getAverageBloomPath(subjects, traits, getScore = getBigFiveScore) {
   return getBloomPathFromScores(
     traits,
     (traitKey) => {
       const total = subjects.reduce(
-        (sum, subject) => sum + getBigFiveScore(subject, traitKey),
+        (sum, subject) => sum + getScore(subject, traitKey),
         0
       );
 
@@ -127,6 +127,9 @@ export function BigFiveBloom({
   subjects,
   traits = BIG_FIVE_TRAITS,
   hideLegend = false,
+  // Optional score accessor so other axes (e.g. working-style areas) can
+  // reuse the same bloom: (subject, axisKey) -> 0..100.
+  getScore = getBigFiveScore,
 }) {
   const [activeSubjectId, setActiveSubjectId] = useState(null);
   const scoredSubjects = subjects.filter((subject) => subject?.bigFive);
@@ -147,13 +150,14 @@ export function BigFiveBloom({
     () =>
       visibleSubjects.map((subject) => ({
         subject,
-        d: getBloomPath(subject, traits),
+        d: getBloomPath(subject, traits, getScore),
       })),
-    [traits, visibleSubjects]
+    [traits, visibleSubjects, getScore]
   );
   const averageBloomPath = useMemo(
-    () => (isTeam ? getAverageBloomPath(visibleSubjects, traits) : null),
-    [isTeam, traits, visibleSubjects]
+    () =>
+      isTeam ? getAverageBloomPath(visibleSubjects, traits, getScore) : null,
+    [isTeam, traits, visibleSubjects, getScore]
   );
 
   if (visibleSubjects.length === 0) {
@@ -324,7 +328,7 @@ export function BigFiveBloom({
               traits.map((trait, traitIndex) => {
                 const point = getPoint(
                   traitIndex,
-                  getBigFiveScore(subject, trait.key),
+                  getScore(subject, trait.key),
                   traits.length
                 );
 
@@ -357,11 +361,20 @@ export function BigFiveBloom({
               key={`${trait.key}-label`}
               className="big-five-bloom-label"
               x={labelPoint.x}
-              y={labelPoint.y}
+              y={labelPoint.y - (trait.subLabel ? 4 : 0)}
               textAnchor="middle"
               dominantBaseline="middle"
             >
-              {trait.shortLabel}
+              <tspan x={labelPoint.x}>{trait.shortLabel}</tspan>
+              {trait.subLabel ? (
+                <tspan
+                  className="big-five-bloom-sublabel"
+                  x={labelPoint.x}
+                  dy="11"
+                >
+                  {trait.subLabel}
+                </tspan>
+              ) : null}
             </text>
           ))}
         </motion.g>

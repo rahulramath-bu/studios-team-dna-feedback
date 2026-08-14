@@ -103,6 +103,24 @@ export function DuoConnection({
     const settleTimer = window.setTimeout(scheduleUpdate, 260);
     window.addEventListener('resize', scheduleUpdate);
 
+    // Transforms (the rail's scale-on-scroll) move faces without firing the
+    // ResizeObserver, so follow any transition in the container for its
+    // duration to keep the line glued to the faces.
+    let followInterval = 0;
+    const followTransition = () => {
+      const startedAt = performance.now();
+      window.clearInterval(followInterval);
+      followInterval = window.setInterval(() => {
+        scheduleUpdate();
+        if (performance.now() - startedAt > 900) {
+          window.clearInterval(followInterval);
+        }
+      }, 40);
+    };
+    const container = containerRef.current;
+    container?.addEventListener('transitionstart', followTransition);
+    container?.addEventListener('transitionend', scheduleUpdate);
+
     const observer = new ResizeObserver(scheduleUpdate);
     const nodes = [
       containerRef.current,
@@ -115,7 +133,10 @@ export function DuoConnection({
     return () => {
       window.cancelAnimationFrame(animationFrame);
       window.clearTimeout(settleTimer);
+      window.clearInterval(followInterval);
       window.removeEventListener('resize', scheduleUpdate);
+      container?.removeEventListener('transitionstart', followTransition);
+      container?.removeEventListener('transitionend', scheduleUpdate);
       observer.disconnect();
     };
   }, [containerRef, faceRefs, selectedIds]);

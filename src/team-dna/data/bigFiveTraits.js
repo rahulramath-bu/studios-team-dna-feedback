@@ -18,6 +18,8 @@ export const BIG_FIVE_TRAITS = [
     lowLabel: 'Practical',
     highLabel: 'Explorative',
     shortLabel: 'Openness',
+    definition:
+      'Openness is how the team takes on ideas: practical stays close to what has worked, explorative reaches for new angles.',
     duoRead: {
       lowAligned: 'This pair is **practical**, keeping ideas close to what is already known.',
       highAligned: 'This pair is **inventive**, letting ideas multiply quickly.',
@@ -35,6 +37,8 @@ export const BIG_FIVE_TRAITS = [
     lowLabel: 'Flexible',
     highLabel: 'Structured',
     shortLabel: 'Conscientiousness',
+    definition:
+      'Conscientiousness is how work gets run: flexible starts moving and adjusts, structured works from a plan.',
     duoRead: {
       lowAligned: 'This pair is **flexible**, so naming the next step helps the work land.',
       highAligned: 'This pair is **structured**, keeping the work moving toward done.',
@@ -52,6 +56,8 @@ export const BIG_FIVE_TRAITS = [
     lowLabel: 'Reflective',
     highLabel: 'Expressive',
     shortLabel: 'Extraversion',
+    definition:
+      'Extraversion is where thinking happens: reflective processes before speaking, expressive thinks out loud.',
     duoRead: {
       lowAligned: 'This pair is **reflective**, letting energy build quietly before it moves.',
       highAligned: 'This pair is **expressive**, making energy easy for the room to feel.',
@@ -69,6 +75,8 @@ export const BIG_FIVE_TRAITS = [
     lowLabel: 'Skeptical',
     highLabel: 'Cooperative',
     shortLabel: 'Agreeableness',
+    definition:
+      'Agreeableness is how people handle each other: skeptical challenges ideas first, cooperative protects trust first.',
     duoRead: {
       lowAligned: 'This pair is **skeptical**, so repair matters when feedback gets sharp.',
       highAligned: 'This pair is **cooperative**, so truth needs visible room too.',
@@ -86,6 +94,8 @@ export const BIG_FIVE_TRAITS = [
     lowLabel: 'Calm',
     highLabel: 'Vigilant',
     shortLabel: 'Emotional Stability',
+    definition:
+      'Emotional Stability is how pressure is met: calm keeps perspective, vigilant senses risk early.',
     duoRead: {
       lowAligned: "This pair is **calm**, keeping perspective when pressure rises.",
       highAligned: 'This pair is **vigilant**, turning pressure into an early warning.',

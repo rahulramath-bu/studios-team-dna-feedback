@@ -255,6 +255,10 @@ function pair(title, summary, pairingManual, bestFor, misread, watchOut) {
   };
 }
 
+export function getPairSynthesisByIds(firstId, secondId) {
+  return PAIR_SYNTHESIS[makePairId(firstId, secondId)] ?? null;
+}
+
 const PAIR_SYNTHESIS = {
   [makePairId('sergio', 'justin')]: pair(
     'The Build Partners',
@@ -282,7 +286,7 @@ const PAIR_SYNTHESIS = {
   ),
   [makePairId('sergio', 'sam')]: pair(
     'The Readiness Loop',
-    'Sam feels the risk signal; Jordan helps convert it into a buildable plan. Together they are strong at making readiness more concrete.',
+    'Sam catches risk early; Jordan turns it into a buildable plan. Together they make readiness concrete instead of a mood.',
     'Ask Sam what feels exposed, then ask Jordan what change would make that risk easier to carry. The pair works when concern becomes design input.',
     'Launch readiness, product risk calls, and moments where the team needs care translated into a practical next step.',
     'Sam may sound like she is adding friction, while Jordan may sound like she is narrowing. Together they are usually trying to make the work safer to ship.',
@@ -570,7 +574,7 @@ const PAIR_SYNTHESIS = {
   ),
   [makePairId('sam', 'rainy')]: pair(
     'The Signal Lab',
-    'Sam feels early warning signals; Rainy helps test what those signals mean. Together they turn concern into evidence.',
+    'Sam catches early warning signals; Rainy tests what they actually mean. Together they turn concern into evidence.',
     'Let Sam surface the worry and Rainy design the question that can sort it.',
     'Risk research, product readiness, user trust, and moments where intuition needs evidence.',
     'They can spend too long validating risk if no one defines enough evidence.',
@@ -879,6 +883,12 @@ function getPersonSpectrumReads(member) {
           ? `${capitalize(subject)} is **calm**, helping the room keep perspective under pressure.`
           : `${capitalize(subject)} is **calm / vigilant**, reading pressure without letting it run the room.`,
   };
+}
+
+/** The handcrafted persona for one member (title + summary), used by the
+ *  V5 profile card. Same records the future AI synthesis will return. */
+export function getPersonSynthesis(memberId) {
+  return PERSON_SYNTHESIS[memberId] ?? null;
 }
 
 function makePersonInsight(member) {

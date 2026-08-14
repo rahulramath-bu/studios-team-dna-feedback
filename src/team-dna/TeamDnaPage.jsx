@@ -21,6 +21,7 @@ import {
 import { MonolithTeamShell } from './dev/MonolithTeamShell.jsx';
 import { TeamDnaDevPanel } from './dev/TeamDnaDevPanel.jsx';
 import { createInitialDevState } from './dev/teamDnaDevState.js';
+import { PageVariationMenu } from './components/TeamDepthVariations.jsx';
 
 const EMPTY_TEAM_DATASET = {
   team: { id: 'empty-state', name: 'Empty state' },
@@ -542,6 +543,29 @@ export function TeamDnaPage() {
   // After the create-team flow, land on the team page fully revealed (waiting
   // card visible) instead of the tap-to-explore intro state.
   const [skipIntroGate, setSkipIntroGate] = useState(false);
+  // Depth iteration switcher (BioMarin drill-down): which team-view structure
+  // is active. The original page is the default; iterations are opt-in.
+  const [pageVariation, setPageVariation] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem('teamDnaPageVariation');
+      // Retired variation ids may linger in the session; fall back cleanly.
+      return ['original', 'expanded', 'map', 'tabs', 'one', 'five'].includes(
+        stored
+      )
+        ? stored
+        : 'original';
+    } catch {
+      return 'original';
+    }
+  });
+  const selectPageVariation = (id) => {
+    setPageVariation(id);
+    try {
+      sessionStorage.setItem('teamDnaPageVariation', id);
+    } catch {
+      /* private mode */
+    }
+  };
   const [activeGenerationTarget, setActiveGenerationTarget] = useState(null);
   const demoGenerationTimerRef = useRef(null);
   const [isAssessmentOpen, setIsAssessmentOpen] = useState(false);
@@ -1261,6 +1285,14 @@ export function TeamDnaPage() {
         enabled={devState.showMonolithShell}
         viewerPersona={viewerPersona}
         onSelectPersona={selectViewerPersona}
+        navEndExtra={
+          activeTeamId && !showTeamCreatedConfirmation ? (
+            <PageVariationMenu
+              variationId={pageVariation}
+              onSelect={selectPageVariation}
+            />
+          ) : null
+        }
         toolbar={
           isTrueEmptyState && !canManageTeam ? (
             <LandingScenarioSwitcher
@@ -1295,6 +1327,7 @@ export function TeamDnaPage() {
             ) : (
               <TeamDnaExperience
                 dataset={scenarioDataset}
+                pageVariation={pageVariation}
                 generationStatusByTargetId={generationStatusByTargetId}
                 initialSelectedIds={demoConfig.selectedMemberIds}
                 startWithIntroReleased={demoConfig.enabled || skipIntroGate}

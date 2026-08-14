@@ -3,6 +3,9 @@ import { AnimatePresence, motion } from 'motion/react';
 import { InfoBlock } from './InfoBlock.jsx';
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { TeamShapeContributions } from './TeamShapeContributions.jsx';
+import { TeamDepthPage, DEPTH_PAGE_IDS } from './TeamDepthVariations.jsx';
+import { ConceptWidgetsRow } from './ConceptExpanded.jsx';
+import { DiveDeeperOverlay } from './DiveDeeperOverlay.jsx';
 
 const PAGE_EASE = [0.22, 1, 0.36, 1];
 const BASELINE_REVEAL_TRANSITION = {
@@ -49,7 +52,7 @@ function capitalizeFirst(value) {
   return value.charAt(0).toUpperCase() + value.slice(1);
 }
 
-function toSecondPersonText(text, firstName, pronouns = {}) {
+export function toSecondPersonText(text, firstName, pronouns = {}) {
   if (!text || !firstName) return text;
   const fn = escapeRegExp(firstName);
   let out = text;
@@ -274,7 +277,10 @@ export function InsightPanel({
   members = [],
   teamName,
   coachScope = 'team',
+  pageVariation = 'original',
+  tabsLens = 'overview',
   onSelectMember,
+  onSelectPair,
   onCoachPrompt,
   onLifecycleAction,
   onProfileCopySave,
@@ -312,7 +318,7 @@ export function InsightPanel({
                     local read state. The route should swap data; this panel owns
                     the narrative transition between team/person/duo reads. */}
                 <InsightPage
-                  key={insight.id}
+                  key={`${insight.id}-${pageVariation}`}
                   insight={insight}
                   canManageTeam={canManageTeam}
                   allowProfileEditing={allowProfileEditing}
@@ -322,7 +328,10 @@ export function InsightPanel({
                   members={members}
                   teamName={teamName}
                   coachScope={coachScope}
+                  pageVariation={pageVariation}
+                  tabsLens={tabsLens}
                   onSelectMember={onSelectMember}
+                  onSelectPair={onSelectPair}
                   onCoachPrompt={onCoachPrompt}
                   onLifecycleAction={onLifecycleAction}
                   onProfileCopySave={onProfileCopySave}
@@ -349,7 +358,10 @@ function InsightPage({
   members,
   teamName,
   coachScope,
+  pageVariation,
+  tabsLens,
   onSelectMember,
+  onSelectPair,
   onCoachPrompt,
   onLifecycleAction,
   onProfileCopySave,
@@ -385,7 +397,10 @@ function InsightPage({
       members={members}
       teamName={teamName}
       coachScope={coachScope}
+      pageVariation={pageVariation}
+      tabsLens={tabsLens}
       onSelectMember={onSelectMember}
+      onSelectPair={onSelectPair}
       onCoachPrompt={onCoachPrompt}
       onLifecycleAction={onLifecycleAction}
       onProfileCopySave={onProfileCopySave}
@@ -407,7 +422,10 @@ function InsightPageContent({
   members,
   teamName,
   coachScope = 'team',
+  pageVariation = 'original',
+  tabsLens = 'overview',
   onSelectMember,
+  onSelectPair,
   onCoachPrompt,
   onLifecycleAction,
   onProfileCopySave,
@@ -440,18 +458,89 @@ function InsightPageContent({
   // The hero aside is only used by the self-review page when it supplies one.
   const heroAside =
     revealMode === 'selfReview' && selfReviewAside ? selfReviewAside : null;
+  // Subjects for the current scope: the whole roster on the team read, the
+  // selected person/pair otherwise (resolved through the lifecycle target so
+  // this stays in sync with what generated the insight).
+  const completedSubjects = members.filter(
+    (member) => member.assessmentComplete !== false && member.bigFive
+  );
+  const targetMemberIds = lifecycle?.target?.memberIds ?? [];
+  const scopeSubjects =
+    coachScope === 'team'
+      ? completedSubjects
+      : targetMemberIds
+          .map((id) => members.find((member) => member.id === id))
+          .filter((member) => member?.bigFive);
+  const minSubjectsForScope =
+    coachScope === 'team' ? 3 : coachScope === 'duo' ? 2 : 1;
+  // Page concepts replace the whole read. Exception: on the Four tabs and
+  // One system concepts a selected PAIR renders the original pair page (the
+  // compare lens keeps the pattern we had; the original read is the best
+  // pair read we have).
+  const isDepthPageActive =
+    DEPTH_PAGE_IDS.includes(pageVariation) &&
+    revealMode !== 'selfReview' &&
+    scopeSubjects.length >= minSubjectsForScope &&
+    !(
+      (pageVariation === 'tabs' || pageVariation === 'one') &&
+      coachScope === 'duo'
+    );
   // The team view folds its bloom + role distribution into the big hero box, so
   // it is pulled out of the supporting stack and rendered inside the hero.
   const teamCompositionCard = displayInsight.cards.find(
     (card) => card.kind === 'teamShapeContributions'
   );
   const coachSubject = insight.entityTitle ?? insight.title ?? teamName;
+  // "Expanded": the original layout stays intact and gains three additions on
+  // every scope — a widgets row under the hero, a "Dive deeper" link per
+  // section, and a closing Dive deeper card. All of them open the same
+  // tabbed overlay (why these reads / the five spectrums / working styles).
+  const isExpandedActive =
+    pageVariation === 'expanded' && revealMode !== 'selfReview';
+  const canGoDeeper =
+    isExpandedActive && scopeSubjects.length >= minSubjectsForScope;
+  const withMeaningNote = (cards) => {
+    if (!canGoDeeper) return cards;
+    return cards.map((card) =>
+      card.kind === 'bigFiveSpectrumList'
+        ? {
+            ...card,
+            data: {
+              ...card.data,
+              meaningNote:
+                'How to read this: each line is one way of working, with two useful ends. The faces show where each person naturally sits. Together they are your team\u2019s range, not a score.',
+            },
+          }
+        : card
+    );
+  };
+  // Which Dive deeper section is open. Each entry point opens its own
+  // section: Strengths -> why these strengths, Growth -> why these growth
+  // areas, Collaboration -> working styles, Big Five -> the explainer.
+  const [deeperSection, setDeeperSection] = React.useState(null);
+  const openDepthForCard = (card) => {
+    if (card.kind === 'bigFiveSpectrumList') {
+      setDeeperSection('spectrums');
+      return;
+    }
+    if (card.kind === 'guidance') {
+      setDeeperSection('working');
+      return;
+    }
+    if (card.kind === 'watchOut') {
+      setDeeperSection('growth');
+      return;
+    }
+    setDeeperSection('strengths');
+  };
   const supportingCards = orderSupportingCards(
-    displayInsight.cards.filter(
-      (card) =>
-        card.kind !== 'archetypeImage' &&
-        card.kind !== 'bloomHero' &&
-        card.kind !== 'teamShapeContributions'
+    withMeaningNote(
+      displayInsight.cards.filter(
+        (card) =>
+          card.kind !== 'archetypeImage' &&
+          card.kind !== 'bloomHero' &&
+          card.kind !== 'teamShapeContributions'
+      )
     )
   );
   const [editingTarget, setEditingTarget] = React.useState(null);
@@ -525,7 +614,24 @@ function InsightPageContent({
       {isGenerating ? (
         <InsightGeneratingState lifecycle={lifecycle} teamName={teamName} />
       ) : null}
-      {isHardNotReady || isGenerating ? null : (
+      {isHardNotReady || isGenerating ? null : isDepthPageActive ? (
+        /* Page concepts own the whole column on every scope: each presents
+           the same data through a different, self-contained system. */
+        <TeamDepthPage
+          variation={pageVariation}
+          lens={tabsLens}
+          scope={coachScope === 'duo' ? 'duo' : coachScope === 'person' ? 'person' : 'team'}
+          insight={displayInsight}
+          subjects={scopeSubjects}
+          allSubjects={completedSubjects}
+          viewerId={currentViewerMemberId}
+          isOwnProfile={isOwnProfile}
+          teamName={teamName}
+          onCoachPrompt={onCoachPrompt}
+          onSelectMember={onSelectMember}
+          onSelectPair={onSelectPair}
+        />
+      ) : (
         <>
           {revealMode === 'selfReview' && selfReviewIntro ? (
             <motion.div
@@ -599,6 +705,18 @@ function InsightPageContent({
                   />
                 </>
               )}
+              {/* Expanded: the three "what you can learn" widgets sit inside
+                  the hero, between the description and the archetype
+                  distribution. */}
+              {canGoDeeper && teamCompositionCard ? (
+                <ConceptWidgetsRow
+                  scope="team"
+                  subjects={scopeSubjects}
+                  allSubjects={completedSubjects}
+                  variant="hero"
+                  onOpenDeeper={setDeeperSection}
+                />
+              ) : null}
               {teamCompositionCard ? (
                 <div className="insight-team-composition">
                   <TeamShapeContributions
@@ -624,6 +742,14 @@ function InsightPageContent({
               )
             ) : null}
           </motion.section>
+          {canGoDeeper && !teamCompositionCard ? (
+            <ConceptWidgetsRow
+              scope={coachScope === 'duo' ? 'duo' : coachScope === 'person' ? 'person' : 'team'}
+              subjects={scopeSubjects}
+              allSubjects={completedSubjects}
+              onOpenDeeper={setDeeperSection}
+            />
+          ) : null}
           <InsightBlocks
             cards={
               canEditOwnProfile
@@ -638,10 +764,23 @@ function InsightPageContent({
             onCancelEdit={() => setEditingTarget(null)}
             onEditTarget={setEditingTarget}
             onCoachPrompt={onCoachPrompt}
+            onOpenDepth={canGoDeeper ? openDepthForCard : null}
             onSaveProfileCopyPatch={saveProfileCopyPatch}
             onSelectMember={onSelectMember}
             revealMode={revealMode}
           />
+          {canGoDeeper && deeperSection ? (
+            <DiveDeeperOverlay
+              section={deeperSection}
+              scope={coachScope === 'duo' ? 'duo' : coachScope === 'person' ? 'person' : 'team'}
+              subjects={scopeSubjects}
+              allSubjects={completedSubjects}
+              entityTitle={insight.entityTitle ?? insight.title ?? teamName}
+              isOwnProfile={isOwnProfile}
+              onClose={() => setDeeperSection(null)}
+              onCoachPrompt={onCoachPrompt}
+            />
+          ) : null}
         </>
       )}
     </>
@@ -1229,6 +1368,7 @@ function InsightBlocks({
   onCancelEdit,
   onEditTarget,
   onCoachPrompt,
+  onOpenDepth,
   onSaveProfileCopyPatch,
   onSelectMember,
   revealMode,
@@ -1236,6 +1376,12 @@ function InsightBlocks({
   if (!cards.length) {
     return null;
   }
+
+  const cardSupportsDepth = (card) =>
+    card.kind === 'strengthsList' ||
+    card.kind === 'watchOut' ||
+    card.kind === 'guidance' ||
+    card.kind === 'bigFiveSpectrumList';
 
   return (
     <div className="info-block-stack" aria-label="Future insight blocks">
@@ -1259,6 +1405,9 @@ function InsightBlocks({
             }
             onSelectMember={onSelectMember}
             onCoachPrompt={onCoachPrompt}
+            onOpenDepth={
+              onOpenDepth && cardSupportsDepth(card) ? onOpenDepth : undefined
+            }
             coachScope={coachScope}
             coachSubject={coachSubject}
             coachIsSelf={coachIsSelf}
