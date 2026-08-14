@@ -548,14 +548,10 @@ export function TeamDnaPage() {
   const [pageVariation, setPageVariation] = useState(() => {
     try {
       const stored = sessionStorage.getItem('teamDnaPageVariation');
-      // Retired variation ids may linger in the session; fall back cleanly.
-      return ['original', 'expanded', 'map', 'tabs', 'one', 'five'].includes(
-        stored
-      )
-        ? stored
-        : 'original';
+      // Customer build: V5 is the default; Original stays in the menu.
+      return ['original', 'five'].includes(stored) ? stored : 'five';
     } catch {
-      return 'original';
+      return 'five';
     }
   });
   const selectPageVariation = (id) => {

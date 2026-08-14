@@ -45,7 +45,7 @@ import { ConceptFive } from './ConceptFive.jsx';
 /* The two variations that matter, then the runner-ups behind a submenu.
    Customer-facing branches flip SHOW_DISCARDED off so only Original and V5
    are reachable. */
-const SHOW_DISCARDED = true;
+const SHOW_DISCARDED = false;
 
 const PRIMARY_VARIATIONS = [
   { id: 'original', menuLabel: 'Original' },
