@@ -11251,15 +11251,16 @@ strong.fvx-role--secondary {
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
-/* Demo annotation above the chart toggle, pointing down at MAP. */
+/* Demo annotation: label floats above the card's top-right corner, the
+   arrow dives over the edge down onto the MAP pill. */
 .wstage-maphint {
   position: absolute;
-  bottom: calc(100% + 2px);
+  bottom: calc(100% + 24px);
   right: 0;
   z-index: 3;
   display: flex;
   align-items: flex-start;
-  gap: 5px;
+  gap: 4px;
   color: #ce0058;
   pointer-events: none;
 }
@@ -11274,8 +11275,9 @@ strong.fvx-role--secondary {
 }
 
 .wstage-maphint-arrow {
-  width: 38px;
-  height: 30px;
+  width: 30px;
+  height: 38px;
+  margin-bottom: -26px;
 }
 
 .wstage-maphint-arrow path {
@@ -11473,31 +11475,13 @@ strong.fvx-role--secondary {
   max-width: 400px;
 }
 
-.wsmap-hover-hint {
-  display: flex;
-  align-items: flex-start;
-  gap: 6px;
-  margin: 14px 0 0;
-  color: #ce0058;
-  font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
-  font-size: 14.5px;
-  line-height: 1.25;
-  transform: rotate(-1deg);
-}
-
-.wsmap-hover-hint-arrow {
-  flex: none;
-  width: 30px;
-  height: 22px;
-  margin-top: 2px;
-}
-
-.wsmap-hover-hint-arrow path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.5;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+/* Quiet how-to next to the TEAM INSIGHT label. */
+.wsmap-label-note {
+  margin-left: 8px;
+  color: #9b9a97;
+  font-weight: 400;
+  letter-spacing: 0.3px;
+  text-transform: none;
 }
 
 .wsmap-pairs {

@@ -286,7 +286,12 @@ function WorkingMap({ subjects }) {
             </button>
           ))}
         </div>
-        <p className="wstage-group-label wsmap-insight-label">Team insight</p>
+        <p className="wstage-group-label wsmap-insight-label">
+          Team insight
+          <span className="wsmap-label-note">
+            (hover the insights below to see clusters)
+          </span>
+        </p>
         <p className="wsb-read wsmap-lead">{renderEmphasis(headline)}</p>
         <ul className="wsmap-notes">
           {notes.map((note, index) => (
@@ -301,15 +306,6 @@ function WorkingMap({ subjects }) {
             </li>
           ))}
         </ul>
-        {notes.some((note) => note.ids) ? (
-          <p className="wsmap-hover-hint" aria-hidden="true">
-            <svg viewBox="0 0 34 24" className="wsmap-hover-hint-arrow">
-              <path d="M30 20 C 20 19, 9 13, 5 4" />
-              <path d="M4 11 L 5 4 L 12 6" />
-            </svg>
-            Hover an insight to see that group on the map
-          </p>
-        ) : null}
       </div>
     </div>
   );
@@ -561,14 +557,14 @@ export function WorkingStylesStage({
               ))}
             </div>
           ) : null}
-          {/* Demo affordance: whenever the stage is showing, a note above
-              the toggle points down at the Map option. */}
+          {/* Demo affordance: the note floats above the card's corner, and
+              the arrow dives over the edge onto the Map option. */}
           {showViews && view === 'stage' ? (
             <div className="wstage-maphint" aria-hidden="true">
               <span className="wstage-maphint-label">Alternate view</span>
-              <svg className="wstage-maphint-arrow" viewBox="0 0 44 34">
-                <path d="M4 4 C 17 5, 32 12, 38 26" />
-                <path d="M31 22 L 38 27 L 40 18" />
+              <svg className="wstage-maphint-arrow" viewBox="0 0 34 40">
+                <path d="M4 4 C 16 8, 27 20, 30 34" />
+                <path d="M23 29 L 30 35 L 33 25" />
               </svg>
             </div>
           ) : null}
