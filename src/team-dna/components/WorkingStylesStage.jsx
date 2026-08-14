@@ -479,30 +479,62 @@ export function WorkingStylesStage({
       : activeRead.read
     : null;
 
+  const activeCategory =
+    WORKING_STYLE_CATEGORIES.find((category) =>
+      category.items.some((item) => item.key === activeKey)
+    ) ?? WORKING_STYLE_CATEGORIES[0];
+
   return (
     // With only a pair on stage the full-width chart reads empty, so it
     // renders compact instead.
     <div className="wstage" data-compact={subjects.length <= 3 || undefined}>
-      {showViews ? (
+      {/* One row: the five areas as tabs (stage view), chart switcher right. */}
+      {!compactView || showViews ? (
         <div className="wstage-top">
-          <div className="wstage-views" role="tablist" aria-label="Chart style">
-            {[
-              ['stage', 'Stage'],
-              ['map', 'Map'],
-            ].map(([id, label]) => (
-              <button
-                key={id}
-                type="button"
-                role="tab"
-                aria-selected={view === id}
-                className="wstage-view"
-                data-active={view === id || undefined}
-                onClick={() => setView(id)}
-              >
-                {label}
-              </button>
-            ))}
-          </div>
+          {!compactView ? (
+            <div className="wstage-tabs" role="tablist" aria-label="Areas">
+              {WORKING_STYLE_CATEGORIES.map((category) => (
+                <button
+                  key={category.key}
+                  type="button"
+                  role="tab"
+                  aria-selected={category.key === activeCategory.key}
+                  className="wstage-tab"
+                  data-active={category.key === activeCategory.key || undefined}
+                  title={category.sub}
+                  onClick={() => setActiveKey(category.items[0].key)}
+                >
+                  {category.label}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <span />
+          )}
+          {showViews ? (
+            <div
+              className="wstage-views"
+              role="tablist"
+              aria-label="Chart style"
+            >
+              {[
+                ['stage', 'Stage'],
+                ['map', 'Map'],
+              ].map(([id, label]) => (
+                <button
+                  key={id}
+                  type="button"
+                  role="tab"
+                  aria-selected={view === id}
+                  className="wstage-view"
+                  data-active={view === id || undefined}
+                  onClick={() => setView(id)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
       ) : null}
       {compactView === 'map' ? (
@@ -522,35 +554,27 @@ export function WorkingStylesStage({
               />
             </div>
             <div className="wstage-side">
+              {/* The active area's two questions; the tabs above picked
+                  the area. */}
+              <p className="wstage-group-label">Question</p>
               <div
-                className="wstage-groups"
+                className="wstage-group-chips"
                 role="tablist"
                 aria-label="Questions"
               >
-                {WORKING_STYLE_CATEGORIES.map((category) => (
-                  <div className="wstage-group" key={category.key}>
-                    <p className="wstage-group-label" title={category.sub}>
-                      {category.label}
-                    </p>
-                    <div className="wstage-group-chips">
-                      {category.items.map((item) => (
-                        <button
-                          key={item.key}
-                          type="button"
-                          role="tab"
-                          aria-selected={activeKey === item.key}
-                          className="wstage-row"
-                          data-active={activeKey === item.key || undefined}
-                          title={`${capitalize(item.aWord)}, or ${item.bWord}?`}
-                          onClick={() => setActiveKey(item.key)}
-                        >
-                          <span className="wstage-row-label">
-                            {item.label}
-                          </span>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
+                {activeCategory.items.map((item) => (
+                  <button
+                    key={item.key}
+                    type="button"
+                    role="tab"
+                    aria-selected={activeKey === item.key}
+                    className="wstage-row"
+                    data-active={activeKey === item.key || undefined}
+                    title={`${capitalize(item.aWord)}, or ${item.bWord}?`}
+                    onClick={() => setActiveKey(item.key)}
+                  >
+                    <span className="wstage-row-label">{item.label}</span>
+                  </button>
                 ))}
               </div>
               {readText ? (

@@ -1,83 +1,87 @@
 import { BIG_FIVE_TRAITS } from './bigFiveTraits.js';
 
+/* Scott's Big Five Team Role Map (Aug 14): ten roles, one per pole of each
+   trait. Names and descriptions come from the updated assessment doc; both
+   poles of every trait are a genuine contribution. This map is the single
+   source for archetypes across every lens and page variation. */
 const SCOTT_ROLE_BY_SIGNAL = {
   'extraversion:high': {
-    key: 'mobilizer',
-    label: 'Mobilizers',
-    singular: 'Mobilizer',
-    description: 'energy and momentum',
+    key: 'energizer',
+    label: 'Energizers',
+    singular: 'Energizer',
+    description: 'voice, visibility, momentum',
     openLine:
       'Nobody here defaults to rallying the room, so when momentum stalls it needs a named owner.',
   },
   'extraversion:low': {
-    key: 'reflective-synthesizer',
-    label: 'Reflective synthesizers',
-    singular: 'Reflective synthesizer',
-    description: 'listening and sense-making',
+    key: 'listener',
+    label: 'Listeners',
+    singular: 'Listener',
+    description: 'room for other voices',
     openLine:
       'Nobody here defaults to sitting back and distilling, so build the pause in before the fastest take wins.',
   },
   'openness:high': {
-    key: 'innovator',
-    label: 'Innovators',
-    singular: 'Innovator',
-    description: 'new angles and exploration',
+    key: 'explorer',
+    label: 'Explorers',
+    singular: 'Explorer',
+    description: 'fresh options and new approaches',
     openLine:
       'Fresh options will not appear on their own here; book time to look outside the current playbook.',
   },
   'openness:low': {
-    key: 'practical-stabilizer',
-    label: 'Practical stabilizers',
-    singular: 'Practical stabilizer',
-    description: 'grounding and feasibility',
+    key: 'builder',
+    label: 'Builders',
+    singular: 'Builder',
+    description: 'grounding and the reality check',
     openLine:
       'Nobody here defaults to the feasibility check, so make "will this actually ship?" a standing question.',
   },
   'conscientiousness:high': {
-    key: 'implementer',
-    label: 'Implementers',
-    singular: 'Implementer',
-    description: 'structure and follow-through',
+    key: 'finisher',
+    label: 'Finishers',
+    singular: 'Finisher',
+    description: 'preparation and follow-through',
     openLine:
       'Getting things over the line takes deliberate effort here; name owners and dates every time.',
   },
   'conscientiousness:low': {
-    key: 'adaptive-responder',
-    label: 'Adaptive responders',
-    singular: 'Adaptive responder',
-    description: 'flexibility and quick adjustment',
+    key: 'easygoer',
+    label: 'Easygoers',
+    singular: 'Easygoer',
+    description: 'adaptability when plans shift',
     openLine:
       'Course-correcting mid-flight is nobody\u2019s default here; decide in advance how a plan gets changed.',
   },
   'agreeableness:high': {
-    key: 'harmonizer',
-    label: 'Harmonizers',
-    singular: 'Harmonizer',
-    description: 'trust and cohesion',
+    key: 'connector',
+    label: 'Connectors',
+    singular: 'Connector',
+    description: 'empathy and cohesion',
     openLine:
       'Nobody here defaults to tending the relationships, so check in on the people, not just the work.',
   },
   'agreeableness:low': {
-    key: 'candid-challenger',
-    label: 'Candid challengers',
-    singular: 'Candid challenger',
-    description: 'clear challenge and sharper standards',
+    key: 'challenger',
+    label: 'Challengers',
+    singular: 'Challenger',
+    description: 'constructive friction',
     openLine:
       'Hard questions tend to arrive late or softened here; invite the pushback explicitly.',
   },
   'neuroticism:high': {
-    key: 'vigilant-sentinel',
-    label: 'Vigilant sentinels',
-    singular: 'Vigilant sentinel',
-    description: 'early risk signals',
+    key: 'spark',
+    label: 'Sparks',
+    singular: 'Spark',
+    description: 'energy, urgency, visible care',
     openLine:
-      'Nobody here is wired to spot trouble early, so make the pre-mortem a rotating job.',
+      'Nobody here runs hot by default, so urgency needs an explicit owner when it matters.',
   },
   'neuroticism:low': {
-    key: 'steadying-presence',
-    label: 'Steadying presences',
-    singular: 'Steadying presence',
-    description: 'calm and perspective',
+    key: 'anchor',
+    label: 'Anchors',
+    singular: 'Anchor',
+    description: 'steadiness under pressure',
     openLine:
       'Under pressure nobody here defaults to ballast; plan the calm response before you need it.',
   },
@@ -86,17 +90,51 @@ const SCOTT_ROLE_BY_SIGNAL = {
 /* Canonical display order for the coverage map: paired poles, trait by trait,
    so "both ends bring value" stays visible in the layout itself. */
 const ROLE_COVERAGE_ORDER = [
-  'innovator',
-  'practical-stabilizer',
-  'implementer',
-  'adaptive-responder',
-  'mobilizer',
-  'reflective-synthesizer',
-  'candid-challenger',
-  'harmonizer',
-  'vigilant-sentinel',
-  'steadying-presence',
+  'explorer',
+  'builder',
+  'finisher',
+  'easygoer',
+  'energizer',
+  'listener',
+  'challenger',
+  'connector',
+  'spark',
+  'anchor',
 ];
+
+/* One signature name per pole: the team's most extreme trait average names
+   the team. */
+const TEAM_SIGNATURE_BY_SIGNAL = {
+  'openness:high': 'The Idea Engine',
+  'openness:low': 'The Proven Path',
+  'conscientiousness:high': 'The Finishing Crew',
+  'conscientiousness:low': 'The Quick Pivot',
+  'extraversion:high': 'The Live Wire',
+  'extraversion:low': 'The Quiet Powerhouse',
+  'agreeableness:high': 'The Glue',
+  'agreeableness:low': 'The Sharpening Stone',
+  'neuroticism:high': 'The Early-Warning System',
+  'neuroticism:low': 'The Steady Hands',
+};
+
+/** A generated team name from the trait where the team leans hardest. */
+export function getTeamSignature(members) {
+  const scored = members.filter((member) => member?.bigFive);
+  if (!scored.length) return null;
+  const strongest = BIG_FIVE_TRAITS.map((trait) => {
+    const avg =
+      scored.reduce(
+        (sum, member) => sum + (member.bigFive[trait.key] ?? 50),
+        0
+      ) / scored.length;
+    return {
+      trait: trait.key,
+      distance: Math.abs(avg - 50),
+      direction: avg >= 50 ? 'high' : 'low',
+    };
+  }).sort((first, second) => second.distance - first.distance)[0];
+  return TEAM_SIGNATURE_BY_SIGNAL[`${strongest.trait}:${strongest.direction}`];
+}
 
 const MIN_SIGNAL_DISTANCE = 10;
 

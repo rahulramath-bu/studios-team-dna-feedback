@@ -10662,7 +10662,9 @@ button.team-management-row {
   padding: 4px 2px 0;
 }
 
-.fvg .fivex-two {
+.fvg .fivex-two,
+.fvg .fivex-profile,
+.fvg > .fvc {
   margin-top: 24px;
 }
 
@@ -11059,6 +11061,12 @@ button.team-management-row {
   border-top: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
+.fvx-persona--lead {
+  margin-top: 14px;
+  padding-top: 0;
+  border-top: 0;
+}
+
 .fvx-persona-title {
   margin: 0;
   color: #1e1a26;
@@ -11143,8 +11151,54 @@ strong.fvx-role--secondary {
 
 .wstage-top {
   display: flex;
-  justify-content: flex-end;
-  margin-bottom: 12px;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 26px;
+  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.wstage-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 26px;
+}
+
+.wstage-tab {
+  position: relative;
+  padding: 0 0 12px;
+  border: 0;
+  background: none;
+  color: #717070;
+  cursor: pointer;
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: 400;
+  letter-spacing: 0.08em;
+  line-height: 14px;
+  text-transform: uppercase;
+}
+
+.wstage-tab:hover {
+  color: #1e1a26;
+}
+
+.wstage-tab[data-active] {
+  color: #1e1a26;
+}
+
+.wstage-tab[data-active]::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: -0.5px;
+  left: 0;
+  height: 2px;
+  background: #1e1a26;
+}
+
+.wstage-top .wstage-views {
+  margin-bottom: 8px;
 }
 
 .wstage-views {
@@ -11345,18 +11399,6 @@ strong.fvx-role--secondary {
 
 .wsmap-notes li[data-hot]:hover {
   color: #17716e;
-}
-
-.wstage-groups {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 14px 16px;
-}
-
-.wstage-group {
-  display: grid;
-  gap: 7px;
-  align-content: start;
 }
 
 .wstage-group-label {
