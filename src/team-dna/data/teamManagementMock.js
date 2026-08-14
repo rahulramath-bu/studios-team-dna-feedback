@@ -223,8 +223,8 @@ export const mockTeamRecords = [];
 
 export const sampleTeamRecord = {
   id: 'sample-team',
-  name: 'Sample Team',
-  teamType: 'Direct reports',
+  name: 'Product Team',
+  teamType: 'Cross-functional',
   memberEmployeeIds: teamDnaDataset.members.map((member) => member.id),
   invitedEmails: [],
   sample: true,

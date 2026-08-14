@@ -613,6 +613,8 @@ export function TeamDnaExperience({
           lens={tabsLens}
           onSelect={handleOneLensSelect}
           teamName={dataset.team.name}
+          teamType={dataset.team.teamType}
+          memberCount={dataset.members.length}
           members={completedRailMembers}
           selectedIds={selectedIds}
           viewerId={currentViewerMemberId}

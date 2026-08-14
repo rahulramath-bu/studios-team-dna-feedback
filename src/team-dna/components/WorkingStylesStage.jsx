@@ -336,6 +336,9 @@ export function WorkingStylesStage({
   const active = ALL_ITEMS.find((item) => item.key === activeKey) ?? ALL_ITEMS[0];
   // Team scope offers three densities: the stage, plus two compact reads.
   const [view, setView] = useState('stage');
+  // Demo affordance: an annotation points at the Map toggle until it has
+  // been visited once.
+  const [mapHintSeen, setMapHintSeen] = useState(false);
   const showViews = subjects.length > 3 && focusIds.length === 0;
   const compactView = showViews && view !== 'stage' ? view : null;
 
@@ -543,11 +546,23 @@ export function WorkingStylesStage({
                   aria-selected={view === id}
                   className="wstage-view"
                   data-active={view === id || undefined}
-                  onClick={() => setView(id)}
+                  onClick={() => {
+                    setView(id);
+                    if (id === 'map') setMapHintSeen(true);
+                  }}
                 >
                   {label}
                 </button>
               ))}
+            </div>
+          ) : null}
+          {showViews && view === 'stage' && !mapHintSeen ? (
+            <div className="wstage-maphint" aria-hidden="true">
+              <span className="wstage-maphint-label">Alternate view</span>
+              <svg className="wstage-maphint-arrow" viewBox="0 0 44 34">
+                <path d="M4 30 C 17 29, 32 22, 38 8" />
+                <path d="M31 12 L 38 7 L 40 16" />
+              </svg>
             </div>
           ) : null}
         </div>

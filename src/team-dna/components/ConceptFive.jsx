@@ -86,6 +86,8 @@ export function ConceptFiveBar({
   lens,
   onSelect,
   teamName,
+  teamType,
+  memberCount,
   members,
   selectedIds = [],
   viewerId,
@@ -125,7 +127,7 @@ export function ConceptFiveBar({
 
   return (
     <div className="lensx-bar-row fivex-bar" data-with-header>
-      {/* One wayfinding line: back crumb, then the product you're in. */}
+      {/* One wayfinding line, mono like the original: TEAM / TEAM DNA. */}
       <div className="fivex-chrome">
         <div className="fivex-crumbs">
           <button
@@ -133,7 +135,6 @@ export function ConceptFiveBar({
             className="fivex-crumb"
             onClick={() => onExitToTeamHome?.()}
           >
-            <BetterUpIcon name="ChevronLeft" size={14} strokeWidth={2} />
             Team
           </button>
           <span className="fivex-crumb-sep" aria-hidden="true">
@@ -231,6 +232,13 @@ export function ConceptFiveBar({
             </div>
           ) : null}
         </div>
+        {teamType || memberCount ? (
+          <p className="fivex-meta">
+            {[teamType, memberCount ? `${memberCount} members` : null]
+              .filter(Boolean)
+              .join(' \u00b7 ')}
+          </p>
+        ) : null}
       </div>
 
       {showRail ? (

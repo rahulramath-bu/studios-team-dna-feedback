@@ -4385,12 +4385,12 @@ button.team-management-row {
   visibility: hidden;
 }
 
-/* V5 compare picker: the field headline is a selection label sized to match
-   the right panel's headings (the duo title's 28px). */
+/* V5 compare picker: the field headline is a selection label, sized on the
+   shared serif display scale. */
 .team-dna-experience[data-variation='five'] .team-face-context-title-text,
 .team-dna-experience[data-variation='five'] .team-face-context-title-measure {
-  font-size: 28px;
-  line-height: 35px;
+  font-size: 26px;
+  line-height: 33px;
 }
 
 .team-face-instruction {
@@ -9981,37 +9981,37 @@ button.team-management-row {
   justify-self: end;
 }
 
-.fivex-crumb {
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  margin-left: -5px;
-  padding: 6px 8px 6px 5px;
-  border: 0;
-  border-radius: 999px;
-  background: none;
-  color: #717070;
-  cursor: pointer;
-  font-family: inherit;
-  font-size: 13px;
+.fivex-crumbs {
+  font-family: var(--label-font);
+  font-size: 11px;
   font-weight: 500;
-  transition: background 0.15s ease, color 0.15s ease;
+  letter-spacing: 0.66px;
+  text-transform: uppercase;
+}
+
+.fivex-crumb {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #1e1a26;
+  cursor: pointer;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  transition: color 0.15s ease;
 }
 
 .fivex-crumb:hover {
-  background: rgba(194, 191, 147, 0.2);
-  color: #1e1a26;
+  color: #ce0058;
 }
 
 .fivex-crumb-sep {
-  color: rgba(30, 26, 38, 0.25);
-  font-size: 13px;
+  color: rgba(30, 26, 38, 0.3);
 }
 
 .fivex-crumb-here {
-  color: #4d4d4d;
-  font-size: 13px;
-  font-weight: 500;
+  color: rgba(30, 26, 38, 0.42);
 }
 
 .fivex-team {
@@ -10137,9 +10137,18 @@ button.team-management-row {
   margin: 0;
   color: #1e1a26;
   font-family: var(--heading-display-font);
-  font-size: 30px;
+  font-size: 26px;
   font-weight: 400;
-  line-height: 36px;
+  line-height: 33px;
+}
+
+/* Team type and size, right under the name. */
+.fivex-meta {
+  margin: 5px 0 0;
+  color: #717070;
+  font-size: 13px;
+  letter-spacing: 0.1px;
+  line-height: 18px;
 }
 
 .fivex-rail {
@@ -10221,9 +10230,9 @@ button.team-management-row {
   margin: 0;
   color: #1e1a26;
   font-family: var(--heading-display-font);
-  font-size: 23px;
+  font-size: 26px;
   font-weight: 400;
-  line-height: 30px;
+  line-height: 33px;
 }
 
 .fvc-title--gap {
@@ -10898,13 +10907,6 @@ button.team-management-row {
   align-items: start;
 }
 
-/* The pick headline matches the duo title, so the panel reads the same
-   before and after a pair is chosen. */
-.fvx-pick-head .fvc-title {
-  font-size: 28px;
-  line-height: 1.25;
-}
-
 .fvx-pick-head .fvc-lead {
   max-width: 500px;
 }
@@ -10933,11 +10935,6 @@ button.team-management-row {
 .fvx-pick-list .mapx-pairing:hover {
   background: #ffffff;
   box-shadow: 0 5px 12px -3px rgba(26, 26, 26, 0.18);
-}
-
-.fvx-duo-title {
-  font-size: 28px;
-  line-height: 1.25;
 }
 
 .fvx-duo-line {
@@ -11166,9 +11163,9 @@ button.team-management-row {
   margin: 0;
   color: #1e1a26;
   font-family: var(--heading-display-font);
-  font-size: 19px;
+  font-size: 26px;
   font-weight: 400;
-  line-height: 26px;
+  line-height: 33px;
 }
 
 .fvx-persona-body {
@@ -11245,12 +11242,48 @@ strong.fvx-role--secondary {
 }
 
 .wstage-top {
+  position: relative;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
   gap: 24px;
   margin-bottom: 18px;
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+/* One-time demo annotation pointing at the MAP toggle. */
+.wstage-maphint {
+  position: absolute;
+  top: calc(100% + 4px);
+  right: 2px;
+  z-index: 3;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: #ce0058;
+  pointer-events: none;
+}
+
+.wstage-maphint-label {
+  margin-top: 12px;
+  font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+  font-size: 15px;
+  line-height: 1.2;
+  transform: rotate(-2deg);
+  white-space: nowrap;
+}
+
+.wstage-maphint-arrow {
+  width: 38px;
+  height: 30px;
+}
+
+.wstage-maphint-arrow path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .wstage-tabs {
@@ -11419,7 +11452,10 @@ strong.fvx-role--secondary {
   position: absolute;
   z-index: 2;
   transform: translate(-50%, -50%);
-  transition: opacity 180ms ease;
+  transition:
+    left 560ms cubic-bezier(0.65, 0, 0.35, 1),
+    top 560ms cubic-bezier(0.65, 0, 0.35, 1),
+    opacity 180ms ease;
 }
 
 .wsmap-face[data-dim] {
