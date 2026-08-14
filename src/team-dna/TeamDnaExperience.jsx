@@ -587,6 +587,7 @@ export function TeamDnaExperience({
       data-layout-debug={showLayoutOutlines || undefined}
       data-people-selector={peopleSelectorScaledActive ? 'scaled' : undefined}
       data-lens-page={isLensFullPage || undefined}
+      data-variation={pageVariation}
     >
       {tabsPageReady ? (
         <ConceptLensBar
@@ -621,6 +622,7 @@ export function TeamDnaExperience({
           canManageTeam={canManageTeam}
           onTeamChange={onTeamChange}
           onEditTeam={handleEditTeam}
+          onAddTeam={onAddTeam}
           onExitToTeamHome={onExitToTeamHome}
         />
       ) : null}
@@ -631,7 +633,13 @@ export function TeamDnaExperience({
           selectedIds={selectedIds}
           blockedAttempt={blockedAttempt}
           entityEyebrow={insight.entityEyebrow ?? insight.eyebrow}
-          entityTitle={insight.entityTitle ?? insight.title}
+          // V5's compare picker: the header already names the team, so the
+          // field only takes a headline once someone is selected (their name).
+          entityTitle={
+            fivePageReady && selectedIds.length === 0
+              ? null
+              : (insight.entityTitle ?? insight.title)
+          }
           hideConnections={peopleSelectorScaledActive && !fivePageReady}
           introActive={isIntroGateActive}
           showIntroHint={isIntroGateActive}

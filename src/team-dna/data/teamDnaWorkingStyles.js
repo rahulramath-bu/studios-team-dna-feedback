@@ -230,22 +230,36 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
   const shortName = (member) => member.name.split(' ')[0];
 
   if (!second) {
+    // Single focus reads like the team insight: a headline about the
+    // person, the room's distribution, and why the split matters.
     const subject = isOwn ? 'You' : shortName(first);
-    const s = isOwn ? '' : 's';
+    const their = isOwn ? 'your' : 'their';
+    const roomLine = (excludeSide) => {
+      const aRest = reportItem.aCount - (excludeSide === 'a' ? 1 : 0);
+      const bRest = reportItem.bCount - (excludeSide === 'b' ? 1 : 0);
+      const midRest = reportItem.midCount - (excludeSide === 'mid' ? 1 : 0);
+      const parts = [];
+      if (aRest > 0) parts.push(`**${aRest}** would rather ${reportItem.aWord}`);
+      if (bRest > 0) parts.push(`**${bRest}** would rather ${reportItem.bWord}`);
+      if (midRest > 0) parts.push(`${midRest} flex either way`);
+      return `The rest of the room: ${parts.join(', ')}.`;
+    };
     if (firstSide === 'mid') {
-      return `${subject} can go either way on ${reportItem.label.toLowerCase()}, so this one rarely causes friction.`;
+      return {
+        headline: `**${subject} can go either way** on ${reportItem.label.toLowerCase()} — ${their} default matches whoever ${isOwn ? 'you' : 'they'} work with.`,
+        bullets: [roomLine('mid'), reportItem.stake],
+      };
     }
     // Majority among everyone else: does the room lean with or against them?
     const withCount =
       (firstSide === 'a' ? reportItem.aCount : reportItem.bCount) - 1;
     const againstCount =
       firstSide === 'a' ? reportItem.bCount : reportItem.aCount;
-    if (withCount >= againstCount) {
-      return `${subject} would rather ${word(firstSide)}, and most of the team leans the same way.`;
-    }
-    return `${subject} would rather ${word(firstSide)}, while more of the team would rather ${word(
-      firstSide === 'a' ? 'b' : 'a'
-    )}. Worth saying out loud when this comes up.`;
+    const headline =
+      withCount >= againstCount
+        ? `**${subject} would rather ${word(firstSide)}**, and most of the room leans the same way.`
+        : `**${subject} would rather ${word(firstSide)}** — most of the room goes the other way, so say it out loud.`;
+    return { headline, bullets: [roomLine(firstSide), reportItem.stake] };
   }
 
   const secondSide = sideOfBucket(getWorkingBucket(second, reportItem));

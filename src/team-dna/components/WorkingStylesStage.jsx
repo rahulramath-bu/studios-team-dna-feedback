@@ -39,6 +39,9 @@ function capitalize(text) {
 
 const isRealSplit = (row) => Math.min(row.aCount, row.bCount) >= 2;
 
+/* Stable no-focus default: keeps effect deps quiet across re-renders. */
+const NO_FOCUS = [];
+
 let stageClipSequence = 0;
 
 /* Positions are stored with pole A high; flip so pole A renders LEFT,
@@ -305,10 +308,14 @@ function WorkingMap({ subjects }) {
 
 export function WorkingStylesStage({
   subjects,
-  focusIds = [],
+  focusIds = NO_FOCUS,
   focusIsViewer = false,
   onCoachPrompt,
 }) {
+  // Effects key off this value, not the array identity: an inline `[]`
+  // default would be a fresh array every render, re-triggering the
+  // draw-once effect on each topic click and killing the transition.
+  const focusKey = focusIds.join('|');
   const report = useMemo(() => getWorkingReport(subjects), [subjects]);
   const readByKey = useMemo(
     () =>
@@ -458,24 +465,32 @@ export function WorkingStylesStage({
     // Position for the first question without animation.
     positionMembers(svg, subjects, active, geometry, focusIds, false);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subjects, geometry, focusIds]);
+  }, [subjects, geometry, focusKey]);
 
   // Re-sort the room whenever the question changes.
   useEffect(() => {
     if (!svgRef.current) return;
     const svg = d3.select(svgRef.current);
     positionMembers(svg, subjects, active, geometry, focusIds, true);
-  }, [active, subjects, geometry, focusIds, compactView]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active, subjects, geometry, focusKey, compactView]);
 
   const activeRead = readByKey.get(active.key);
-  // Focused views read personally: one person against the room, or a pair
-  // against each other. The team read is only for the team scope.
+  // Focused views read personally: one person against the room (structured
+  // like the team insight), or a pair against each other (one line).
   const focusMembers = focusIds
     .map((id) => subjects.find((member) => member.id === id))
     .filter(Boolean);
-  const readText = activeRead
-    ? focusMembers.length > 0
+  const focusRead =
+    activeRead && focusMembers.length > 0
       ? getFocusRead(activeRead, focusMembers, { isOwn: focusIsViewer })
+      : null;
+  // Flat string for the coach prompt, whatever shape the read takes.
+  const readText = activeRead
+    ? focusRead
+      ? typeof focusRead === 'string'
+        ? focusRead
+        : [focusRead.headline, ...focusRead.bullets].join(' ')
       : activeRead.read
     : null;
 
@@ -582,16 +597,21 @@ export function WorkingStylesStage({
                   <p className="wstage-group-label wstage-insight-label">
                     {focusMembers.length > 0 ? 'Insight' : 'Team insight'}
                   </p>
-                  {focusMembers.length > 0 ? (
-                    <p className="wstage-read">{renderEmphasis(readText)}</p>
+                  {focusRead && typeof focusRead === 'string' ? (
+                    <p className="wstage-read">{renderEmphasis(focusRead)}</p>
                   ) : (
                     <>
-                      {/* Same structure as the map: headline, then bullets. */}
+                      {/* Same structure everywhere: headline, then bullets. */}
                       <p className="wstage-read">
-                        {renderEmphasis(activeRead.headline)}
+                        {renderEmphasis(
+                          focusRead ? focusRead.headline : activeRead.headline
+                        )}
                       </p>
                       <ul className="wsmap-notes">
-                        {activeRead.bullets.map((bullet, index) => (
+                        {(focusRead
+                          ? focusRead.bullets
+                          : activeRead.bullets
+                        ).map((bullet, index) => (
                           <li key={index} className="wsb-read">
                             {renderEmphasis(bullet)}
                           </li>

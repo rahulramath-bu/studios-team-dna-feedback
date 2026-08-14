@@ -25,7 +25,7 @@ const SCOTT_ROLE_BY_SIGNAL = {
     key: 'explorer',
     label: 'Explorers',
     singular: 'Explorer',
-    description: 'fresh options and new approaches',
+    description: 'fresh options and new angles',
     openLine:
       'Fresh options will not appear on their own here; book time to look outside the current playbook.',
   },
@@ -33,7 +33,7 @@ const SCOTT_ROLE_BY_SIGNAL = {
     key: 'builder',
     label: 'Builders',
     singular: 'Builder',
-    description: 'grounding and the reality check',
+    description: 'grounding and reality checks',
     openLine:
       'Nobody here defaults to the feasibility check, so make "will this actually ship?" a standing question.',
   },

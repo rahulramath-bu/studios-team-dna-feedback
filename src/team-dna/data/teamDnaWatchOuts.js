@@ -8,12 +8,12 @@ const WATCH_OUTS = {
     low: {
       title: 'Can rule out a new idea too soon.',
       body: 'Staying practical keeps the team realistic, but it can shut down a better option before it gets a fair test.',
-      tip: 'try asking, "what is one option we have not considered yet?"',
+      tip: 'ask "what option have we not considered yet?"',
     },
     high: {
       title: 'Can keep exploring past the decision.',
       body: 'Generating options is useful, but opening yet another path can delay choosing the one already on the table.',
-      tip: 'ask whether the current option is good enough to commit to, or if you are just looking for a new puzzle.',
+      tip: 'ask if the option on the table is good enough to commit.',
     },
     wide: {
       title: 'One wants new, one wants proven.',
@@ -25,12 +25,12 @@ const WATCH_OUTS = {
     low: {
       title: 'Can leave the handoff unclear.',
       body: 'Flexibility keeps the work adaptable, but too little structure leaves the next person guessing what "done" means.',
-      tip: 'say what done looks like and when it is needed before passing work along.',
+      tip: 'say what "done" means before handing work off.',
     },
     high: {
       title: 'Can hold the plan too long.',
       body: 'Structure turns intent into action, but a plan can get protected even after the situation has changed.',
-      tip: 'add one midpoint check to ask whether the plan still fits what you now know.',
+      tip: 'add one midpoint check: does the plan still fit?',
     },
     wide: {
       title: 'Different ideas of "done".',
@@ -42,7 +42,7 @@ const WATCH_OUTS = {
     low: {
       title: 'Quiet can read as no opinion.',
       body: 'Thinking before speaking gives a more considered read, but the room can move on before that read gets shared.',
-      tip: 'share your early take before it feels fully finished.',
+      tip: 'share your take before it feels finished.',
     },
     high: {
       title: 'Loud energy can set the pace too early.',
@@ -59,12 +59,12 @@ const WATCH_OUTS = {
     low: {
       title: 'Challenge can land harder than meant.',
       body: 'Testing weak logic protects the team, but the challenge can come across sharper than intended.',
-      tip: 'try saying, "I am being direct because I think this matters" before the hard part.',
+      tip: 'open with "I am direct because this matters."',
     },
     high: {
       title: 'Can soften the hard message.',
       body: 'Keeping things warm protects trust, but it can blur a disagreement that the team needs stated clearly.',
-      tip: 'name one real disagreement plainly, even while keeping it kind.',
+      tip: 'name one real disagreement plainly, and kindly.',
     },
     wide: {
       title: 'Direct meets diplomatic.',
@@ -76,12 +76,12 @@ const WATCH_OUTS = {
     low: {
       title: 'Calm can miss real urgency.',
       body: 'Staying steady keeps perspective, but it can read as not noticing the pressure other people are under.',
-      tip: 'ask, "what are you carrying that I might not be seeing?"',
+      tip: 'ask "what are you carrying that I am not seeing?"',
     },
     high: {
       title: 'Risk-spotting needs a next step.',
       body: 'Catching risk early is valuable, but naming the same risk over and over without a decision wears the team down.',
-      tip: 'name the risk, decide to act on it or let it go, then move on.',
+      tip: 'name the risk, decide on it, and move on.',
     },
     wide: {
       title: 'One senses risk, one stays calm.',

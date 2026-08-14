@@ -607,21 +607,23 @@ export function TeamFaceField({
             <span className="team-face-context-breadcrumb-current">Team DNA</span>
           </p>
         )}
-        <h2 className="team-face-context-title" ref={entityTitleRef}>
-          <span
-            className="team-face-context-title-text"
-            style={entityTitleStyle}
-          >
-            {entityTitle}
-          </span>
-          <span
-            aria-hidden="true"
-            className="team-face-context-title-measure"
-            ref={entityTitleMeasureRef}
-          >
-            {entityTitle}
-          </span>
-        </h2>
+        {entityTitle ? (
+          <h2 className="team-face-context-title" ref={entityTitleRef}>
+            <span
+              className="team-face-context-title-text"
+              style={entityTitleStyle}
+            >
+              {entityTitle}
+            </span>
+            <span
+              aria-hidden="true"
+              className="team-face-context-title-measure"
+              ref={entityTitleMeasureRef}
+            >
+              {entityTitle}
+            </span>
+          </h2>
+        ) : null}
       </div>
       <AnimatePresence>
         {!hideConnections && selectedIds.length === 2 ? (

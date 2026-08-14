@@ -16,50 +16,60 @@ const STRENGTHS = {
     high: {
       title: 'Finds new options fast.',
       lead: 'comes up with fresh approaches quickly, so the team rarely gets stuck on the first idea and usually has a stronger option to compare before committing.',
+      use: 'Take first pass on problems that need a new angle.',
     },
     low: {
       title: 'Keeps ideas grounded.',
       lead: 'stays close to what has actually worked before, so plans stay realistic and effort goes to options that can really ship.',
+      use: 'Be the reality check before plans get big.',
     },
   },
   conscientiousness: {
     high: {
       title: 'Turns plans into finished work.',
       lead: 'sets clear owners, steps, and standards, so decisions actually get done instead of stalling as good intentions.',
+      use: 'Own the plan when there are many moving parts.',
     },
     low: {
       title: 'Adapts fast when plans change.',
       lead: 'adjusts quickly when priorities shift, so the work keeps moving instead of getting stuck on a plan that no longer fits.',
+      use: 'Take point when plans change mid-flight.',
     },
   },
   extraversion: {
     high: {
       title: 'Creates energy and momentum.',
       lead: 'gets people talking and moving, so conversations turn into action instead of sitting unresolved.',
+      use: 'Kick off the discussions that need energy.',
     },
     low: {
       title: 'Thinks before reacting.',
       lead: 'listens and works things through before responding, so the team gets a more considered read, not just the fastest take in the room.',
+      use: 'Give the considered read before decisions lock.',
     },
   },
   agreeableness: {
     high: {
       title: 'Builds trust and keeps people in.',
       lead: 'keeps people included and the tone constructive, so the team stays aligned and bought in, even when the work gets hard.',
+      use: 'Hold the room together when tension runs high.',
     },
     low: {
       title: 'Tests the thinking.',
       lead: 'questions weak assumptions and names the hard tradeoffs, so problems get caught before the team agrees too quickly.',
+      use: 'Stress-test big decisions before they ship.',
     },
   },
   neuroticism: {
     low: {
       title: 'Steady under pressure.',
       lead: 'keeps a level head when things get tense, so decisions stay clear and the work keeps moving under stress.',
+      use: 'Anchor the room when stakes spike.',
     },
     high: {
       title: 'Spots risk early.',
       lead: 'notices what could go wrong before it grows, so the team can deal with problems while there is still time to fix them.',
+      use: 'Name what could go wrong while it is cheap to fix.',
     },
   },
 };
@@ -188,6 +198,7 @@ function getSoloStrengths(subjects) {
       return {
         title: copy.title,
         body: `${name} ${copy.lead}`,
+        use: copy.use,
         traitKey: stats.trait.key,
         type: stats.side,
       };

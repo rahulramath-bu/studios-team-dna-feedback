@@ -4197,11 +4197,20 @@ button.team-management-row {
     transform: scale(0.5);
   }
 
+  /* V5: shrunken faces tuck up under the full-size name instead of
+     leaving the unscaled box's worth of dead space. */
+  .team-dna-experience:has(> .fivex-bar)[data-people-selector='scaled']
+    .team-face-grid-scale {
+    transform: translateY(-46px) scale(0.5);
+  }
+
   .team-dna-experience:has(> .fivex-bar)[data-people-selector='scaled'] {
     --people-pane-width: 280px;
     --detail-pane-width: 780px;
     --pane-gap: 40px;
     --composition-shift: -40px;
+    /* V5: the pair's names keep their size; only the faces shrink. */
+    --team-face-context-title-scale: 1;
   }
 }
 
@@ -4374,6 +4383,14 @@ button.team-management-row {
   max-width: none;
   pointer-events: none;
   visibility: hidden;
+}
+
+/* V5 compare picker: the field headline is a selection label sized to match
+   the right panel's headings (the duo title's 28px). */
+.team-dna-experience[data-variation='five'] .team-face-context-title-text,
+.team-dna-experience[data-variation='five'] .team-face-context-title-measure {
+  font-size: 28px;
+  line-height: 35px;
 }
 
 .team-face-instruction {
@@ -8696,9 +8713,13 @@ button.team-management-row {
   padding-bottom: 14vh;
 }
 
-/* Compare keeps two panes; pull the read up to sit beside the faces. */
+/* Compare keeps two panes; pull the read up to sit beside the faces.
+   Content top-aligns at a fixed offset (not centered) so the name sits on
+   the same line as the panel's heading at any window height. */
 .team-dna-experience:not([data-lens-page]) > .lensx-bar-row + .team-dna-people-pane {
+  align-items: flex-start;
   height: calc(100vh - 120px);
+  padding-top: 82px;
   padding-bottom: 60px;
 }
 
@@ -9588,26 +9609,34 @@ button.team-management-row {
   margin: 0;
 }
 
-/* ── V5 hero: two cards on the profile grid; V4's text treatment ────────── */
+/* ── V5 hero: two cards on the profile grid, one shared type system ─────── */
 
-/* The signature name reads like a real title, not a label. */
-.fvx-persona-title--sig {
-  font-size: 24px;
-  line-height: 31px;
+.fivex-profile .fvc-kicker {
+  margin-bottom: 14px;
 }
 
-.fvx-persona--lead .fvx-persona-body {
+.fivex-profile .fvc-lead {
   margin-top: 12px;
-  font-size: 14.5px;
   line-height: 22px;
 }
 
+/* Airy archetype list: more room between the kicker, rows, and copy. */
+.fvc--id .fvx-fit {
+  margin-top: 26px;
+}
+
 .fvc--id .team-shape-block {
-  margin: 0;
+  margin: 16px 0 0;
+}
+
+.fvc--id .team-shape-contributions {
+  display: grid;
+  gap: 16px;
 }
 
 .fvc--id .team-shape-contribution-copy {
   font-size: 13.5px;
+  line-height: 20px;
 }
 
 .fvc--id .team-shape-contribution-copy strong {
@@ -9956,6 +9985,7 @@ button.team-management-row {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  margin-left: -5px;
   padding: 6px 8px 6px 5px;
   border: 0;
   border-radius: 999px;
@@ -9978,44 +10008,55 @@ button.team-management-row {
   font-size: 13px;
 }
 
+.fivex-crumb-here {
+  color: #4d4d4d;
+  font-size: 13px;
+  font-weight: 500;
+}
+
 .fivex-team {
   position: relative;
 }
 
-.fivex-team-btn {
+.fivex-title-btn {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 6px 10px;
+  gap: 9px;
+  margin-left: -12px;
+  padding: 4px 12px;
   border: 0;
   border-radius: 999px;
   background: none;
-  color: #4d4d4d;
   cursor: pointer;
   font-family: inherit;
-  font-size: 13px;
-  font-weight: 500;
+  text-align: left;
   transition: background 0.15s ease;
 }
 
-.fivex-team-btn:hover {
-  background: rgba(194, 191, 147, 0.2);
+.fivex-title-btn:hover {
+  background: rgba(194, 191, 147, 0.18);
 }
 
-.fivex-team-btn[data-static] {
-  cursor: default;
+.fivex-title-caret {
+  display: inline-flex;
+  margin-top: 3px;
+  color: #717070;
 }
 
-.fivex-team-btn[data-static]:hover {
-  background: none;
+.fivex-title-caret svg {
+  transition: transform 0.15s ease;
+}
+
+.fivex-title-btn[aria-expanded='true'] .fivex-title-caret svg {
+  transform: rotate(180deg);
 }
 
 .fivex-team-menu {
   position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
+  top: calc(100% + 4px);
+  left: 0;
   z-index: 30;
-  min-width: 220px;
+  min-width: 250px;
   padding: 6px;
   border-radius: 12px;
   background: #ffffff;
@@ -10027,10 +10068,9 @@ button.team-management-row {
 .fivex-team-item {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
+  gap: 11px;
   width: 100%;
-  padding: 9px 11px;
+  padding: 8px 10px;
   border: 0;
   border-radius: 8px;
   background: none;
@@ -10046,53 +10086,60 @@ button.team-management-row {
   background: rgba(194, 191, 147, 0.2);
 }
 
-.fivex-team-item[data-selected] {
-  font-weight: 500;
+.fivex-team-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: rgba(194, 191, 147, 0.35);
+  color: #4d4d4d;
+  font-family: var(--label-font);
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.fivex-team-mark--action {
+  background: rgba(194, 191, 147, 0.18);
+}
+
+.fivex-team-item-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.fivex-team-count {
+  flex: none;
+  color: #717070;
+  font-family: var(--label-font);
+  font-size: 11.5px;
+}
+
+.fivex-menu-sep {
+  height: 1px;
+  margin: 6px 4px;
+  background: rgba(0, 0, 0, 0.08);
 }
 
 .fivex-head {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-between;
-  gap: 24px;
   justify-self: stretch;
   width: 100%;
-  margin-top: 2px;
+  margin-top: 6px;
   text-align: left;
 }
 
-.fivex-kicker {
-  margin: 0;
-  color: #717070;
-  font-family: var(--label-font);
-  font-size: 11px;
-  font-weight: 500;
-  letter-spacing: 0.66px;
-  text-transform: uppercase;
-}
-
 .fivex-title {
-  margin: 3px 0 0;
+  margin: 0;
   color: #1e1a26;
   font-family: var(--heading-display-font);
   font-size: 30px;
   font-weight: 400;
   line-height: 36px;
-}
-
-.fivex-controls {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  margin-bottom: 4px;
-}
-
-@media (max-width: 900px) {
-  .fivex-head {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 12px;
-  }
 }
 
 .fivex-rail {
@@ -10102,28 +10149,6 @@ button.team-management-row {
   padding-bottom: 4px;
 }
 
-/* Manager edit: a quiet icon at the end of the roster. */
-.fivex-edit-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 30px;
-  height: 30px;
-  margin-left: 4px;
-  padding: 0;
-  border: 0;
-  border-radius: 50%;
-  background: transparent;
-  color: #717070;
-  cursor: pointer;
-  align-self: center;
-  transition: background 0.15s ease, color 0.15s ease;
-}
-
-.fivex-edit-icon:hover {
-  background: rgba(194, 191, 147, 0.25);
-  color: #1e1a26;
-}
 
 /* Terra contained toggle group: sand track, white active pill. */
 .fivex-tabbar {
@@ -10133,6 +10158,11 @@ button.team-management-row {
   padding: 2px;
   border-radius: 999px;
   background: rgba(194, 191, 147, 0.2);
+}
+
+/* Without the roster row above it (compare), the tabs need their own air. */
+.fivex-tabbar[data-no-rail] {
+  margin-top: 22px;
 }
 
 .fivex-tab {
@@ -10407,7 +10437,7 @@ button.team-management-row {
   gap: 16px;
   align-items: center;
   width: 100%;
-  padding: 8px 0;
+  padding: 13px 0;
   cursor: pointer;
 }
 
@@ -10510,7 +10540,7 @@ button.team-management-row {
 
 .fva-insight {
   grid-column: 3;
-  margin: 2px 0 12px;
+  margin: 4px 0 20px;
   color: #1e1a26;
   font-size: 14px;
   letter-spacing: 0.1px;
@@ -10618,6 +10648,57 @@ button.team-management-row {
 
 .fvr-face .dxp-face {
   box-shadow: 0 0 0 1.5px #ffffff;
+  transition: transform 0.16s ease;
+}
+
+.fvr-face:hover,
+.fvr-face:focus-visible {
+  z-index: 6;
+}
+
+.fvr-face:hover .dxp-face,
+.fvr-face:focus-visible .dxp-face {
+  transform: scale(1.35);
+}
+
+/* Dark pill above the face: name on top, trait score under it. */
+.fvr-tip {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 10px);
+  z-index: 7;
+  display: grid;
+  width: max-content;
+  max-width: 220px;
+  gap: 3px;
+  padding: 8px 10px;
+  border: 1px solid rgba(var(--team-dna-ink-rgb), 0.14);
+  border-radius: 6px;
+  background: rgba(var(--team-dna-ink-rgb), 0.92);
+  box-shadow: 0 8px 18px rgba(var(--team-dna-ink-rgb), 0.14);
+  color: var(--team-dna-warm-white);
+  font-family: var(--label-font);
+  font-size: 9px;
+  font-weight: var(--label-weight);
+  letter-spacing: 0.45px;
+  line-height: 1.35;
+  opacity: 0;
+  pointer-events: none;
+  text-align: left;
+  text-transform: none;
+  transform: translate(-50%, 2px);
+  transition: opacity 0.14s ease, transform 0.14s ease;
+}
+
+.fvr-tip strong {
+  font: inherit;
+  font-weight: 700;
+}
+
+.fvr-face:hover .fvr-tip,
+.fvr-face:focus-visible .fvr-tip {
+  opacity: 1;
+  transform: translate(-50%, 0);
 }
 
 /* ── The team wave (the original page's distribution, ported) ────────────── */
@@ -10804,15 +10885,24 @@ button.team-management-row {
 
 /* ── Compare picker: open layout, no card ──────────────────────────────── */
 
+/* Top padding lines the panel's heading up with the face field's name on
+   the left, in both the pick and the duo state. */
 .fvx-pick {
-  padding: 10px 6px 0;
+  padding: 48px 6px 0;
 }
 
 .fvx-pick-head {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 56px;
-  align-items: center;
+  align-items: start;
+}
+
+/* The pick headline matches the duo title, so the panel reads the same
+   before and after a pair is chosen. */
+.fvx-pick-head .fvc-title {
+  font-size: 28px;
+  line-height: 1.25;
 }
 
 .fvx-pick-head .fvc-lead {
@@ -11474,7 +11564,7 @@ strong.fvx-role--secondary {
   display: grid;
   grid-template-columns: minmax(0, 8fr) minmax(0, 5fr);
   gap: 44px;
-  align-items: start;
+  align-items: stretch;
 }
 
 @media (max-width: 900px) {
@@ -11485,6 +11575,7 @@ strong.fvx-role--secondary {
 
 /* Same field treatment as the map, so the two views read as siblings. */
 .wstage-canvas {
+  display: flex;
   min-width: 0;
   padding: 26px 12px 18px;
   border: 0.5px solid rgba(0, 0, 0, 0.1);
@@ -11520,7 +11611,9 @@ strong.fvx-role--secondary {
   width: 100%;
   max-width: 760px;
   height: auto;
-  margin: 0;
+  /* Bottom of the box: when the panel column is taller, the chart sits
+     grounded instead of hovering mid-air. */
+  margin: auto 0 0;
 }
 
 .wstage-svg .wst-tag {
@@ -11529,6 +11622,10 @@ strong.fvx-role--secondary {
   font-size: 7.5px;
   font-weight: 400;
   letter-spacing: 0.07em;
+}
+
+.wstage-side .info-block-coach-link {
+  margin-top: 26px;
 }
 
 .wstage-read {

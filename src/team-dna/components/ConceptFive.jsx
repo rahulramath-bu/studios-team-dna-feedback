@@ -79,8 +79,9 @@ const POLE_MEANING_BASE = {
 
 /* ── Page chrome ─────────────────────────────────────────────────────────── */
 
-/** Product row + centered page header. The crumb row answers "where am I":
- *  back to the Team home, which team is open (switchable), who's on it. */
+/** Product row + centered page header. One crumb line answers "where am I"
+ *  (back to Team home, inside Team DNA); the team name itself is the
+ *  switcher — other teams, edit, and new team all live in its menu. */
 export function ConceptFiveBar({
   lens,
   onSelect,
@@ -94,11 +95,16 @@ export function ConceptFiveBar({
   canManageTeam = false,
   onTeamChange,
   onEditTeam,
+  onAddTeam,
   onExitToTeamHome,
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
-  const switchable = teamOptions.length > 1;
+  const otherTeams = teamOptions.filter((team) => team.id !== selectedTeamId);
+  const hasMenu = otherTeams.length > 0 || canManageTeam;
+  // Compare keeps the big face-field picker on the left, so repeating the
+  // roster up here would put the same faces on screen twice.
+  const showRail = lens !== 'compare';
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -119,7 +125,7 @@ export function ConceptFiveBar({
 
   return (
     <div className="lensx-bar-row fivex-bar" data-with-header>
-      {/* Chrome: back-nav only. */}
+      {/* One wayfinding line: back crumb, then the product you're in. */}
       <div className="fivex-chrome">
         <div className="fivex-crumbs">
           <button
@@ -130,90 +136,136 @@ export function ConceptFiveBar({
             <BetterUpIcon name="ChevronLeft" size={14} strokeWidth={2} />
             Team
           </button>
+          <span className="fivex-crumb-sep" aria-hidden="true">
+            /
+          </span>
+          <span className="fivex-crumb-here">Team DNA</span>
         </div>
       </div>
 
-      {/* Head row: product kicker + team name LEFT, switch/edit controls
-          RIGHT. The roster and tabs below stay centered. */}
+      {/* The team name IS the switcher: other teams, edit, and new team
+          share its menu. Roster and tabs below stay centered. */}
       <div className="fivex-head">
-        <div className="fivex-head-copy">
-          <p className="fivex-kicker">Team DNA</p>
-          <h1 className="fivex-title">{teamName}</h1>
-        </div>
-        <div className="fivex-controls">
-          {switchable ? (
-            <div className="fivex-team" ref={menuRef}>
-              <button
-                type="button"
-                className="fivex-team-btn"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                onClick={() => setMenuOpen((open) => !open)}
-              >
-                Switch team
-                <BetterUpIcon name="ChevronDown" size={14} strokeWidth={2} />
-              </button>
-              {menuOpen ? (
-                <div className="fivex-team-menu" role="menu">
-                  {teamOptions.map((team) => (
-                    <button
-                      key={team.id}
-                      type="button"
-                      role="menuitemradio"
-                      aria-checked={team.id === selectedTeamId}
-                      className="fivex-team-item"
-                      data-selected={team.id === selectedTeamId || undefined}
-                      onClick={() => {
-                        setMenuOpen(false);
-                        if (team.id !== selectedTeamId) onTeamChange?.(team.id);
-                      }}
+        <div className="fivex-team" ref={menuRef}>
+          {hasMenu ? (
+            <button
+              type="button"
+              className="fivex-title-btn"
+              aria-haspopup="menu"
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              <h1 className="fivex-title">{teamName}</h1>
+              <span className="fivex-title-caret" aria-hidden="true">
+                <BetterUpIcon name="ChevronDown" size={18} strokeWidth={1.9} />
+              </span>
+            </button>
+          ) : (
+            <h1 className="fivex-title">{teamName}</h1>
+          )}
+          {menuOpen ? (
+            <div className="fivex-team-menu" role="menu">
+              {otherTeams.map((team) => (
+                <button
+                  key={team.id}
+                  type="button"
+                  role="menuitem"
+                  className="fivex-team-item"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onTeamChange?.(team.id);
+                  }}
+                >
+                  <span className="fivex-team-mark" aria-hidden="true">
+                    {team.name?.trim().charAt(0).toUpperCase() || '?'}
+                  </span>
+                  <span className="fivex-team-item-name">{team.name}</span>
+                  {typeof team.memberCount === 'number' ? (
+                    <span className="fivex-team-count">
+                      {team.memberCount}
+                    </span>
+                  ) : null}
+                </button>
+              ))}
+              {otherTeams.length > 0 && canManageTeam ? (
+                <div className="fivex-menu-sep" role="separator" />
+              ) : null}
+              {canManageTeam ? (
+                <>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="fivex-team-item fivex-team-item--action"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onEditTeam?.(selectedTeamId);
+                    }}
+                  >
+                    <span
+                      className="fivex-team-mark fivex-team-mark--action"
+                      aria-hidden="true"
                     >
-                      <span>{team.name}</span>
-                      {team.id === selectedTeamId ? (
-                        <BetterUpIcon name="Check" size={14} strokeWidth={2} />
-                      ) : null}
-                    </button>
-                  ))}
-                </div>
+                      <BetterUpIcon name="Edit" size={13} strokeWidth={1.8} />
+                    </span>
+                    <span className="fivex-team-item-name">Edit team</span>
+                  </button>
+                  <button
+                    type="button"
+                    role="menuitem"
+                    className="fivex-team-item fivex-team-item--action"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      onAddTeam?.();
+                    }}
+                  >
+                    <span
+                      className="fivex-team-mark fivex-team-mark--action"
+                      aria-hidden="true"
+                    >
+                      <BetterUpIcon name="Plus" size={14} strokeWidth={2} />
+                    </span>
+                    <span className="fivex-team-item-name">New team</span>
+                  </button>
+                </>
               ) : null}
             </div>
           ) : null}
-          {canManageTeam ? (
-            <button
-              type="button"
-              className="fivex-edit-icon"
-              aria-label="Edit team"
-              title="Edit team"
-              onClick={() => onEditTeam?.(selectedTeamId)}
-            >
-              <BetterUpIcon name="Edit" size={15} strokeWidth={1.8} />
-            </button>
-          ) : null}
         </div>
       </div>
 
-      <div className="onex-rail fivex-rail" role="group" aria-label="Team members">
-        {members.map((member) => {
-          const active = selectedIds.includes(member.id);
-          return (
-            <button
-              key={member.id}
-              type="button"
-              className="onex-rail-face"
-              data-active={active || undefined}
-              title={member.name}
-              aria-pressed={active}
-              onClick={() => onFaceClick?.(member.id)}
-            >
-              <Face member={member} size={36} ringed={active} />
-              {member.id === viewerId ? (
-                <span className="onex-rail-you">you</span>
-              ) : null}
-            </button>
-          );
-        })}
-      </div>
-      <div className="fivex-tabbar" role="tablist" aria-label="Views">
+      {showRail ? (
+        <div
+          className="onex-rail fivex-rail"
+          role="group"
+          aria-label="Team members"
+        >
+          {members.map((member) => {
+            const active = selectedIds.includes(member.id);
+            return (
+              <button
+                key={member.id}
+                type="button"
+                className="onex-rail-face"
+                data-active={active || undefined}
+                title={member.name}
+                aria-pressed={active}
+                onClick={() => onFaceClick?.(member.id)}
+              >
+                <Face member={member} size={36} ringed={active} />
+                {member.id === viewerId ? (
+                  <span className="onex-rail-you">you</span>
+                ) : null}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <div
+        className="fivex-tabbar"
+        data-no-rail={!showRail || undefined}
+        role="tablist"
+        aria-label="Views"
+      >
         {FIVE_TABS.map((tab) => (
           <button
             key={tab.id}
@@ -403,7 +455,6 @@ function TraitRows({
                           type="button"
                           className="fvr-face"
                           style={{ left: `${score}%` }}
-                          title={`${member.name} \u00b7 ${score}`}
                           aria-label={`Open ${member.name}'s profile`}
                           onClick={(event) => {
                             event.stopPropagation();
@@ -415,6 +466,14 @@ function TraitRows({
                             size={22}
                             ringed={member.id === viewerId}
                           />
+                          {/* Same hover treatment as the original spectrum:
+                              face grows, dark pill names the person + score. */}
+                          <span className="fvr-tip" role="tooltip">
+                            <strong>{member.name}</strong>
+                            <span>
+                              {strip.label}: {score}/100
+                            </span>
+                          </span>
                         </button>
                       ))
                     : null}
@@ -613,21 +672,22 @@ function OverviewView({
         <p className="fvx-chapnum">01</p>
         <h2 className="fvc-title">Who you are together</h2>
         <p className="fvc-lead">
-          The team&rsquo;s own profile: what kind of team this is, the roles
-          people naturally play, and where everyone lands on the five traits.
+          What kind of team this is: the personality you add up to together,
+          who naturally plays which role, and where each person sits on the
+          five traits.
         </p>
         <div className="fivex-profile">
           {/* Two cards, same structure as the individual profile. V4's text
               treatment lives INSIDE this layout: a real serif signature
               name, comfortable body spacing. */}
+          {/* Both cards share one type system: kicker, serif title, lead —
+              same sizes, same gaps. */}
           <section className="fvc fvc--id">
             <p className="fvc-kicker">Team signature</p>
-            <div className="fvx-persona fvx-persona--lead">
-              <p className="fvx-persona-title fvx-persona-title--sig">
-                {getTeamSignature(allSubjects) ?? teamName}
-              </p>
-              <p className="fvx-persona-body">{summaryText(insight)}</p>
-            </div>
+            <h3 className="fvc-title">
+              {getTeamSignature(allSubjects) ?? teamName}
+            </h3>
+            <p className="fvc-lead">{summaryText(insight)}</p>
             <div className="fvx-fit">
               <p className="fvc-kicker fvc-kicker--tight">Archetype mix</p>
               <TeamShapeContributions
@@ -635,12 +695,9 @@ function OverviewView({
                 onSelectMember={onSelectMember}
               />
             </div>
-            <CardFoot
-              prompt="Walk me through my team's profile: what kind of team we are and our archetype mix."
-              onCoachPrompt={onCoachPrompt}
-            />
           </section>
           <section className="fvc fvc--lands">
+            <p className="fvc-kicker">Big Five breakdown</p>
             <h2 className="fvc-title">Where everyone lands</h2>
             <p className="fvc-lead">{traitsLead}</p>
             <TraitRows
@@ -662,8 +719,9 @@ function OverviewView({
         <p className="fvx-chapnum">02</p>
         <h2 className="fvc-title">Strengths &amp; growth areas</h2>
         <p className="fvc-lead">
-          Drawn from the trait mix above: what this team is naturally set up
-          to do well, and where the same tendencies can work against you.
+          What this mix makes the team naturally good at, and where the same
+          habits can work against you. Each side comes with questions worth
+          talking through together.
         </p>
         <div className="fivex-two">
           <ListCard
@@ -696,10 +754,10 @@ function OverviewView({
         <p className="fvx-chapnum">03</p>
         <h2 className="fvc-title">How you like to work</h2>
         <p className="fvc-lead">
-          Ten everyday preferences across five areas: how people here would
-          rather plan, decide, and share work. These are not personality;
-          once they are said out loud, they are easy to renegotiate. Pick a
-          topic to see where everyone stands.
+          How this team actually prefers to work: pace, structure,
+          collaboration, communication, and approach. Pick a topic to see
+          where everyone stands &mdash; and where the room splits, agree on a
+          default.
         </p>
         <section className="fvc">
           {/* The section coach foot lives inside the stage: it only shows
@@ -842,12 +900,20 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
 
   const strengthItems = model.strengths.slice(0, 2);
   const growthItems = model.watchOuts.slice(0, 2);
+  // Strengths get moves too, not just the growth side: one brief line per
+  // strength plus a closer. Kept short so no bullet wraps.
+  const useBullets = [
+    ...strengthItems.map((item) => item.use).filter(Boolean),
+    isOwn
+      ? 'Volunteer for one of these this week.'
+      : `Route this kind of work ${name}\u2019s way.`,
+  ];
   // Growth bullets: the concrete try-lines that ship with each watch-out,
   // closed with a pick-one prompt.
   const tryBullets = [
     ...growthItems.map((item) => item.tipLine).filter(Boolean),
     isOwn
-      ? 'Pick one and try it this week; small beats perfect.'
+      ? 'Pick one to try this week.'
       : `Pick one to raise in ${name}\u2019s next 1:1.`,
   ].slice(0, 3);
 
@@ -973,15 +1039,16 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
           {isOwn ? 'Your strengths & growth areas' : `${name}'s strengths & growth areas`}
         </h2>
         <p className="fvc-lead">
-          Both sides come from {isOwn ? 'your' : `${name}\u2019s`} two
-          strongest trait scores. Every strength has a flip side: the growth
-          areas show where the same trait can overshoot.
+          What {isOwn ? 'you\u2019re' : `${name} is`} naturally set up to do
+          well, and where the same habits can overshoot. Both come from{' '}
+          {isOwn ? 'your' : 'their'} strongest traits.
         </p>
         <div className="fivex-two">
           <ListCard
             label="Strengths"
             tone="strength"
             items={strengthItems}
+            actions={{ label: 'Put them to work', bullets: useBullets }}
             coachPrompt={
               isOwn
                 ? 'Where should I lean on my strengths this week?'
@@ -1004,29 +1071,28 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
         </div>
       </section>
 
-      <section className="fvc">
+      {/* Same pattern as every other section: heading and lead outside,
+          the card holds only the visualization. */}
+      <section className="fvg">
         <h2 className="fvc-title">
           How {isOwn ? 'you like' : `${name} likes`} to work
         </h2>
         <p className="fvc-lead">
-          The same ten questions, with {isOwn ? 'you' : name} highlighted
-          against the rest of the team. Where {isOwn ? 'you sit' : `${name} sits`}{' '}
-          apart from most of the room, that preference is worth saying out
-          loud.
+          How {isOwn ? 'you prefer' : `${name} prefers`} to get work done,
+          highlighted against the rest of the team. Where{' '}
+          {isOwn ? 'you sit' : `${name} sits`} apart from the room, saying it
+          out loud turns friction into an easy agreement.
         </p>
-        <WorkingStylesStage
-          subjects={allSubjects}
-          focusIds={[person.id]}
-          focusIsViewer={isOwn}
-        />
-        <CardFoot
-          prompt={
-            isOwn
-              ? 'Where does my working style differ most from my team, and how do I make that difference work?'
-              : `Where does ${name}'s working style differ most from the team, and how should we adjust?`
-          }
-          onCoachPrompt={onCoachPrompt}
-        />
+        <section className="fvc">
+          {/* The coach link lives inside the stage panel, under the
+              insight, as "Dive deeper" — same as the team view. */}
+          <WorkingStylesStage
+            subjects={allSubjects}
+            focusIds={[person.id]}
+            focusIsViewer={isOwn}
+            onCoachPrompt={onCoachPrompt}
+          />
+        </section>
       </section>
     </div>
   );
@@ -1087,9 +1153,10 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
         ) : null}
       </section>
 
-      <section className="fvc">
+      <section className="fvg">
         <h2 className="fvc-title">Where you match, and where you don&rsquo;t</h2>
         <p className="fvc-lead">{bigFiveLead}</p>
+        <section className="fvc">
         {/* Same component grammar as the individual profile rows: poles,
             capped line, faces: the gap detail lives in a hover tip on the
             middle of the connection, not in a numbers column. */}
@@ -1156,6 +1223,7 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
           prompt={`Walk me through where ${firstName(a)} and ${firstName(b)} differ most on the Big Five and what to do with it.`}
           onCoachPrompt={onCoachPrompt}
         />
+        </section>
       </section>
 
       {/* Same section as the individual profile: same title, same labels. */}
@@ -1184,18 +1252,19 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
         </div>
       </section>
 
-      <section className="fvc">
+      <section className="fvg">
         <h2 className="fvc-title">Working styles, side by side</h2>
         <p className="fvc-lead">
-          Where {firstName(a)} and {firstName(b)} each land on the same ten
-          questions. Where they land apart, an explicit agreement saves
-          friction later.
+          How {firstName(a)} and {firstName(b)} each prefer to get work done.
+          Where they differ, a quick agreement now saves friction later.
         </p>
-        <WorkingStylesStage subjects={pair} focusIds={[a.id, b.id]} />
-        <CardFoot
-          prompt={`Draft a working agreement for ${firstName(a)} and ${firstName(b)} based on their working-style splits.`}
-          onCoachPrompt={onCoachPrompt}
-        />
+        <section className="fvc">
+          <WorkingStylesStage
+            subjects={pair}
+            focusIds={[a.id, b.id]}
+            onCoachPrompt={onCoachPrompt}
+          />
+        </section>
       </section>
     </div>
   );
@@ -1267,10 +1336,8 @@ function ComparePicker({ scope, subjects, allSubjects, onSelectPair, onCoachProm
               />
             ))}
           </div>
-          <CardFoot
-            prompt="Which pairings on my team should be more deliberate about how they work together, and why?"
-            onCoachPrompt={onCoachPrompt}
-          />
+          {/* No coach link here: the picker is navigation, not a section.
+              Coach entry points live on the duo read itself. */}
         </div>
       </section>
     </div>
