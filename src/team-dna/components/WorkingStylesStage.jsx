@@ -557,15 +557,15 @@ export function WorkingStylesStage({
               ))}
             </div>
           ) : null}
-          {/* Demo affordance: the note floats above the card's corner, and
-              the arrow dives over the edge onto the Map option. */}
+          {/* Demo affordance: the note sits OUTSIDE the card, right of its
+              edge; the arrow runs from the text down-left onto the pill. */}
           {showViews && view === 'stage' ? (
             <div className="wstage-maphint" aria-hidden="true">
-              <span className="wstage-maphint-label">Alternate view</span>
               <svg className="wstage-maphint-arrow" viewBox="0 0 34 40">
-                <path d="M4 4 C 16 8, 27 20, 30 34" />
-                <path d="M23 29 L 30 35 L 33 25" />
+                <path d="M30 4 C 18 8, 7 20, 4 34" />
+                <path d="M11 29 L 4 35 L 1 25" />
               </svg>
+              <span className="wstage-maphint-label">Alternate view</span>
             </div>
           ) : null}
         </div>

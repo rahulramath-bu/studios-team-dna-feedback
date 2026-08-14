@@ -11251,22 +11251,19 @@ strong.fvx-role--secondary {
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
-/* Demo annotation: label floats above the card's top-right corner, the
-   arrow dives over the edge down onto the MAP pill. */
+/* Demo annotation: label OUTSIDE the card, in the right gutter; the arrow
+   runs from the text down-left onto the MAP pill. */
 .wstage-maphint {
   position: absolute;
-  bottom: calc(100% + 24px);
-  right: 0;
+  top: -16px;
+  left: calc(100% + 34px);
   z-index: 3;
-  display: flex;
-  align-items: flex-start;
-  gap: 4px;
   color: #ce0058;
   pointer-events: none;
 }
 
 .wstage-maphint-label {
-  margin-top: 0;
+  display: block;
   font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
   font-size: 15px;
   line-height: 1.2;
@@ -11275,9 +11272,11 @@ strong.fvx-role--secondary {
 }
 
 .wstage-maphint-arrow {
+  position: absolute;
+  top: -4px;
+  left: -50px;
   width: 30px;
   height: 38px;
-  margin-bottom: -26px;
 }
 
 .wstage-maphint-arrow path {
