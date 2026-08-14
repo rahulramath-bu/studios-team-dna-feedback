@@ -301,6 +301,15 @@ function WorkingMap({ subjects }) {
             </li>
           ))}
         </ul>
+        {notes.some((note) => note.ids) ? (
+          <p className="wsmap-hover-hint" aria-hidden="true">
+            <svg viewBox="0 0 34 24" className="wsmap-hover-hint-arrow">
+              <path d="M30 20 C 20 19, 9 13, 5 4" />
+              <path d="M4 11 L 5 4 L 12 6" />
+            </svg>
+            Hover an insight to see that group on the map
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -336,9 +345,6 @@ export function WorkingStylesStage({
   const active = ALL_ITEMS.find((item) => item.key === activeKey) ?? ALL_ITEMS[0];
   // Team scope offers three densities: the stage, plus two compact reads.
   const [view, setView] = useState('stage');
-  // Demo affordance: an annotation points at the Map toggle until it has
-  // been visited once.
-  const [mapHintSeen, setMapHintSeen] = useState(false);
   const showViews = subjects.length > 3 && focusIds.length === 0;
   const compactView = showViews && view !== 'stage' ? view : null;
 
@@ -467,8 +473,10 @@ export function WorkingStylesStage({
     });
     // Position for the first question without animation.
     positionMembers(svg, subjects, active, geometry, focusIds, false);
+    // compactView matters: leaving the map remounts an EMPTY svg, so the
+    // room must be redrawn (entering the map is a harmless early return).
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [subjects, geometry, focusKey]);
+  }, [subjects, geometry, focusKey, compactView]);
 
   // Re-sort the room whenever the question changes.
   useEffect(() => {
@@ -546,22 +554,21 @@ export function WorkingStylesStage({
                   aria-selected={view === id}
                   className="wstage-view"
                   data-active={view === id || undefined}
-                  onClick={() => {
-                    setView(id);
-                    if (id === 'map') setMapHintSeen(true);
-                  }}
+                  onClick={() => setView(id)}
                 >
                   {label}
                 </button>
               ))}
             </div>
           ) : null}
-          {showViews && view === 'stage' && !mapHintSeen ? (
+          {/* Demo affordance: whenever the stage is showing, a note above
+              the toggle points down at the Map option. */}
+          {showViews && view === 'stage' ? (
             <div className="wstage-maphint" aria-hidden="true">
               <span className="wstage-maphint-label">Alternate view</span>
               <svg className="wstage-maphint-arrow" viewBox="0 0 44 34">
-                <path d="M4 30 C 17 29, 32 22, 38 8" />
-                <path d="M31 12 L 38 7 L 40 16" />
+                <path d="M4 4 C 17 5, 32 12, 38 26" />
+                <path d="M31 22 L 38 27 L 40 18" />
               </svg>
             </div>
           ) : null}

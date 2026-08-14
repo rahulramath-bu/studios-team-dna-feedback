@@ -11251,21 +11251,21 @@ strong.fvx-role--secondary {
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
-/* One-time demo annotation pointing at the MAP toggle. */
+/* Demo annotation above the chart toggle, pointing down at MAP. */
 .wstage-maphint {
   position: absolute;
-  top: calc(100% + 4px);
-  right: 2px;
+  bottom: calc(100% + 2px);
+  right: 0;
   z-index: 3;
   display: flex;
   align-items: flex-start;
-  gap: 6px;
+  gap: 5px;
   color: #ce0058;
   pointer-events: none;
 }
 
 .wstage-maphint-label {
-  margin-top: 12px;
+  margin-top: 0;
   font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
   font-size: 15px;
   line-height: 1.2;
@@ -11471,6 +11471,33 @@ strong.fvx-role--secondary {
   gap: 10px;
   justify-items: start;
   max-width: 400px;
+}
+
+.wsmap-hover-hint {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 14px 0 0;
+  color: #ce0058;
+  font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
+  font-size: 14.5px;
+  line-height: 1.25;
+  transform: rotate(-1deg);
+}
+
+.wsmap-hover-hint-arrow {
+  flex: none;
+  width: 30px;
+  height: 22px;
+  margin-top: 2px;
+}
+
+.wsmap-hover-hint-arrow path {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 
 .wsmap-pairs {
