@@ -19,7 +19,10 @@ import {
   getPairMeaning,
   POLE_MEANING,
 } from '../data/conceptReadModel.js';
-import { buildTeamShapeContributions } from '../data/teamDnaTeamShape.js';
+import {
+  buildTeamShapeContributions,
+  getTeamSignature,
+} from '../data/teamDnaTeamShape.js';
 import { WorkingStylesStage } from './WorkingStylesStage.jsx';
 import { getStrengthForSubjects } from '../data/teamDnaStrengths.js';
 import { getWatchOutForSubjects } from '../data/teamDnaWatchOuts.js';
@@ -574,7 +577,6 @@ function OverviewView({
   const strips = getTraitStrips(allSubjects);
   const chem = getChemistryModel(allSubjects);
   const contributions = buildTeamShapeContributions(allSubjects);
-  const [showGaps, setShowGaps] = useState(false);
 
   // One section, all five traits, tightest first. Each row carries ONE
   // distribution-shaped read (clustered / two camps / full range / lean).
@@ -616,32 +618,24 @@ function OverviewView({
         </p>
         <div className="fivex-profile">
           <section className="fvc fvc--id">
-            <p className="fvc-kicker">Team profile</p>
-            <div className="fvx-persona">
-              <p className="fvx-persona-title">{teamName ?? 'This team'}</p>
+            <p className="fvc-kicker">Team signature</p>
+            {/* The signature is a generated name from the team's strongest
+                lean, like the persona title on an individual profile. */}
+            <div className="fvx-persona fvx-persona--lead">
+              <p className="fvx-persona-title">
+                {getTeamSignature(allSubjects) ?? teamName}
+              </p>
               <p className="fvx-persona-body">{summaryText(insight)}</p>
             </div>
             <div className="fvx-fit">
               <p className="fvc-kicker fvc-kicker--tight">Archetype mix</p>
               <TeamShapeContributions
                 contributions={contributions}
-                gaps={showGaps ? chem.open : []}
                 onSelectMember={onSelectMember}
               />
-              {chem.open.length > 0 ? (
-                <button
-                  type="button"
-                  className="fvh-gaps-toggle"
-                  onClick={() => setShowGaps((value) => !value)}
-                >
-                  {showGaps
-                    ? 'Hide archetypes nobody covers'
-                    : `Show ${chem.open.length} archetypes nobody covers`}
-                </button>
-              ) : null}
             </div>
             <CardFoot
-              prompt="Walk me through my team's profile: what kind of team we are, our archetype mix, and what nobody covers."
+              prompt="Walk me through my team's profile: what kind of team we are and our archetype mix."
               onCoachPrompt={onCoachPrompt}
             />
           </section>
