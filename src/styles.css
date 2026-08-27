@@ -8760,9 +8760,19 @@ button.team-management-row {
   --composition-shift: 0px;
 
   grid-template-columns: minmax(0, 1fr);
+  /* Pin the bar to its natural height and give all leftover viewport
+     height to the content pane. Otherwise min-height: 100vh stretches the
+     bar's grid rows on short pages, so the rail and tabs sat lower on the
+     picker than on the pair page. */
+  grid-template-rows: auto auto minmax(0, 1fr);
+  align-content: start;
   column-gap: 0;
   width: min(calc(100% - 96px), 1120px);
   transform: none;
+}
+
+.team-dna-experience[data-lens-page] > .lensx-bar-row {
+  align-content: start;
 }
 
 .team-dna-experience[data-lens-page] .team-dna-people-pane {
