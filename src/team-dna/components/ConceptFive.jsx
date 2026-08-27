@@ -930,12 +930,16 @@ function OverviewView({
           talking through together.
         </p>
         <div className="fivex-two">
+          {/* Statement headings that say what to DO with the bullets: the
+              team talks strengths through and turns growth areas into
+              agreements. Question-form headings over question bullets read
+              as unanswered questions (Aug 25 read-out). */}
           <ListCard
             label="Team strengths"
             tone="strength"
             items={chem.strengths}
             actions={{
-              label: 'How will you use these strengths?',
+              label: 'To talk through as a team',
               bullets: strengthQuestions,
             }}
             coachPrompt="How do we put my team's strengths to work on our current projects?"
@@ -946,7 +950,7 @@ function OverviewView({
             tone="growth"
             items={chem.watchOuts}
             actions={{
-              label: 'How will you tackle these growth areas?',
+              label: 'To agree on as a team',
               bullets: growthQuestions,
             }}
             coachPrompt="Help me run a team conversation about our growth areas, starting from these discussion questions."
@@ -1310,12 +1314,17 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
   const lowPerson = widest.aScore >= widest.bScore ? b : a;
   const bigFiveLead = `Closest on ${closest.trait.label.toLowerCase()}; furthest on ${widest.trait.label.toLowerCase()}, where ${firstName(highPerson)} ${POLE_MEANING[widest.trait.key].high} and ${firstName(lowPerson)} ${POLE_MEANING[widest.trait.key].low}.`;
 
-  // For the pair, the growth questions double as 1:1 conversation starters.
-  const pairQuestions = watchOuts
-    .map((item) => GROWTH_QUESTIONS[itemKey(item)])
-    .filter(Boolean)
-    .slice(0, 3);
-  // Strengths carry moves too, mirroring the individual card.
+  // A pair's action layer is the working agreement: the watch-out tips are
+  // already imperative moves, so they become the "agree on this" bullets.
+  const pairAgreements = [
+    ...watchOuts
+      .map((item) =>
+        item.tip ? item.tip.charAt(0).toUpperCase() + item.tip.slice(1) : null
+      )
+      .filter(Boolean),
+    'Pick one and make it your working agreement.',
+  ].slice(0, 3);
+  // Strengths carry joint moves, mirroring the individual card.
   const pairUseBullets = [
     ...strengths.map((item) => item.use).filter(Boolean),
     'Pick one to lean on together this week.',
@@ -1447,7 +1456,7 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
             label="Strengths"
             tone="strength"
             items={strengths}
-            actions={{ label: 'Put them to work', bullets: pairUseBullets }}
+            actions={{ label: 'Lean on this together', bullets: pairUseBullets }}
             coachPrompt={`Where should ${firstName(a)} and ${firstName(b)} lean on what they share?`}
             onCoachPrompt={onCoachPrompt}
           />
@@ -1455,7 +1464,7 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
             label="Growth areas"
             tone="growth"
             items={watchOuts}
-            actions={{ label: 'Discussion questions', bullets: pairQuestions }}
+            actions={{ label: 'Agree on this up front', bullets: pairAgreements }}
             coachPrompt={`Help ${firstName(a)} and ${firstName(b)} talk through their friction points in their next 1:1.`}
             onCoachPrompt={onCoachPrompt}
           />
