@@ -82,70 +82,85 @@ const PAIR = {
     complement: {
       title: 'Invention balanced by grounding.',
       body: '{high} pushes for new directions while {low} keeps things grounded in what works, so the pair can explore widely without drifting from what will actually ship.',
+      use: 'Take bets that need vision plus a reality check.',
     },
     high: {
       title: 'Two strong idea engines.',
       body: '{a} and {b} both gravitate toward new directions, so this pair generates options fast and rarely settles for the obvious answer.',
+      use: 'Open up the option space early, together.',
     },
     low: {
       title: 'Both grounded in what works.',
       body: '{a} and {b} both keep ideas realistic, so plans stay buildable and the pair wastes little energy on options that cannot ship.',
+      use: 'Own scoping when plans must survive contact.',
     },
   },
   conscientiousness: {
     complement: {
       title: 'Structure meets adaptability.',
       body: '{high} brings structure and follow-through while {low} stays flexible when plans shift, so the work stays organized without going rigid.',
+      use: 'Split it: one holds the plan, one absorbs change.',
     },
     high: {
       title: 'Both finish what they start.',
       body: '{a} and {b} both bring structure and follow-through, so commitments between them reliably turn into done work.',
+      use: 'Take the projects where follow-through is the risk.',
     },
     low: {
       title: 'Both move fast and flex.',
       body: '{a} and {b} both improvise easily, so the pair adapts quickly when the plan changes.',
+      use: 'Take the fires and the fast-changing work.',
     },
   },
   extraversion: {
     complement: {
       title: 'Spark paired with depth.',
       body: '{high} brings energy and momentum while {low} brings a slower, considered read, so the pair gets both the push and the pause it needs.',
+      use: 'Run sessions together: one opens, one distills.',
     },
     high: {
       title: 'Shared momentum.',
       body: '{a} and {b} both bring energy, so this pair gets things moving and keeps the conversation active.',
+      use: 'Kick off stalled work; you two create motion.',
     },
     low: {
       title: 'Shared depth.',
       body: '{a} and {b} both think before reacting, so the pair goes deep instead of chasing the fastest take.',
+      use: 'Take decisions that need quiet, careful thought.',
     },
   },
   agreeableness: {
     complement: {
       title: 'Candor balanced by warmth.',
       body: '{high} protects trust and keeps people engaged while {low} is willing to challenge weak logic, so hard things get said without costing the relationship.',
+      use: 'Deliver the hard feedback as a pair.',
     },
     high: {
       title: 'Strong mutual trust.',
       body: '{a} and {b} both lead with cooperation, so this pair builds trust quickly and keeps things collaborative.',
+      use: 'Model repair after tense team moments.',
     },
     low: {
       title: 'Both willing to be direct.',
       body: '{a} and {b} are both comfortable challenging weak logic, so this pair catches problems early instead of over-agreeing.',
+      use: 'Pressure-test plans before they ship.',
     },
   },
   neuroticism: {
     complement: {
       title: 'Vigilance meets steadiness.',
       body: '{high} catches risk early while {low} keeps perspective under pressure, so the pair neither dismisses real signals nor gets swept up in them.',
+      use: 'Own risk calls: one spots, one steadies.',
     },
     high: {
       title: 'Both quick to spot risk.',
       body: '{a} and {b} both read weak signals early, so little gets past this pair before it grows.',
+      use: 'Run the pre-mortems for big launches.',
     },
     low: {
       title: 'Both steady under pressure.',
       body: '{a} and {b} both keep composure when things get tense, so the pair stays clear-headed when the stakes rise.',
+      use: 'Anchor the room when stakes spike.',
     },
   },
 };
@@ -234,6 +249,7 @@ function getDuoStrengths(subjects) {
       return {
         title: copy.title,
         body: copy.body.replace('{high}', highName).replace('{low}', lowName),
+        use: copy.use,
         traitKey: stats.trait.key,
         type: 'complement',
       };
@@ -250,6 +266,7 @@ function getDuoStrengths(subjects) {
       return {
         title: copy.title,
         body: copy.body.replace('{a}', nameA).replace('{b}', nameB),
+        use: copy.use,
         traitKey: stats.trait.key,
         type: stats.side,
       };

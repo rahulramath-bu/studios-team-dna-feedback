@@ -357,6 +357,14 @@ html {
   font-size: 8px;
 }
 
+.demo-new-pill--p1 {
+  margin-left: 6px;
+  padding: 1px 5px;
+  background: rgba(30, 26, 38, 0.08);
+  color: #717070;
+  font-size: 8px;
+}
+
 .monolith-persona-menu-sep {
   height: 1px;
   margin: 5px 6px;
@@ -10247,15 +10255,53 @@ button.team-management-row {
 }
 
 /* The line under the rail: education on Individual, flow feedback on
-   Compare ("pick one more"). */
+   Compare. The slot is always there so state changes never reflow the bar. */
 .fivex-rail-hint {
   align-self: center;
+  min-height: 16px;
   margin: 10px 0 0;
   color: #717070;
   font-size: 12.5px;
   letter-spacing: 0.1px;
   line-height: 16px;
   text-align: center;
+}
+
+/* Pair complete: the two sit together on a dotted tie; the room recedes. */
+.fivex-rail-tie {
+  align-self: center;
+  width: 22px;
+  height: 0;
+  margin: 0 2px;
+  border-top: 2px dotted rgba(206, 0, 88, 0.75);
+}
+
+.fivex-rail .onex-rail-face[data-dim] {
+  opacity: 0.32;
+  filter: saturate(0.25);
+}
+
+/* One picked: the candidates keep a gentle "tap me" bounce, borrowed from
+   the original face field. */
+.fivex-rail[data-pick-more] .onex-rail-face:not([data-active]) {
+  animation: fivex-pick-more 1.5s ease-in-out infinite;
+  animation-delay: var(--bounce-delay, 0ms);
+}
+
+@keyframes fivex-pick-more {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fivex-rail[data-pick-more] .onex-rail-face:not([data-active]) {
+    animation: none;
+  }
 }
 
 
@@ -11056,11 +11102,11 @@ button.team-management-row {
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
-.fvx-cmpintro {
-  padding: 10px 6px 0;
+.fvx-pick--page {
+  padding-top: 10px;
 }
 
-.fvx-cmpintro .fvc-lead {
+.fvx-pick--page .fvc-lead {
   max-width: 560px;
 }
 
@@ -11241,6 +11287,14 @@ button.team-management-row {
   display: none;
 }
 
+.fvx-idfaces {
+  display: inline-flex;
+}
+
+.fvx-idfaces > * + * {
+  margin-left: -10px;
+}
+
 .fvx-idcopy strong {
   color: #1e1a26;
   font-size: 16px;
@@ -11359,42 +11413,6 @@ strong.fvx-role--secondary {
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
 }
 
-
-/* Demo annotation: label OUTSIDE the card, in the right gutter; the arrow
-   runs from the text down-left onto the MAP pill. */
-.wstage-maphint {
-  position: absolute;
-  top: -16px;
-  left: calc(100% + 34px);
-  z-index: 3;
-  color: #ce0058;
-  pointer-events: none;
-}
-
-.wstage-maphint-label {
-  display: block;
-  font-family: 'Bradley Hand', 'Segoe Print', 'Comic Sans MS', cursive;
-  font-size: 15px;
-  line-height: 1.2;
-  transform: rotate(-2deg);
-  white-space: nowrap;
-}
-
-.wstage-maphint-arrow {
-  position: absolute;
-  top: -4px;
-  left: -50px;
-  width: 30px;
-  height: 38px;
-}
-
-.wstage-maphint-arrow path {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 1.6;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
 
 .wstage-tabs {
   display: flex;
