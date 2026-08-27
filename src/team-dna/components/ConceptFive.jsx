@@ -1381,8 +1381,9 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
 }
 
 /* ONE picker, whether zero or one face is chosen: instruction up top
-   (selection lives in the avatar rail), suggested pairs below. A chosen
-   person seeds the suggestions, so nothing jumps when you tap a face. */
+   (selection lives in the avatar rail), suggested pairs as compact cards
+   below. A chosen person seeds the suggestions, so nothing jumps when you
+   tap a face. */
 function ComparePicker({ scope, subjects, allSubjects, viewerId, onSelectPair }) {
   const anchor = scope === 'person' ? subjects[0] : null;
   let pairs = [];
@@ -1414,7 +1415,7 @@ function ComparePicker({ scope, subjects, allSubjects, viewerId, onSelectPair })
       });
     }
   } else {
-    pairs = getComparePairSuggestions(allSubjects, 3);
+    pairs = getComparePairSuggestions(allSubjects, 3, viewerId);
   }
   const anchorName = anchor
     ? anchor.id === viewerId
@@ -1424,165 +1425,57 @@ function ComparePicker({ scope, subjects, allSubjects, viewerId, onSelectPair })
 
   return (
     <div className="fivex-stack" aria-label="Compare profiles">
-      <section className="fvx-pick fvx-pick--page">
-        <div className="fvx-pick-head">
-          <div>
-            <h2 className="fvc-title">Pick any two people.</h2>
-            <p className="fvc-lead">
-              {anchor ? (
-                <>
-                  {anchorName} in &mdash; tap one more face above, or jump
-                  into a suggested pair.
-                </>
-              ) : (
-                <>
-                  Tap two faces in the bar above. You&rsquo;ll get one read
-                  on the pair: what they cover together, where it rubs, and
-                  the agreement worth making.
-                </>
-              )}
-            </p>
-          </div>
-          <PairHintVisual members={pickHintMembers(allSubjects)} />
-        </div>
-        <div className="fvx-pick-list">
-          <p className="fvc-kicker">Pairs worth a look</p>
-          <div className="mapx-pairings onex-pairings">
-            {pairs.map((pair) => (
-              <PairRow
-                key={`${pair.a.id}-${pair.b.id}`}
-                a={pair.a}
-                b={pair.b}
-                tag={pair.tag}
-                line={pair.line}
-                onSelectPair={onSelectPair}
-              />
-            ))}
-          </div>
+      <section className="fvg fvx-pick--page">
+        <h2 className="fvc-title">Pick any two people.</h2>
+        <p className="fvc-lead">
+          {anchor ? (
+            <>
+              {anchorName} in &mdash; tap one more face above, or jump into
+              a pair below.
+            </>
+          ) : (
+            <>
+              Tap two faces in the bar above, or start from a pair worth a
+              look. You&rsquo;ll get one read on the pair: what they cover
+              together, where it rubs, and the agreement worth making.
+            </>
+          )}
+        </p>
+        <div className="fvx-pick-grid">
+          {pairs.map((pair) => (
+            <button
+              key={`${pair.a.id}-${pair.b.id}`}
+              type="button"
+              className="fvc fvx-paircard"
+              onClick={() => onSelectPair?.(pair.a.id, pair.b.id)}
+            >
+              <span className="tabx-pair-faces">
+                <Face member={pair.a} size={40} />
+                <Face member={pair.b} size={40} />
+              </span>
+              <span className="fvc-kicker fvx-paircard-tag">{pair.tag}</span>
+              <span className="fvx-paircard-names">
+                {pair.a.id === viewerId ? 'You' : firstName(pair.a)} &amp;{' '}
+                {pair.b.id === viewerId ? 'you' : firstName(pair.b)}
+              </span>
+              <span className="fvx-paircard-line">{pair.line}</span>
+              <span className="fvx-paircard-go" aria-hidden="true">
+                Compare
+                <svg viewBox="0 0 16 16">
+                  <path
+                    d="M6 4l4 4-4 4"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                </svg>
+              </span>
+            </button>
+          ))}
         </div>
       </section>
     </div>
-  );
-}
-
-/* Miniature of the home-page pair animation: three faces, a cursor that
-   walks between them, the dashed thread, and an abstract insight card. The
-   third face dims while a pair is "selected", exactly like home. */
-const HINT_NAMES = ['Darshan', 'Sam', 'Jordan'];
-const HINT_PAIRS = [
-  [0, 1],
-  [1, 2],
-  [2, 0],
-];
-const HINT_FACE = 34;
-const HINT_POS = [
-  { x: 14, y: 8 },
-  { x: 118, y: 42 },
-  { x: 44, y: 70 },
-];
-const HINT_STEP_MS = 3600;
-
-function pickHintMembers(allSubjects) {
-  const picked = HINT_NAMES.map((name) =>
-    allSubjects.find((member) => firstName(member) === name)
-  ).filter(Boolean);
-  const rest = allSubjects.filter(
-    (member) => !picked.includes(member) && firstName(member) !== 'Justin'
-  );
-  while (picked.length < 3 && rest.length) picked.push(rest.shift());
-  return picked.slice(0, 3);
-}
-
-function PairHintVisual({ members }) {
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return undefined;
-    }
-    const interval = window.setInterval(
-      () => setStep((value) => value + 1),
-      HINT_STEP_MS
-    );
-    return () => window.clearInterval(interval);
-  }, []);
-
-  if (members.length < 3) return null;
-
-  const pair = HINT_PAIRS[step % HINT_PAIRS.length];
-  const center = (index) => ({
-    x: HINT_POS[index].x + HINT_FACE / 2,
-    y: HINT_POS[index].y + HINT_FACE / 2,
-  });
-  const from = center(pair[0]);
-  const to = center(pair[1]);
-  const mid = { x: (from.x + to.x) / 2 + 7, y: (from.y + to.y) / 2 + 7 };
-
-  return (
-    <div className="fvx-hint" aria-hidden="true">
-      <span className="fvx-hint-card" key={`card-${step}`}>
-        <span className="fvx-hint-metric">2{'\u00d7'} impact</span>
-        <i />
-        <i />
-      </span>
-      <svg className="fvx-hint-line" viewBox="0 0 170 110">
-        <path
-          key={`line-${step}`}
-          d={`M${from.x} ${from.y} Q ${mid.x} ${mid.y} ${to.x} ${to.y}`}
-        />
-      </svg>
-      {members.map((member, index) => (
-        <span
-          key={member.id}
-          className="fvx-hint-face"
-          data-dim={!pair.includes(index) || undefined}
-          style={{ top: `${HINT_POS[index].y}px`, left: `${HINT_POS[index].x}px` }}
-        >
-          <Face
-            member={member}
-            size={HINT_FACE}
-            ringed={pair.includes(index)}
-            titled={false}
-          />
-        </span>
-      ))}
-      <span
-        className="fvx-hint-cursor"
-        style={{ transform: `translate(${to.x + 3}px, ${to.y + 3}px)` }}
-      >
-        <i key={`click-${step}`} />
-      </span>
-    </div>
-  );
-}
-
-function PairRow({ a, b, tag, line, onSelectPair }) {
-  return (
-    <button
-      type="button"
-      className="mapx-pairing"
-      onClick={() => onSelectPair?.(a.id, b.id)}
-    >
-      <span className="tabx-pair-faces">
-        <Face member={a} size={30} />
-        <Face member={b} size={30} />
-      </span>
-      <span className="mapx-pairing-copy">
-        <strong>
-          {tag} {'\u00b7'} {firstName(a)} &amp; {firstName(b)}
-        </strong>
-        {line}
-      </span>
-      <svg className="mapx-pairing-arrow" viewBox="0 0 16 16" aria-hidden="true">
-        <path
-          d="M6 4l4 4-4 4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
   );
 }

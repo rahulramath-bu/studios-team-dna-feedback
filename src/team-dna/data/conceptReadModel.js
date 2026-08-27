@@ -861,7 +861,7 @@ export function getProfileModel(member, allSubjects) {
 }
 
 /** Compare tab (team scope): the pairs most worth opening. */
-export function getComparePairSuggestions(allSubjects, count = 3) {
+export function getComparePairSuggestions(allSubjects, count = 3, viewerId = null) {
   const pairs = [];
   for (let i = 0; i < allSubjects.length; i += 1) {
     for (let j = i + 1; j < allSubjects.length; j += 1) {
@@ -873,8 +873,44 @@ export function getComparePairSuggestions(allSubjects, count = 3) {
     }
   }
   const byDistance = [...pairs].sort((x, y) => y.distance - x.distance);
-  const widest = byDistance.slice(0, count - 1);
   const closest = byDistance[byDistance.length - 1];
+
+  // With a viewer: three distinct reads (widest, closest, and the viewer's
+  // own contrast) so no two suggestions carry the same tag.
+  if (viewerId) {
+    const suggestions = [];
+    if (byDistance[0]) {
+      suggestions.push({
+        ...byDistance[0],
+        tag: 'Most different',
+        line: getPairMeaning(byDistance[0].a, byDistance[0].b).short,
+      });
+    }
+    if (closest && closest !== byDistance[0]) {
+      suggestions.push({
+        ...closest,
+        tag: 'Most similar',
+        line: getPairMeaning(closest.a, closest.b).short,
+      });
+    }
+    const viewerContrast = byDistance.find(
+      (pair) =>
+        (pair.a.id === viewerId || pair.b.id === viewerId) &&
+        !suggestions.some(
+          (taken) => taken.a.id === pair.a.id && taken.b.id === pair.b.id
+        )
+    );
+    if (viewerContrast) {
+      suggestions.push({
+        ...viewerContrast,
+        tag: 'Your sharpest contrast',
+        line: 'Covers what you don\u2019t \u2014 the pairing that stretches you most.',
+      });
+    }
+    return suggestions.slice(0, count);
+  }
+
+  const widest = byDistance.slice(0, count - 1);
   return [
     ...widest.map((pair) => ({
       ...pair,

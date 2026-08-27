@@ -42,10 +42,10 @@ console.log('launched');
 await page.evaluateOnNewDocument(() => {
   sessionStorage.setItem('teamDnaPageVariation', 'five');
 });
-await page.goto('http://127.0.0.1:5177/team-dna', {
-  waitUntil: 'domcontentloaded',
-  timeout: 30000,
-});
+await page.goto(
+  process.env.RAIL_URL ?? 'http://127.0.0.1:5177/team-dna',
+  { waitUntil: 'domcontentloaded', timeout: 30000 }
+);
 console.log('loaded');
 await sleep(1500);
 
