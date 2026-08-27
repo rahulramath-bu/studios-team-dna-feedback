@@ -1526,7 +1526,9 @@ function PairHintVisual({ members }) {
 
   return (
     <div className="fvx-hint" aria-hidden="true">
-      <span className="fvx-hint-card" key={`card-${step}`}>
+      {/* The card pops once and stays; re-keying it made the vignette read
+          as broken for the second it was gone. */}
+      <span className="fvx-hint-card">
         <span className="fvx-hint-metric">2{'\u00d7'} impact</span>
         <i />
         <i />

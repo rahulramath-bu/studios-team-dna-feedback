@@ -11119,18 +11119,32 @@ button.team-management-row {
 }
 
 /* Two columns on the profile grid's rhythm: invitation + vignette left,
-   suggested pairs right. */
+   suggested pairs right. Columns stretch so the vignette can center in
+   the space the rows define. */
 .fvx-pick-cols {
   display: grid;
   grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
   gap: 72px;
-  align-items: start;
   max-width: 1080px;
 }
 
-/* The vignette sits under the copy as its illustration. */
+.fvx-pick-intro {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Guaranteed air between the copy and the centered vignette, even when
+   only two suggestion rows define the column height. */
+.fvx-pick-intro .fvc-lead {
+  margin-bottom: 30px;
+}
+
+/* The vignette centers in the leftover space beside the rows, so the two
+   columns read as one composed block instead of a short one and a tall
+   one. Scaled a touch for presence; the box keeps its layout size. */
 .fvx-pick-intro .fvx-hint {
-  margin: 40px 0 0 10px;
+  margin: auto;
+  transform: scale(1.18);
 }
 
 /* Optical top alignment: the mono kicker hangs on the serif title's
@@ -11187,7 +11201,9 @@ button.team-management-row {
   background: #ffffff;
   box-shadow: 0 6px 18px rgba(29, 25, 37, 0.1);
   transform: rotate(3deg);
-  animation: fvx-hint-pop 620ms cubic-bezier(0.22, 1, 0.36, 1) 1150ms both;
+  /* Short delay: the page remounts this vignette on every selection
+     change, so a long entrance reads as the card being missing. */
+  animation: fvx-hint-pop 620ms cubic-bezier(0.22, 1, 0.36, 1) 300ms both;
 }
 
 .fvx-hint-metric {
@@ -11228,8 +11244,8 @@ button.team-management-row {
   stroke-linecap: round;
   stroke-dasharray: 1 9;
   animation:
-    fvx-hint-line-in 420ms ease 900ms both,
-    fvx-hint-dash 1400ms linear 900ms infinite;
+    fvx-hint-line-in 380ms ease 150ms both,
+    fvx-hint-dash 1400ms linear 150ms infinite;
 }
 
 .fvx-hint-face {
