@@ -173,7 +173,12 @@ export function ConceptFiveBar({
   const [hoverTip, setHoverTip] = useState(null);
   const [hoverLine, setHoverLine] = useState(null);
   const onFaceEnter = (member) => (event) => {
-    setHoverTip({ name: member.name, x: event.clientX, y: event.clientY });
+    setHoverTip({
+      id: member.id,
+      name: member.name,
+      x: event.clientX,
+      y: event.clientY,
+    });
     if (
       pickingSecond &&
       member.id !== selectedIds[0] &&
@@ -188,9 +193,19 @@ export function ConceptFiveBar({
       const y1 = from.y + from.height / 2 - railBox.y;
       const x2 = to.x + to.width / 2 - railBox.x;
       const y2 = to.y + to.height / 2 - railBox.y;
-      setHoverLine({
-        d: `M${x1} ${y1} Q ${(x1 + x2) / 2} ${Math.max(y1, y2) + 30} ${x2} ${y2}`,
-      });
+      // Straight shot from the picked face to the candidate, like the
+      // original field - trimmed so the dots start and stop at the rims
+      // instead of covering the faces.
+      const length = Math.hypot(x2 - x1, y2 - y1) || 1;
+      const ux = (x2 - x1) / length;
+      const uy = (y2 - y1) / length;
+      const fromTrim = 25;
+      const toTrim = 23;
+      if (length > fromTrim + toTrim + 6) {
+        setHoverLine({
+          d: `M${x1 + ux * fromTrim} ${y1 + uy * fromTrim} L${x2 - ux * toTrim} ${y2 - uy * toTrim}`,
+        });
+      }
     }
   };
   const onFaceMove = (event) => {
@@ -392,7 +407,7 @@ export function ConceptFiveBar({
                 onMouseMove={onFaceMove}
                 onMouseLeave={onFaceLeave}
               >
-                <Face member={member} size={36} ringed={false} />
+                <Face member={member} size={36} ringed={false} titled={false} />
                 {member.id === viewerId ? (
                   <span className="onex-rail-you">you</span>
                 ) : null}
@@ -414,7 +429,13 @@ export function ConceptFiveBar({
               type="button"
               className="onex-rail-face"
               data-active={active || undefined}
-              data-dim={(pairComplete && !active) || undefined}
+              data-dim={
+                ((pairComplete || pickingSecond) &&
+                  !active &&
+                  hoverTip?.id !== member.id &&
+                  !hinted) ||
+                undefined
+              }
               aria-pressed={active}
               onMouseEnter={onFaceEnter(member)}
               onMouseMove={onFaceMove}
@@ -430,7 +451,7 @@ export function ConceptFiveBar({
                 className="fivex-rail-inner"
                 data-taphint={hinted || undefined}
               >
-                <Face member={member} size={36} ringed={active} />
+                <Face member={member} size={36} ringed={active} titled={false} />
                 {member.id === viewerId && !hinted ? (
                   <span className="onex-rail-you">you</span>
                 ) : null}

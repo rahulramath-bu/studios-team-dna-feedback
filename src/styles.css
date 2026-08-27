@@ -10220,12 +10220,13 @@ button.team-management-row {
   padding-bottom: 4px;
 }
 
-/* One picked + hovering a candidate: a dotted thread arcs from the picked
-   face to the cursor's face, marching toward it. Faces paint on top. */
+/* One picked + hovering a candidate: a straight dotted thread from the
+   picked face to the cursor's face, marching toward it. Like the original
+   field, it passes over the dimmed faces in between. */
 .fivex-rail-hoverline {
   position: absolute;
   inset: 0;
-  z-index: 0;
+  z-index: 3;
   overflow: visible;
   width: 100%;
   height: 100%;
