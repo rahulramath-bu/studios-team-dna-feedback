@@ -10,12 +10,10 @@ import {
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { TeamShapeContributions } from './TeamShapeContributions.jsx';
 import { BIG_FIVE_TRAITS, getBigFiveScore } from '../data/bigFiveTraits.js';
-import { getPairDistance } from '../data/teamReadModel.js';
 import {
   getTraitStrips,
   getChemistryModel,
   getProfileModel,
-  getComparePairSuggestions,
   getPairMeaning,
   POLE_MEANING,
 } from '../data/conceptReadModel.js';
@@ -96,7 +94,6 @@ export function ConceptFiveBar({
   selectedTeamId,
   canManageTeam = false,
   onTeamChange,
-  onEditTeam,
   onAddTeam,
   onExitToTeamHome,
 }) {
@@ -104,9 +101,34 @@ export function ConceptFiveBar({
   const menuRef = useRef(null);
   const otherTeams = teamOptions.filter((team) => team.id !== selectedTeamId);
   const hasMenu = otherTeams.length > 0 || canManageTeam;
-  // Compare keeps the big face-field picker on the left, so repeating the
-  // roster up here would put the same faces on screen twice.
-  const showRail = lens !== 'compare';
+  // The rail is the one selector: display-only on the team tab, pick-one on
+  // Individual, pick-two on Compare.
+  const railInteractive = lens === 'profile' || lens === 'compare';
+  // Education: faces bounce once per tab visit; the Individual caption goes
+  // away after the first tap. Compare's caption is flow feedback and follows
+  // the selection count instead.
+  const [bouncing, setBouncing] = useState(false);
+  const [touchedLenses, setTouchedLenses] = useState({});
+  useEffect(() => {
+    if (!railInteractive) return undefined;
+    setBouncing(true);
+    const timer = window.setTimeout(() => setBouncing(false), 1300);
+    return () => window.clearTimeout(timer);
+  }, [lens, railInteractive]);
+  const markTouched = () =>
+    setTouchedLenses((current) =>
+      current[lens] ? current : { ...current, [lens]: true }
+    );
+  const railHint =
+    lens === 'profile' && !touchedLenses.profile
+      ? 'Tap a face to view their profile'
+      : lens === 'compare'
+        ? selectedIds.length === 0
+          ? 'Pick any two people to compare'
+          : selectedIds.length === 1
+            ? 'Pick one more'
+            : null
+        : null;
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -191,43 +213,25 @@ export function ConceptFiveBar({
               {otherTeams.length > 0 && canManageTeam ? (
                 <div className="fivex-menu-sep" role="separator" />
               ) : null}
+              {/* No team editing in this build: the menu is teams + new. */}
               {canManageTeam ? (
-                <>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="fivex-team-item fivex-team-item--action"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onEditTeam?.(selectedTeamId);
-                    }}
+                <button
+                  type="button"
+                  role="menuitem"
+                  className="fivex-team-item fivex-team-item--action"
+                  onClick={() => {
+                    setMenuOpen(false);
+                    onAddTeam?.();
+                  }}
+                >
+                  <span
+                    className="fivex-team-mark fivex-team-mark--action"
+                    aria-hidden="true"
                   >
-                    <span
-                      className="fivex-team-mark fivex-team-mark--action"
-                      aria-hidden="true"
-                    >
-                      <BetterUpIcon name="Edit" size={13} strokeWidth={1.8} />
-                    </span>
-                    <span className="fivex-team-item-name">Edit team</span>
-                  </button>
-                  <button
-                    type="button"
-                    role="menuitem"
-                    className="fivex-team-item fivex-team-item--action"
-                    onClick={() => {
-                      setMenuOpen(false);
-                      onAddTeam?.();
-                    }}
-                  >
-                    <span
-                      className="fivex-team-mark fivex-team-mark--action"
-                      aria-hidden="true"
-                    >
-                      <BetterUpIcon name="Plus" size={14} strokeWidth={2} />
-                    </span>
-                    <span className="fivex-team-item-name">New team</span>
-                  </button>
-                </>
+                    <BetterUpIcon name="Plus" size={14} strokeWidth={2} />
+                  </span>
+                  <span className="fivex-team-item-name">New team</span>
+                </button>
               ) : null}
             </div>
           ) : null}
@@ -241,39 +245,56 @@ export function ConceptFiveBar({
         ) : null}
       </div>
 
-      {showRail ? (
-        <div
-          className="onex-rail fivex-rail"
-          role="group"
-          aria-label="Team members"
-        >
-          {members.map((member) => {
-            const active = selectedIds.includes(member.id);
-            return (
-              <button
-                key={member.id}
-                type="button"
-                className="onex-rail-face"
-                data-active={active || undefined}
-                title={member.name}
-                aria-pressed={active}
-                onClick={() => onFaceClick?.(member.id)}
-              >
-                <Face member={member} size={36} ringed={active} />
-                {member.id === viewerId ? (
-                  <span className="onex-rail-you">you</span>
-                ) : null}
-              </button>
-            );
-          })}
-        </div>
-      ) : null}
       <div
-        className="fivex-tabbar"
-        data-no-rail={!showRail || undefined}
-        role="tablist"
-        aria-label="Views"
+        className="onex-rail fivex-rail"
+        data-bounce={(railInteractive && bouncing) || undefined}
+        role="group"
+        aria-label="Team members"
       >
+        {members.map((member, index) => {
+          const active = railInteractive && selectedIds.includes(member.id);
+          const face = (
+            <>
+              <Face member={member} size={36} ringed={active} />
+              {member.id === viewerId ? (
+                <span className="onex-rail-you">you</span>
+              ) : null}
+            </>
+          );
+          if (!railInteractive) {
+            // Team tab: the rail just shows who's on the team.
+            return (
+              <span
+                key={member.id}
+                className="onex-rail-face"
+                data-static
+                title={member.name}
+              >
+                {face}
+              </span>
+            );
+          }
+          return (
+            <button
+              key={member.id}
+              type="button"
+              className="onex-rail-face"
+              data-active={active || undefined}
+              style={{ '--bounce-delay': `${index * 45}ms` }}
+              title={member.name}
+              aria-pressed={active}
+              onClick={() => {
+                markTouched();
+                onFaceClick?.(member.id);
+              }}
+            >
+              {face}
+            </button>
+          );
+        })}
+      </div>
+      {railHint ? <p className="fivex-rail-hint">{railHint}</p> : null}
+      <div className="fivex-tabbar" role="tablist" aria-label="Views">
         {FIVE_TABS.map((tab) => (
           <button
             key={tab.id}
@@ -298,12 +319,10 @@ export function ConceptFive({
   subjects,
   allSubjects,
   viewerId,
-  isOwnProfile,
   insight,
   teamName,
   onCoachPrompt,
   onSelectMember,
-  onSelectPair,
 }) {
   if (lens === 'profile') {
     const person =
@@ -331,13 +350,9 @@ export function ConceptFive({
       );
     }
     return (
-      <ComparePicker
-        scope={scope}
-        subjects={subjects}
-        allSubjects={allSubjects}
-        isOwnProfile={isOwnProfile}
-        onSelectPair={onSelectPair}
-        onCoachPrompt={onCoachPrompt}
+      <CompareIntro
+        firstPick={scope === 'person' ? subjects[0] : null}
+        isOwnPick={scope === 'person' && subjects[0]?.id === viewerId}
       />
     );
   }
@@ -355,14 +370,6 @@ export function ConceptFive({
 }
 
 /* ── Shared pieces ───────────────────────────────────────────────────────── */
-
-function CardFoot({ prompt, onCoachPrompt }) {
-  return (
-    <div className="fvc-foot">
-      <CoachFootLink prompt={prompt} onCoachPrompt={onCoachPrompt} />
-    </div>
-  );
-}
 
 function firstSentence(text = '') {
   return text.match(/^.*?\./)?.[0] ?? text;
@@ -714,10 +721,6 @@ function OverviewView({
               viewerId={viewerId}
               onSelectMember={onSelectMember}
             />
-            <CardFoot
-              prompt="Walk me through where my team is clustered and where we're spread out on each trait."
-              onCoachPrompt={onCoachPrompt}
-            />
           </section>
         </div>
       </section>
@@ -982,14 +985,6 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
             </p>
             {leanLine ? <p className="fvx-persona-body">{leanLine}</p> : null}
           </div>
-          <CardFoot
-            prompt={
-              isOwn
-                ? 'Walk me through my profile: what should I lean on, and what should I watch for?'
-                : `Walk me through ${name}\u2019s profile: what do they bring, and how do I work well with them?`
-            }
-            onCoachPrompt={onCoachPrompt}
-          />
         </section>
 
         <section className="fvc">
@@ -1031,14 +1026,6 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
               </div>
             ))}
           </div>
-          <CardFoot
-            prompt={
-              isOwn
-                ? 'What does my Big Five snapshot against the team average mean for how I should work with this team?'
-                : `What does ${name}'s Big Five snapshot against the team mean for how we should work together?`
-            }
-            onCoachPrompt={onCoachPrompt}
-          />
         </section>
       </div>
 
@@ -1227,10 +1214,6 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
             );
           })}
         </div>
-        <CardFoot
-          prompt={`Walk me through where ${firstName(a)} and ${firstName(b)} differ most on the Big Five and what to do with it.`}
-          onCoachPrompt={onCoachPrompt}
-        />
         </section>
       </section>
 
@@ -1267,8 +1250,10 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
           Where they differ, a quick agreement now saves friction later.
         </p>
         <section className="fvc">
+          {/* Whole team on stage, the pair highlighted — same plot as the
+              individual view, per the Aug 25 read-out. */}
           <WorkingStylesStage
-            subjects={pair}
+            subjects={allSubjects}
             focusIds={[a.id, b.id]}
             onCoachPrompt={onCoachPrompt}
           />
@@ -1278,198 +1263,33 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
   );
 }
 
-/* ONE picker, whether zero or one face is chosen: same title, same
-   instruction, same list. A chosen person only seeds the suggestions, so
-   nothing jumps when you tap a face. Open layout: no card, just a divider
-   between the instruction and the recommended pairs. */
-function ComparePicker({ scope, subjects, allSubjects, onSelectPair, onCoachPrompt }) {
-  const anchor = scope === 'person' ? subjects[0] : null;
-  let pairs = [];
-  if (anchor) {
-    const others = allSubjects.filter((other) => other.id !== anchor.id);
-    let closest = null;
-    let contrast = null;
-    others.forEach((other) => {
-      const distance = getPairDistance(anchor, other);
-      if (!closest || distance < closest.distance)
-        closest = { member: other, distance };
-      if (!contrast || distance > contrast.distance)
-        contrast = { member: other, distance };
-    });
-    if (contrast) {
-      pairs.push({
-        a: anchor,
-        b: contrast.member,
-        tag: 'Sharpest contrast',
-        line: 'The most different defaults: slower, and the widest coverage.',
-      });
-    }
-    if (closest) {
-      pairs.push({
-        a: anchor,
-        b: closest.member,
-        tag: 'Closest match',
-        line: 'Nearly the same defaults: fast together, with a shared blind side.',
-      });
-    }
-  } else {
-    pairs = getComparePairSuggestions(allSubjects, 3);
-  }
-
+/* Before a pair exists, Compare is just an instruction: all selection
+   happens in the avatar rail above, same as the other tabs. */
+function CompareIntro({ firstPick, isOwnPick }) {
+  const name = firstPick
+    ? isOwnPick
+      ? 'You\u2019re'
+      : `${firstName(firstPick)} is`
+    : null;
   return (
     <div className="fivex-stack" aria-label="Compare profiles">
-      <section className="fvx-pick">
-        <div className="fvx-pick-head">
-          <div>
-            <h2 className="fvc-title">Pick any two people.</h2>
-            <p className="fvc-lead">
-              Tap two faces in the left rail. You&rsquo;ll get one read on the
-              pair: what you cover together, where it rubs, and the agreement
-              worth making.
-            </p>
-          </div>
-          <PairHintVisual members={pickHintMembers(allSubjects)} />
-        </div>
-        <div className="fvx-pick-list">
-          <p className="fvc-kicker">Pairs worth a look</p>
-          <div className="mapx-pairings onex-pairings">
-            {pairs.map((pair) => (
-              <PairRow
-                key={`${pair.a.id}-${pair.b.id}`}
-                a={pair.a}
-                b={pair.b}
-                tag={pair.tag}
-                line={pair.line}
-                onSelectPair={onSelectPair}
-              />
-            ))}
-          </div>
-          {/* No coach link here: the picker is navigation, not a section.
-              Coach entry points live on the duo read itself. */}
-        </div>
+      <section className="fvg fvx-cmpintro">
+        <h2 className="fvc-title">Pick any two people.</h2>
+        <p className="fvc-lead">
+          {firstPick ? (
+            <>
+              {name} in &mdash; tap one more face above to complete the
+              pair.
+            </>
+          ) : (
+            <>
+              Tap two faces in the bar above. You&rsquo;ll get one read on
+              the pair: what they cover together, where it rubs, and the
+              agreement worth making.
+            </>
+          )}
+        </p>
       </section>
     </div>
-  );
-}
-
-/* Miniature of the home-page pair animation: three faces, a cursor that
-   walks between them, the dashed thread, and an abstract insight card. The
-   third face dims while a pair is "selected", exactly like home. */
-const HINT_NAMES = ['Darshan', 'Sam', 'Jordan'];
-const HINT_PAIRS = [
-  [0, 1],
-  [1, 2],
-  [2, 0],
-];
-const HINT_FACE = 34;
-const HINT_POS = [
-  { x: 14, y: 8 },
-  { x: 118, y: 42 },
-  { x: 44, y: 70 },
-];
-const HINT_STEP_MS = 3600;
-
-function pickHintMembers(allSubjects) {
-  const picked = HINT_NAMES.map((name) =>
-    allSubjects.find((member) => firstName(member) === name)
-  ).filter(Boolean);
-  const rest = allSubjects.filter(
-    (member) => !picked.includes(member) && firstName(member) !== 'Justin'
-  );
-  while (picked.length < 3 && rest.length) picked.push(rest.shift());
-  return picked.slice(0, 3);
-}
-
-function PairHintVisual({ members }) {
-  const [step, setStep] = useState(0);
-
-  useEffect(() => {
-    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return undefined;
-    }
-    const interval = window.setInterval(
-      () => setStep((value) => value + 1),
-      HINT_STEP_MS
-    );
-    return () => window.clearInterval(interval);
-  }, []);
-
-  if (members.length < 3) return null;
-
-  const pair = HINT_PAIRS[step % HINT_PAIRS.length];
-  const center = (index) => ({
-    x: HINT_POS[index].x + HINT_FACE / 2,
-    y: HINT_POS[index].y + HINT_FACE / 2,
-  });
-  const from = center(pair[0]);
-  const to = center(pair[1]);
-  const mid = { x: (from.x + to.x) / 2 + 7, y: (from.y + to.y) / 2 + 7 };
-
-  return (
-    <div className="fvx-hint" aria-hidden="true">
-      <span className="fvx-hint-card" key={`card-${step}`}>
-        <span className="fvx-hint-metric">2{'\u00d7'} impact</span>
-        <i />
-        <i />
-      </span>
-      <svg className="fvx-hint-line" viewBox="0 0 170 110">
-        <path
-          key={`line-${step}`}
-          d={`M${from.x} ${from.y} Q ${mid.x} ${mid.y} ${to.x} ${to.y}`}
-        />
-      </svg>
-      {members.map((member, index) => (
-        <span
-          key={member.id}
-          className="fvx-hint-face"
-          data-dim={!pair.includes(index) || undefined}
-          style={{ top: `${HINT_POS[index].y}px`, left: `${HINT_POS[index].x}px` }}
-        >
-          <Face
-            member={member}
-            size={HINT_FACE}
-            ringed={pair.includes(index)}
-            titled={false}
-          />
-        </span>
-      ))}
-      <span
-        className="fvx-hint-cursor"
-        style={{ transform: `translate(${to.x + 3}px, ${to.y + 3}px)` }}
-      >
-        <i key={`click-${step}`} />
-      </span>
-    </div>
-  );
-}
-
-function PairRow({ a, b, tag, line, onSelectPair }) {
-  return (
-    <button
-      type="button"
-      className="mapx-pairing"
-      onClick={() => onSelectPair?.(a.id, b.id)}
-    >
-      <span className="tabx-pair-faces">
-        <Face member={a} size={30} />
-        <Face member={b} size={30} />
-      </span>
-      <span className="mapx-pairing-copy">
-        <strong>
-          {tag} {'\u00b7'} {firstName(a)} &amp; {firstName(b)}
-        </strong>
-        {line}
-      </span>
-      <svg className="mapx-pairing-arrow" viewBox="0 0 16 16" aria-hidden="true">
-        <path
-          d="M6 4l4 4-4 4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
   );
 }

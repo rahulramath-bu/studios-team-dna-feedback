@@ -348,7 +348,12 @@ export function WorkingStylesStage({
   const active = ALL_ITEMS.find((item) => item.key === activeKey) ?? ALL_ITEMS[0];
   // Team scope offers three densities: the stage, plus two compact reads.
   const [view, setView] = useState('stage');
-  const showViews = subjects.length > 3 && focusIds.length === 0;
+  // Aug 25 read-out: the Map is P1 (Scott still deciding which axis pairs
+  // are valid), so the toggle is off and the stage is the one P0 view. The
+  // map code stays for when it returns.
+  const SHOW_MAP_VIEW = false;
+  const showViews =
+    SHOW_MAP_VIEW && subjects.length > 3 && focusIds.length === 0;
   const compactView = showViews && view !== 'stage' ? view : null;
 
   // Stable geometry: the tallest stack across every question fixes the

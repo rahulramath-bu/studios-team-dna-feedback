@@ -10211,6 +10211,53 @@ button.team-management-row {
   padding-bottom: 4px;
 }
 
+/* Team tab: the rail only shows who's on the team. */
+.fivex-rail .onex-rail-face[data-static] {
+  cursor: default;
+}
+
+.fivex-rail .onex-rail-face[data-static]:hover {
+  transform: none;
+}
+
+/* One-time education: faces take a small staggered hop when the tab
+   becomes selectable. */
+.fivex-rail[data-bounce] .onex-rail-face {
+  animation: fivex-rail-bounce 0.85s cubic-bezier(0.34, 1.4, 0.5, 1);
+  animation-delay: var(--bounce-delay, 0ms);
+}
+
+@keyframes fivex-rail-bounce {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  32% {
+    transform: translateY(-7px);
+  }
+  62% {
+    transform: translateY(1px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fivex-rail[data-bounce] .onex-rail-face {
+    animation: none;
+  }
+}
+
+/* The line under the rail: education on Individual, flow feedback on
+   Compare ("pick one more"). */
+.fivex-rail-hint {
+  align-self: center;
+  margin: 10px 0 0;
+  color: #717070;
+  font-size: 12.5px;
+  letter-spacing: 0.1px;
+  line-height: 16px;
+  text-align: center;
+}
+
 
 /* Terra contained toggle group: sand track, white active pill. */
 .fivex-tabbar {
@@ -11007,6 +11054,14 @@ button.team-management-row {
   margin-bottom: 4px;
   padding-bottom: 12px;
   border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.fvx-cmpintro {
+  padding: 10px 6px 0;
+}
+
+.fvx-cmpintro .fvc-lead {
+  max-width: 560px;
 }
 
 .fvx-pick .fvc-foot {
