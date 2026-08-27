@@ -11118,21 +11118,26 @@ button.team-management-row {
   max-width: 560px;
 }
 
-/* Instruction left, animated how-it-works vignette right. Centered
-   alignment keeps the vignette from floating loose above the fold. */
-.fvx-pick-head {
+/* Two columns on the profile grid's rhythm: invitation + vignette left,
+   suggested pairs right. */
+.fvx-pick-cols {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 56px;
-  align-items: center;
-  max-width: 980px;
+  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
+  gap: 72px;
+  align-items: start;
+  max-width: 1080px;
 }
 
-/* The rows read left to right in a second; capping the list keeps a
-   one-line row from stretching across the whole page. */
+/* The vignette sits under the copy as its illustration. */
+.fvx-pick-intro .fvx-hint {
+  margin: 40px 0 0 10px;
+}
+
+/* Optical top alignment: the mono kicker hangs on the serif title's
+   cap height. */
 .fvx-pick-list {
-  max-width: 780px;
-  margin-top: 30px;
+  max-width: 640px;
+  padding-top: 6px;
 }
 
 .fvx-pick-list > .fvc-kicker {
@@ -11168,7 +11173,6 @@ button.team-management-row {
   flex: none;
   width: 170px;
   height: 110px;
-  margin-right: 26px;
 }
 
 .fvx-hint-card {
@@ -11320,8 +11324,9 @@ button.team-management-row {
 }
 
 @media (max-width: 900px) {
-  .fvx-pick-head {
+  .fvx-pick-cols {
     grid-template-columns: 1fr;
+    gap: 30px;
   }
 
   .fvx-hint {

@@ -1426,8 +1426,12 @@ function ComparePicker({ scope, subjects, allSubjects, viewerId, onSelectPair })
   return (
     <div className="fivex-stack" aria-label="Compare profiles">
       <section className="fvx-pick fvx-pick--page">
-        <div className="fvx-pick-head">
-          <div>
+        {/* Two columns, echoing the profile grid: the invitation reads
+            first on the left (title, how it works, the animated vignette
+            as illustration); the ready-made pairs act as shortcuts on the
+            right. */}
+        <div className="fvx-pick-cols">
+          <div className="fvx-pick-intro">
             <h2 className="fvc-title">Pick any two people.</h2>
             <p className="fvc-lead">
               {anchor ? (
@@ -1443,23 +1447,23 @@ function ComparePicker({ scope, subjects, allSubjects, viewerId, onSelectPair })
                 </>
               )}
             </p>
+            <PairHintVisual members={pickHintMembers(allSubjects)} />
           </div>
-          <PairHintVisual members={pickHintMembers(allSubjects)} />
-        </div>
-        <div className="fvx-pick-list">
-          <p className="fvc-kicker">Pairs worth a look</p>
-          <div className="mapx-pairings onex-pairings">
-            {pairs.map((pair) => (
-              <PairRow
-                key={`${pair.a.id}-${pair.b.id}`}
-                a={pair.a}
-                b={pair.b}
-                tag={pair.tag}
-                line={pair.line}
-                viewerId={viewerId}
-                onSelectPair={onSelectPair}
-              />
-            ))}
+          <div className="fvx-pick-list">
+            <p className="fvc-kicker">Pairs worth a look</p>
+            <div className="mapx-pairings onex-pairings">
+              {pairs.map((pair) => (
+                <PairRow
+                  key={`${pair.a.id}-${pair.b.id}`}
+                  a={pair.a}
+                  b={pair.b}
+                  tag={pair.tag}
+                  line={pair.line}
+                  viewerId={viewerId}
+                  onSelectPair={onSelectPair}
+                />
+              ))}
+            </div>
           </div>
         </div>
       </section>
