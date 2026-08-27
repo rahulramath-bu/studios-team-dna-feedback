@@ -28,7 +28,7 @@ await sleep(600);
 await page.$$eval('.fivex-tab', (tabs) => {
   tabs.find((t) => t.textContent.includes('Compare'))?.click();
 });
-await sleep(700);
+await sleep(2600);
 
 // If someone is preselected (carried over from another lens), this is the
 // anchored state. Shoot it, then unselect for the zero state.
@@ -46,8 +46,8 @@ await faces[0].click();
 await sleep(700);
 await page.screenshot({ path: '/tmp/picker-one.png' });
 
-// Card click drives the duo view.
-await page.$$eval('.fvx-paircard', (cards) => cards[0]?.click());
+// Row click drives the duo view.
+await page.$$eval('.fvx-pick-list .mapx-pairing', (rows) => rows[0]?.click());
 await sleep(900);
 const duoOk = await page.evaluate(
   () => !!document.querySelector('.fivex-rail-tie')
