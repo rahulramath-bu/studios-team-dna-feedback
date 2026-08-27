@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { motion } from 'motion/react';
 import {
   Face,
@@ -162,6 +163,50 @@ export function ConceptFiveBar({
   // Pair complete: the two glide together in the middle on a marching
   // dotted tie, scale up a touch, and everyone else steps back.
   const pairComplete = lens === 'compare' && selectedIds.length === 2;
+  const pickingSecond =
+    railInteractive && lens === 'compare' && selectedIds.length === 1;
+  // Hover: the cursor-following name pill from the original face field,
+  // plus (with one picked on Compare) a dotted thread from the picked face
+  // to whichever candidate the cursor is on.
+  const railRef = useRef(null);
+  const faceRefs = useRef({});
+  const [hoverTip, setHoverTip] = useState(null);
+  const [hoverLine, setHoverLine] = useState(null);
+  const onFaceEnter = (member) => (event) => {
+    setHoverTip({ name: member.name, x: event.clientX, y: event.clientY });
+    if (
+      pickingSecond &&
+      member.id !== selectedIds[0] &&
+      railRef.current &&
+      faceRefs.current[selectedIds[0]] &&
+      faceRefs.current[member.id]
+    ) {
+      const railBox = railRef.current.getBoundingClientRect();
+      const from = faceRefs.current[selectedIds[0]].getBoundingClientRect();
+      const to = faceRefs.current[member.id].getBoundingClientRect();
+      const x1 = from.x + from.width / 2 - railBox.x;
+      const y1 = from.y + from.height / 2 - railBox.y;
+      const x2 = to.x + to.width / 2 - railBox.x;
+      const y2 = to.y + to.height / 2 - railBox.y;
+      setHoverLine({
+        d: `M${x1} ${y1} Q ${(x1 + x2) / 2} ${Math.max(y1, y2) + 30} ${x2} ${y2}`,
+      });
+    }
+  };
+  const onFaceMove = (event) => {
+    setHoverTip((current) =>
+      current ? { ...current, x: event.clientX, y: event.clientY } : current
+    );
+  };
+  const onFaceLeave = () => {
+    setHoverTip(null);
+    setHoverLine(null);
+  };
+  useEffect(() => {
+    // A click changed the selection under the cursor; the thread no longer
+    // applies.
+    setHoverLine(null);
+  }, [lens, pickingSecond]);
   let railItems = members.map((member) => ({ type: 'face', member }));
   if (pairComplete) {
     const picked = members
@@ -299,9 +344,15 @@ export function ConceptFiveBar({
 
       <div
         className="onex-rail fivex-rail"
+        ref={railRef}
         role="group"
         aria-label="Team members"
       >
+        {hoverLine ? (
+          <svg className="fivex-rail-hoverline" aria-hidden="true">
+            <path d={hoverLine.d} />
+          </svg>
+        ) : null}
         {railItems.map((item) => {
           if (item.type === 'tie') {
             return (
@@ -313,7 +364,11 @@ export function ConceptFiveBar({
                 animate={{
                   opacity: 1,
                   width: 26,
-                  transition: { delay: 0.08, duration: 0.32 },
+                  transition: {
+                    delay: 0.34,
+                    duration: 0.36,
+                    ease: [0.22, 1, 0.36, 1],
+                  },
                 }}
                 aria-hidden="true"
               >
@@ -333,7 +388,9 @@ export function ConceptFiveBar({
                 key={member.id}
                 className="onex-rail-face"
                 data-static
-                title={member.name}
+                onMouseEnter={onFaceEnter(member)}
+                onMouseMove={onFaceMove}
+                onMouseLeave={onFaceLeave}
               >
                 <Face member={member} size={36} ringed={false} />
                 {member.id === viewerId ? (
@@ -345,15 +402,23 @@ export function ConceptFiveBar({
           return (
             <motion.button
               key={member.id}
+              ref={(el) => {
+                faceRefs.current[member.id] = el;
+              }}
               layout
               animate={{ scale: pairComplete && active ? 1.18 : 1 }}
-              transition={{ type: 'spring', stiffness: 260, damping: 26 }}
+              transition={{
+                layout: { duration: 0.68, ease: [0.32, 0.72, 0, 1] },
+                scale: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
+              }}
               type="button"
               className="onex-rail-face"
               data-active={active || undefined}
               data-dim={(pairComplete && !active) || undefined}
-              title={member.name}
               aria-pressed={active}
+              onMouseEnter={onFaceEnter(member)}
+              onMouseMove={onFaceMove}
+              onMouseLeave={onFaceLeave}
               onClick={() => {
                 markTouched();
                 onFaceClick?.(member.id);
@@ -398,6 +463,22 @@ export function ConceptFiveBar({
           </button>
         ))}
       </div>
+      {/* Same cursor-following name pill as the original face field. */}
+      {typeof document === 'undefined' || !hoverTip
+        ? null
+        : createPortal(
+            <span
+              className="team-face-hover-label"
+              style={{
+                '--team-face-tooltip-x': `${hoverTip.x}px`,
+                '--team-face-tooltip-y': `${hoverTip.y}px`,
+              }}
+              aria-hidden="true"
+            >
+              {hoverTip.name}
+            </span>,
+            document.body
+          )}
     </div>
   );
 }
