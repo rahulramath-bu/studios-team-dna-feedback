@@ -348,12 +348,9 @@ export function WorkingStylesStage({
   const active = ALL_ITEMS.find((item) => item.key === activeKey) ?? ALL_ITEMS[0];
   // Team scope offers three densities: the stage, plus two compact reads.
   const [view, setView] = useState('stage');
-  // Aug 25 read-out: the Map is P1 (Scott still deciding which axis pairs
-  // are valid), so the toggle is off and the stage is the one P0 view. The
-  // map code stays for when it returns.
-  const SHOW_MAP_VIEW = false;
-  const showViews =
-    SHOW_MAP_VIEW && subjects.length > 3 && focusIds.length === 0;
+  // The Map stays in the design but reads as P1 (Scott is still deciding
+  // which axis pairs are valid), so its toggle carries a P1 tag.
+  const showViews = subjects.length > 3 && focusIds.length === 0;
   const compactView = showViews && view !== 'stage' ? view : null;
 
   // Stable geometry: the tallest stack across every question fixes the
@@ -565,19 +562,13 @@ export function WorkingStylesStage({
                   onClick={() => setView(id)}
                 >
                   {label}
+                  {id === 'map' ? (
+                    <span className="demo-new-pill demo-new-pill--p1">
+                      P1
+                    </span>
+                  ) : null}
                 </button>
               ))}
-            </div>
-          ) : null}
-          {/* Demo affordance: the note sits OUTSIDE the card, right of its
-              edge; the arrow runs from the text down-left onto the pill. */}
-          {showViews && view === 'stage' ? (
-            <div className="wstage-maphint" aria-hidden="true">
-              <svg className="wstage-maphint-arrow" viewBox="0 0 34 40">
-                <path d="M30 4 C 18 8, 7 20, 4 34" />
-                <path d="M11 29 L 4 35 L 1 25" />
-              </svg>
-              <span className="wstage-maphint-label">Alternate view</span>
             </div>
           ) : null}
         </div>

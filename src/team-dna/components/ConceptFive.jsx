@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { motion } from 'motion/react';
 import {
   Face,
   CoachFootLink,
@@ -10,10 +11,12 @@ import {
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { TeamShapeContributions } from './TeamShapeContributions.jsx';
 import { BIG_FIVE_TRAITS, getBigFiveScore } from '../data/bigFiveTraits.js';
+import { getPairDistance } from '../data/teamReadModel.js';
 import {
   getTraitStrips,
   getChemistryModel,
   getProfileModel,
+  getComparePairSuggestions,
   getPairMeaning,
   POLE_MEANING,
 } from '../data/conceptReadModel.js';
@@ -126,9 +129,33 @@ export function ConceptFiveBar({
         ? selectedIds.length === 0
           ? 'Pick any two people to compare'
           : selectedIds.length === 1
-            ? 'Pick one more'
+            ? 'Now pick one more'
             : null
         : null;
+  // Pair complete: the two glide together in the middle with a dotted tie,
+  // everyone else steps back. While exactly one is picked, the candidates
+  // bounce (the original face field's "tap me" energy).
+  const pairComplete = lens === 'compare' && selectedIds.length === 2;
+  const pickingSecond = lens === 'compare' && selectedIds.length === 1;
+  let railItems = members.map((member) => ({ type: 'face', member }));
+  if (pairComplete) {
+    const picked = members
+      .filter((member) => selectedIds.includes(member.id))
+      .sort(
+        (m, n) => selectedIds.indexOf(m.id) - selectedIds.indexOf(n.id)
+      );
+    const others = members.filter(
+      (member) => !selectedIds.includes(member.id)
+    );
+    const half = Math.ceil(others.length / 2);
+    railItems = [
+      ...others.slice(0, half).map((member) => ({ type: 'face', member })),
+      { type: 'face', member: picked[0] },
+      { type: 'tie' },
+      { type: 'face', member: picked[1] },
+      ...others.slice(half).map((member) => ({ type: 'face', member })),
+    ];
+  }
 
   useEffect(() => {
     if (!menuOpen) return undefined;
@@ -248,10 +275,24 @@ export function ConceptFiveBar({
       <div
         className="onex-rail fivex-rail"
         data-bounce={(railInteractive && bouncing) || undefined}
+        data-pick-more={pickingSecond || undefined}
         role="group"
         aria-label="Team members"
       >
-        {members.map((member, index) => {
+        {railItems.map((item, index) => {
+          if (item.type === 'tie') {
+            return (
+              <motion.span
+                key="pair-tie"
+                layout
+                className="fivex-rail-tie"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1, transition: { delay: 0.18 } }}
+                aria-hidden="true"
+              />
+            );
+          }
+          const { member } = item;
           const active = railInteractive && selectedIds.includes(member.id);
           const face = (
             <>
@@ -275,11 +316,14 @@ export function ConceptFiveBar({
             );
           }
           return (
-            <button
+            <motion.button
               key={member.id}
+              layout
+              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
               type="button"
               className="onex-rail-face"
               data-active={active || undefined}
+              data-dim={(pairComplete && !active) || undefined}
               style={{ '--bounce-delay': `${index * 45}ms` }}
               title={member.name}
               aria-pressed={active}
@@ -289,11 +333,20 @@ export function ConceptFiveBar({
               }}
             >
               {face}
-            </button>
+            </motion.button>
           );
         })}
       </div>
-      {railHint ? <p className="fivex-rail-hint">{railHint}</p> : null}
+      {/* Fixed slot: the text swaps but never reflows the bar. */}
+      {railInteractive ? (
+        <p className="fivex-rail-hint" data-empty={!railHint || undefined}>
+          {railHint ?? '\u00a0'}
+        </p>
+      ) : (
+        <p className="fivex-rail-hint" data-empty>
+          {'\u00a0'}
+        </p>
+      )}
       <div className="fivex-tabbar" role="tablist" aria-label="Views">
         {FIVE_TABS.map((tab) => (
           <button
@@ -323,6 +376,7 @@ export function ConceptFive({
   teamName,
   onCoachPrompt,
   onSelectMember,
+  onSelectPair,
 }) {
   if (lens === 'profile') {
     const person =
@@ -350,9 +404,12 @@ export function ConceptFive({
       );
     }
     return (
-      <CompareIntro
-        firstPick={scope === 'person' ? subjects[0] : null}
-        isOwnPick={scope === 'person' && subjects[0]?.id === viewerId}
+      <ComparePicker
+        scope={scope}
+        subjects={subjects}
+        allSubjects={allSubjects}
+        viewerId={viewerId}
+        onSelectPair={onSelectPair}
       />
     );
   }
@@ -1120,42 +1177,64 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
     .map((item) => GROWTH_QUESTIONS[itemKey(item)])
     .filter(Boolean)
     .slice(0, 3);
+  // Strengths carry moves too, mirroring the individual card.
+  const pairUseBullets = [
+    ...strengths.map((item) => item.use).filter(Boolean),
+    'Pick one to lean on together this week.',
+  ].slice(0, 3);
 
   return (
     <div className="fivex-stack" aria-label="Compare profiles">
-      {/* Identity lives in the left rail (faces + "A x B"). The header stays
-          OPEN like the picker and leads with the pair's generated persona
-          ("The Readiness Loop"), not section chrome. */}
-      <section className="fvx-pick">
-        <h2 className="fvc-title fvx-duo-title">
-          {synthesis?.title ?? meaning.short}
-        </h2>
-        <p className="fvc-lead">
-          {synthesis?.summary ??
-            `${firstSentence(meaning.line)}${strengths[0] ? ` ${firstSentence(strengths[0].body)}` : ''}`}
-        </p>
-        {synthesis ? (
-          <>
-            <p className="fvc-lead fvx-duo-line">
-              <strong>Best for</strong>{' '}
-              {synthesis.bestFor.charAt(0).toLowerCase() +
-                synthesis.bestFor.slice(1)}
+      {/* Same skeleton as the individual profile: identity card on the
+          left, the against-each-other rows on the right. */}
+      <div className="fivex-profile">
+        <section className="fvc fvc--id">
+          <p className="fvc-kicker">Pair profile</p>
+          <div className="fvx-idrow">
+            <span className="fvx-idfaces">
+              <Face member={a} size={44} titled={false} />
+              <Face member={b} size={44} titled={false} />
+            </span>
+            <div className="fvx-idcopy">
+              <strong>
+                {firstName(a)} &amp; {firstName(b)}
+              </strong>
+            </div>
+          </div>
+          <div className="fvx-persona">
+            <p className="fvx-persona-title">
+              {synthesis?.title ?? meaning.short}
             </p>
-            <p className="fvc-lead fvx-duo-line">
-              <strong>Worth knowing:</strong> {synthesis.watchOut}
+            <p className="fvx-persona-body">
+              {synthesis?.summary ??
+                `${firstSentence(meaning.line)}${strengths[0] ? ` ${firstSentence(strengths[0].body)}` : ''}`}
             </p>
-          </>
-        ) : null}
-      </section>
-
-      <section className="fvg">
-        <h2 className="fvc-title">Where you match, and where you don&rsquo;t</h2>
-        <p className="fvc-lead">{bigFiveLead}</p>
+            {synthesis ? (
+              <p className="fvx-persona-body">
+                <strong>Best for</strong>{' '}
+                {synthesis.bestFor.charAt(0).toLowerCase() +
+                  synthesis.bestFor.slice(1)}
+              </p>
+            ) : null}
+          </div>
+          {synthesis ? (
+            <div className="fvx-fit">
+              <p className="fvc-kicker fvc-kicker--tight">Worth knowing</p>
+              <p className="fvx-persona-body fvx-persona-body--flush">
+                {synthesis.watchOut}
+              </p>
+            </div>
+          ) : null}
+        </section>
         <section className="fvc">
-        {/* Same component grammar as the individual profile rows: poles,
-            capped line, faces: the gap detail lives in a hover tip on the
-            middle of the connection, not in a numbers column. */}
-        <div className="fva-rows">
+          <h2 className="fvc-title">
+            Where you match, and where you don&rsquo;t
+          </h2>
+          <p className="fvc-lead">{bigFiveLead}</p>
+          {/* Same component grammar as the individual profile rows: poles,
+              capped line, faces: the gap detail lives in a hover tip on the
+              middle of the connection, not in a numbers column. */}
+          <div className="fva-rows">
           {rows.map((row) => {
             const high = row.aScore >= row.bScore ? a : b;
             const low = high === a ? b : a;
@@ -1213,22 +1292,24 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
               </div>
             );
           })}
-        </div>
+          </div>
         </section>
-      </section>
+      </div>
 
-      {/* Same section as the individual profile: same title, same labels. */}
+      {/* Same section as the individual profile: same title, same labels,
+          same side-by-side cards with an action box each. */}
       <section className="fvg">
         <h2 className="fvc-title">Strengths &amp; growth areas</h2>
         <p className="fvc-lead">
           What {firstName(a)} and {firstName(b)} can lean on together, and
           what to name before it rubs.
         </p>
-        <div className="fivex-two fivex-two--stack">
+        <div className="fivex-two">
           <ListCard
             label="Strengths"
             tone="strength"
             items={strengths}
+            actions={{ label: 'Put them to work', bullets: pairUseBullets }}
             coachPrompt={`Where should ${firstName(a)} and ${firstName(b)} lean on what they share?`}
             onCoachPrompt={onCoachPrompt}
           />
@@ -1263,33 +1344,209 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
   );
 }
 
-/* Before a pair exists, Compare is just an instruction: all selection
-   happens in the avatar rail above, same as the other tabs. */
-function CompareIntro({ firstPick, isOwnPick }) {
-  const name = firstPick
-    ? isOwnPick
+/* ONE picker, whether zero or one face is chosen: instruction up top
+   (selection lives in the avatar rail), suggested pairs below. A chosen
+   person seeds the suggestions, so nothing jumps when you tap a face. */
+function ComparePicker({ scope, subjects, allSubjects, viewerId, onSelectPair }) {
+  const anchor = scope === 'person' ? subjects[0] : null;
+  let pairs = [];
+  if (anchor) {
+    const others = allSubjects.filter((other) => other.id !== anchor.id);
+    let closest = null;
+    let contrast = null;
+    others.forEach((other) => {
+      const distance = getPairDistance(anchor, other);
+      if (!closest || distance < closest.distance)
+        closest = { member: other, distance };
+      if (!contrast || distance > contrast.distance)
+        contrast = { member: other, distance };
+    });
+    if (contrast) {
+      pairs.push({
+        a: anchor,
+        b: contrast.member,
+        tag: 'Sharpest contrast',
+        line: 'The most different defaults: slower, and the widest coverage.',
+      });
+    }
+    if (closest) {
+      pairs.push({
+        a: anchor,
+        b: closest.member,
+        tag: 'Closest match',
+        line: 'Nearly the same defaults: fast together, with a shared blind side.',
+      });
+    }
+  } else {
+    pairs = getComparePairSuggestions(allSubjects, 3);
+  }
+  const anchorName = anchor
+    ? anchor.id === viewerId
       ? 'You\u2019re'
-      : `${firstName(firstPick)} is`
+      : `${firstName(anchor)} is`
     : null;
+
   return (
     <div className="fivex-stack" aria-label="Compare profiles">
-      <section className="fvg fvx-cmpintro">
-        <h2 className="fvc-title">Pick any two people.</h2>
-        <p className="fvc-lead">
-          {firstPick ? (
-            <>
-              {name} in &mdash; tap one more face above to complete the
-              pair.
-            </>
-          ) : (
-            <>
-              Tap two faces in the bar above. You&rsquo;ll get one read on
-              the pair: what they cover together, where it rubs, and the
-              agreement worth making.
-            </>
-          )}
-        </p>
+      <section className="fvx-pick fvx-pick--page">
+        <div className="fvx-pick-head">
+          <div>
+            <h2 className="fvc-title">Pick any two people.</h2>
+            <p className="fvc-lead">
+              {anchor ? (
+                <>
+                  {anchorName} in &mdash; tap one more face above, or jump
+                  into a suggested pair.
+                </>
+              ) : (
+                <>
+                  Tap two faces in the bar above. You&rsquo;ll get one read
+                  on the pair: what they cover together, where it rubs, and
+                  the agreement worth making.
+                </>
+              )}
+            </p>
+          </div>
+          <PairHintVisual members={pickHintMembers(allSubjects)} />
+        </div>
+        <div className="fvx-pick-list">
+          <p className="fvc-kicker">Pairs worth a look</p>
+          <div className="mapx-pairings onex-pairings">
+            {pairs.map((pair) => (
+              <PairRow
+                key={`${pair.a.id}-${pair.b.id}`}
+                a={pair.a}
+                b={pair.b}
+                tag={pair.tag}
+                line={pair.line}
+                onSelectPair={onSelectPair}
+              />
+            ))}
+          </div>
+        </div>
       </section>
     </div>
+  );
+}
+
+/* Miniature of the home-page pair animation: three faces, a cursor that
+   walks between them, the dashed thread, and an abstract insight card. The
+   third face dims while a pair is "selected", exactly like home. */
+const HINT_NAMES = ['Darshan', 'Sam', 'Jordan'];
+const HINT_PAIRS = [
+  [0, 1],
+  [1, 2],
+  [2, 0],
+];
+const HINT_FACE = 34;
+const HINT_POS = [
+  { x: 14, y: 8 },
+  { x: 118, y: 42 },
+  { x: 44, y: 70 },
+];
+const HINT_STEP_MS = 3600;
+
+function pickHintMembers(allSubjects) {
+  const picked = HINT_NAMES.map((name) =>
+    allSubjects.find((member) => firstName(member) === name)
+  ).filter(Boolean);
+  const rest = allSubjects.filter(
+    (member) => !picked.includes(member) && firstName(member) !== 'Justin'
+  );
+  while (picked.length < 3 && rest.length) picked.push(rest.shift());
+  return picked.slice(0, 3);
+}
+
+function PairHintVisual({ members }) {
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return undefined;
+    }
+    const interval = window.setInterval(
+      () => setStep((value) => value + 1),
+      HINT_STEP_MS
+    );
+    return () => window.clearInterval(interval);
+  }, []);
+
+  if (members.length < 3) return null;
+
+  const pair = HINT_PAIRS[step % HINT_PAIRS.length];
+  const center = (index) => ({
+    x: HINT_POS[index].x + HINT_FACE / 2,
+    y: HINT_POS[index].y + HINT_FACE / 2,
+  });
+  const from = center(pair[0]);
+  const to = center(pair[1]);
+  const mid = { x: (from.x + to.x) / 2 + 7, y: (from.y + to.y) / 2 + 7 };
+
+  return (
+    <div className="fvx-hint" aria-hidden="true">
+      <span className="fvx-hint-card" key={`card-${step}`}>
+        <span className="fvx-hint-metric">2{'\u00d7'} impact</span>
+        <i />
+        <i />
+      </span>
+      <svg className="fvx-hint-line" viewBox="0 0 170 110">
+        <path
+          key={`line-${step}`}
+          d={`M${from.x} ${from.y} Q ${mid.x} ${mid.y} ${to.x} ${to.y}`}
+        />
+      </svg>
+      {members.map((member, index) => (
+        <span
+          key={member.id}
+          className="fvx-hint-face"
+          data-dim={!pair.includes(index) || undefined}
+          style={{ top: `${HINT_POS[index].y}px`, left: `${HINT_POS[index].x}px` }}
+        >
+          <Face
+            member={member}
+            size={HINT_FACE}
+            ringed={pair.includes(index)}
+            titled={false}
+          />
+        </span>
+      ))}
+      <span
+        className="fvx-hint-cursor"
+        style={{ transform: `translate(${to.x + 3}px, ${to.y + 3}px)` }}
+      >
+        <i key={`click-${step}`} />
+      </span>
+    </div>
+  );
+}
+
+function PairRow({ a, b, tag, line, onSelectPair }) {
+  return (
+    <button
+      type="button"
+      className="mapx-pairing"
+      onClick={() => onSelectPair?.(a.id, b.id)}
+    >
+      <span className="tabx-pair-faces">
+        <Face member={a} size={30} />
+        <Face member={b} size={30} />
+      </span>
+      <span className="mapx-pairing-copy">
+        <strong>
+          {tag} {'\u00b7'} {firstName(a)} &amp; {firstName(b)}
+        </strong>
+        {line}
+      </span>
+      <svg className="mapx-pairing-arrow" viewBox="0 0 16 16" aria-hidden="true">
+        <path
+          d="M6 4l4 4-4 4"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.5"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </button>
   );
 }
