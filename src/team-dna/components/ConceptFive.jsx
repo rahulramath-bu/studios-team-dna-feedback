@@ -107,36 +107,61 @@ export function ConceptFiveBar({
   // The rail is the one selector: display-only on the team tab, pick-one on
   // Individual, pick-two on Compare.
   const railInteractive = lens === 'profile' || lens === 'compare';
-  // Education: faces bounce once per tab visit; the Individual caption goes
-  // away after the first tap. Compare's caption is flow feedback and follows
-  // the selection count instead.
-  const [bouncing, setBouncing] = useState(false);
   const [touchedLenses, setTouchedLenses] = useState({});
-  useEffect(() => {
-    if (!railInteractive) return undefined;
-    setBouncing(true);
-    const timer = window.setTimeout(() => setBouncing(false), 1300);
-    return () => window.clearTimeout(timer);
-  }, [lens, railInteractive]);
   const markTouched = () =>
     setTouchedLenses((current) =>
       current[lens] ? current : { ...current, [lens]: true }
     );
-  const railHint =
+  // Education lives ON the faces, exactly like the original field: every few
+  // seconds one candidate gets a "Tap me" pill and a playful pulse. On
+  // Individual it runs until the first tap; on Compare it keeps nudging
+  // whoever can still complete the pair.
+  const [tapHint, setTapHint] = useState({ cycle: 0, memberId: null });
+  const hintableKey = (
     lens === 'profile' && !touchedLenses.profile
-      ? 'Tap a face to view their profile'
-      : lens === 'compare'
-        ? selectedIds.length === 0
-          ? 'Pick any two people to compare'
-          : selectedIds.length === 1
-            ? 'Now pick one more'
-            : null
-        : null;
-  // Pair complete: the two glide together in the middle with a dotted tie,
-  // everyone else steps back. While exactly one is picked, the candidates
-  // bounce (the original face field's "tap me" energy).
+      ? members.map((member) => member.id)
+      : lens === 'compare' && selectedIds.length < 2
+        ? members
+            .filter((member) => !selectedIds.includes(member.id))
+            .map((member) => member.id)
+        : []
+  ).join(':');
+  useEffect(() => {
+    const ids = hintableKey ? hintableKey.split(':') : [];
+    if (ids.length === 0) {
+      setTapHint({ cycle: 0, memberId: null });
+      return undefined;
+    }
+    let cancelled = false;
+    let cycle = 0;
+    let previous = null;
+    const timeouts = [];
+    const later = (fn, ms) => timeouts.push(window.setTimeout(fn, ms));
+    const queue = (delay) => {
+      later(() => {
+        if (cancelled) return;
+        const pool = ids.length > 1 ? ids.filter((id) => id !== previous) : ids;
+        const memberId = pool[Math.floor(Math.random() * pool.length)];
+        previous = memberId;
+        cycle += 1;
+        setTapHint({ cycle, memberId });
+        later(() => {
+          if (cancelled) return;
+          setTapHint({ cycle, memberId: null });
+          queue(2400);
+        }, 3300);
+      }, delay);
+    };
+    queue(1200);
+    return () => {
+      cancelled = true;
+      timeouts.forEach((timeout) => window.clearTimeout(timeout));
+      setTapHint({ cycle: 0, memberId: null });
+    };
+  }, [hintableKey]);
+  // Pair complete: the two glide together in the middle on a marching
+  // dotted tie, scale up a touch, and everyone else steps back.
   const pairComplete = lens === 'compare' && selectedIds.length === 2;
-  const pickingSecond = lens === 'compare' && selectedIds.length === 1;
   let railItems = members.map((member) => ({ type: 'face', member }));
   if (pairComplete) {
     const picked = members
@@ -274,34 +299,33 @@ export function ConceptFiveBar({
 
       <div
         className="onex-rail fivex-rail"
-        data-bounce={(railInteractive && bouncing) || undefined}
-        data-pick-more={pickingSecond || undefined}
         role="group"
         aria-label="Team members"
       >
-        {railItems.map((item, index) => {
+        {railItems.map((item) => {
           if (item.type === 'tie') {
             return (
               <motion.span
                 key="pair-tie"
                 layout
                 className="fivex-rail-tie"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1, transition: { delay: 0.18 } }}
+                initial={{ opacity: 0, width: 0 }}
+                animate={{
+                  opacity: 1,
+                  width: 26,
+                  transition: { delay: 0.08, duration: 0.32 },
+                }}
                 aria-hidden="true"
-              />
+              >
+                <svg viewBox="0 0 26 4" preserveAspectRatio="none">
+                  <line x1="2" y1="2" x2="24" y2="2" />
+                </svg>
+              </motion.span>
             );
           }
           const { member } = item;
           const active = railInteractive && selectedIds.includes(member.id);
-          const face = (
-            <>
-              <Face member={member} size={36} ringed={active} />
-              {member.id === viewerId ? (
-                <span className="onex-rail-you">you</span>
-              ) : null}
-            </>
-          );
+          const hinted = tapHint.memberId === member.id;
           if (!railInteractive) {
             // Team tab: the rail just shows who's on the team.
             return (
@@ -311,7 +335,10 @@ export function ConceptFiveBar({
                 data-static
                 title={member.name}
               >
-                {face}
+                <Face member={member} size={36} ringed={false} />
+                {member.id === viewerId ? (
+                  <span className="onex-rail-you">you</span>
+                ) : null}
               </span>
             );
           }
@@ -319,12 +346,12 @@ export function ConceptFiveBar({
             <motion.button
               key={member.id}
               layout
-              transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+              animate={{ scale: pairComplete && active ? 1.18 : 1 }}
+              transition={{ type: 'spring', stiffness: 260, damping: 26 }}
               type="button"
               className="onex-rail-face"
               data-active={active || undefined}
               data-dim={(pairComplete && !active) || undefined}
-              style={{ '--bounce-delay': `${index * 45}ms` }}
               title={member.name}
               aria-pressed={active}
               onClick={() => {
@@ -332,21 +359,30 @@ export function ConceptFiveBar({
                 onFaceClick?.(member.id);
               }}
             >
-              {face}
+              {/* CSS animations live on this inner layer so they never
+                  fight the motion transforms on the button itself. */}
+              <span
+                className="fivex-rail-inner"
+                data-taphint={hinted || undefined}
+              >
+                <Face member={member} size={36} ringed={active} />
+                {member.id === viewerId && !hinted ? (
+                  <span className="onex-rail-you">you</span>
+                ) : null}
+                {hinted ? (
+                  <span
+                    key={`tapme-${tapHint.cycle}`}
+                    className="fivex-rail-tapme"
+                    aria-hidden="true"
+                  >
+                    Tap me
+                  </span>
+                ) : null}
+              </span>
             </motion.button>
           );
         })}
       </div>
-      {/* Fixed slot: the text swaps but never reflows the bar. */}
-      {railInteractive ? (
-        <p className="fivex-rail-hint" data-empty={!railHint || undefined}>
-          {railHint ?? '\u00a0'}
-        </p>
-      ) : (
-        <p className="fivex-rail-hint" data-empty>
-          {'\u00a0'}
-        </p>
-      )}
       <div className="fivex-tabbar" role="tablist" aria-label="Views">
         {FIVE_TABS.map((tab) => (
           <button
