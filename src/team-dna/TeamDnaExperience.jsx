@@ -230,8 +230,11 @@ export function TeamDnaExperience({
   const onePageReady = pageVariation === 'one' && conceptReadyCount >= 3;
   const fivePageReady = pageVariation === 'five' && conceptReadyCount >= 3;
   // Compare keeps the classic two-pane interaction on the tab concepts.
-  const isLensFullPage =
-    (tabsPageReady || onePageReady || fivePageReady) && tabsLens !== 'compare';
+  // V5 is full-page on EVERY lens: all three tabs share one format and the
+  // avatar rail is the only selector, so the left face field never renders.
+  const isLensFullPage = fivePageReady
+    ? true
+    : (tabsPageReady || onePageReady) && tabsLens !== 'compare';
 
   // The cinematic tap-a-face intro belongs to the two-pane layout; the
   // dashboard lenses start revealed.
@@ -459,9 +462,20 @@ export function TeamDnaExperience({
       );
     }
   };
-  // Rail faces open profiles. (Compare hides the rail and brings back the
-  // classic left-nav picking instead.)
+  // Rail faces are the selector on every tab. Individual: open that
+  // person's profile. Compare: build the pair in place — tap to add,
+  // tap again to remove, third pick swaps out the older selection.
   const handleOneFaceClick = (memberId) => {
+    if (tabsLens === 'compare') {
+      setSelectedIds((current) => {
+        if (current.includes(memberId)) {
+          return current.filter((id) => id !== memberId);
+        }
+        if (current.length >= 2) return [current[1], memberId];
+        return [...current, memberId];
+      });
+      return;
+    }
     setTabsLens('profile');
     setSelectedIds([memberId]);
   };
@@ -623,7 +637,6 @@ export function TeamDnaExperience({
           selectedTeamId={selectedTeamId}
           canManageTeam={canManageTeam}
           onTeamChange={onTeamChange}
-          onEditTeam={handleEditTeam}
           onAddTeam={onAddTeam}
           onExitToTeamHome={onExitToTeamHome}
         />
@@ -635,13 +648,7 @@ export function TeamDnaExperience({
           selectedIds={selectedIds}
           blockedAttempt={blockedAttempt}
           entityEyebrow={insight.entityEyebrow ?? insight.eyebrow}
-          // V5's compare picker: the header already names the team, so the
-          // field only takes a headline once someone is selected (their name).
-          entityTitle={
-            fivePageReady && selectedIds.length === 0
-              ? null
-              : (insight.entityTitle ?? insight.title)
-          }
+          entityTitle={insight.entityTitle ?? insight.title}
           hideConnections={peopleSelectorScaledActive && !fivePageReady}
           introActive={isIntroGateActive}
           showIntroHint={isIntroGateActive}
