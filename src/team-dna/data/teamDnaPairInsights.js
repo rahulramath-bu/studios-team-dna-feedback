@@ -43,9 +43,9 @@ const TRAIT_LANGUAGE = {
   conscientiousness: {
     label: 'approach',
     poleLabel: {
-      high: 'structured',
-      middle: 'flexible / structured',
-      low: 'flexible',
+      high: 'thorough',
+      middle: 'casual / thorough',
+      low: 'casual',
     },
     personTitle: {
       high: 'The Momentum Builder',
@@ -70,8 +70,8 @@ const TRAIT_LANGUAGE = {
     label: 'energy',
     poleLabel: {
       high: 'expressive',
-      middle: 'reflective / expressive',
-      low: 'reflective',
+      middle: 'reserved / expressive',
+      low: 'reserved',
     },
     personTitle: {
       high: 'The Activator',
@@ -96,8 +96,8 @@ const TRAIT_LANGUAGE = {
     label: 'stance with people',
     poleLabel: {
       high: 'cooperative',
-      middle: 'skeptical / cooperative',
-      low: 'skeptical',
+      middle: 'challenging / cooperative',
+      low: 'challenging',
     },
     personTitle: {
       high: 'The Warm Connector',
@@ -121,8 +121,8 @@ const TRAIT_LANGUAGE = {
   neuroticism: {
     label: 'pressure',
     poleLabel: {
-      high: 'vigilant',
-      middle: 'calm / vigilant',
+      high: 'intense',
+      middle: 'calm / intense',
       low: 'calm',
     },
     personTitle: {

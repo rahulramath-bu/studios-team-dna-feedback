@@ -58,24 +58,24 @@ export const FIVE_TABS = [
    POLE_MEANING (imported) carries the third-person-singular versions. */
 const POLE_MEANING_BASE = {
   openness: {
-    low: 'stay close to what has worked',
-    high: 'reach for new angles first',
+    low: 'favor what already works',
+    high: 'reach for new approaches first',
   },
   conscientiousness: {
-    low: 'start moving and adjust',
-    high: 'work from a plan',
+    low: 'keep it loose and adapt',
+    high: 'prepare and see things through',
   },
   extraversion: {
-    low: 'process before speaking',
-    high: 'think out loud',
+    low: 'hang back and listen first',
+    high: 'speak up and start conversations',
   },
   agreeableness: {
-    low: 'question and challenge first',
-    high: 'trust and cooperate first',
+    low: 'question and push back first',
+    high: 'lead with empathy and keep people in sync',
   },
   neuroticism: {
-    low: 'stay level under pressure',
-    high: 'sense risk early',
+    low: 'stay steady under pressure',
+    high: 'feel things strongly and react readily',
   },
 };
 

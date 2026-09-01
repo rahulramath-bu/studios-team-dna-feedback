@@ -860,28 +860,28 @@ function getPersonSpectrumReads(member) {
           : `${capitalize(subject)} is **practical / explorative**, testing new angles against what will actually hold.`,
     conscientiousness:
       conscientiousness === 'high'
-        ? `${capitalize(subject)} is **structured**, turning intent into owners, standards, and next steps.`
+        ? `${capitalize(subject)} is **thorough**, turning intent into owners, standards, and next steps.`
         : conscientiousness === 'low'
-          ? `${capitalize(subject)} is **flexible**, keeping the path loose until the work has a shape worth landing.`
-          : `${capitalize(subject)} is **flexible / structured**, using enough structure to move without making the work stiff.`,
+          ? `${capitalize(subject)} is **casual**, keeping the path loose until the work has a shape worth landing.`
+          : `${capitalize(subject)} is **casual / thorough**, using enough structure to move without making the work stiff.`,
     extraversion:
       extraversion === 'high'
         ? `${capitalize(subject)} is **expressive**, making momentum and social energy easier for the room to feel.`
         : extraversion === 'low'
-          ? `${capitalize(subject)} is **reflective**, building energy quietly before it becomes visible contribution.`
-          : `${capitalize(subject)} is **reflective / expressive**, moving between quiet processing and active participation.`,
+          ? `${capitalize(subject)} is **reserved**, building energy quietly before it becomes visible contribution.`
+          : `${capitalize(subject)} is **reserved / expressive**, moving between quiet processing and active participation.`,
     agreeableness:
       agreeableness === 'high'
         ? `${capitalize(subject)} is **cooperative**, protecting trust, tone, and the room around the work.`
         : agreeableness === 'low'
-          ? `${capitalize(subject)} is **skeptical**, questioning assumptions even when the room gets less comfortable.`
-          : `${capitalize(subject)} is **skeptical / cooperative**, pairing useful challenge with care for how it lands.`,
+          ? `${capitalize(subject)} is **challenging**, questioning assumptions even when the room gets less comfortable.`
+          : `${capitalize(subject)} is **challenging / cooperative**, pairing useful challenge with care for how it lands.`,
     neuroticism:
       neuroticism === 'high'
-        ? `${capitalize(subject)} is **vigilant**, noticing risk early and looking for what needs protection.`
+        ? `${capitalize(subject)} is **intense**, feeling things strongly and reacting early when something needs protection.`
         : neuroticism === 'low'
           ? `${capitalize(subject)} is **calm**, helping the room keep perspective under pressure.`
-          : `${capitalize(subject)} is **calm / vigilant**, reading pressure without letting it run the room.`,
+          : `${capitalize(subject)} is **calm / intense**, reading pressure without letting it run the room.`,
   };
 }
 
@@ -974,10 +974,10 @@ function makePairInsight(first, second) {
     ],
     spectrumReads: {
       openness: `${higherOpenness} is more **explorative** here, stretching the frame while ${lowerOpenness} keeps the idea more practical.`,
-      conscientiousness: `${higherStructure} is more **structured** here, wanting the path clear while ${lowerStructure} keeps more flexibility.`,
-      extraversion: `${higherEnergy} is more **expressive** here, while ${lowerEnergy} brings a more reflective first pass.`,
-      agreeableness: `${warmer} is more **cooperative** here, while ${moreDirect} brings a more skeptical test of the idea.`,
-      neuroticism: `${moreVigilant} is more **vigilant** here, catching the early signal while ${steadier} brings steadier perspective.`,
+      conscientiousness: `${higherStructure} is more **thorough** here, wanting the path clear while ${lowerStructure} keeps it more casual.`,
+      extraversion: `${higherEnergy} is more **expressive** here, while ${lowerEnergy} brings a more reserved first pass.`,
+      agreeableness: `${warmer} is more **cooperative** here, while ${moreDirect} brings a more challenging test of the idea.`,
+      neuroticism: `${moreVigilant} is more **intense** here, catching the early signal while ${steadier} brings steadier perspective.`,
     },
     watchOut: makeWatchOut([
       {
@@ -1039,10 +1039,10 @@ export function makeMockTeamDnaGeneratedInsights({ team, members }) {
       ],
       spectrumReads: {
         openness: 'This team is **explorative**, generating lots of options before settling on one to test.',
-        conscientiousness: 'This team is **structured**, and works best when "done" is named early and handoffs are explicit.',
-        extraversion: 'This team is **reflective / expressive**, so quieter people should be asked before decisions close.',
-        agreeableness: 'This team is **skeptical / cooperative**, so honest challenge and trust both need room.',
-        neuroticism: 'This team is **vigilant**, and works best when risks are turned into decisions early.',
+        conscientiousness: 'This team is **thorough**, and works best when "done" is named early and handoffs are explicit.',
+        extraversion: 'This team is **reserved / expressive**, so quieter people should be asked before decisions close.',
+        agreeableness: 'This team is **challenging / cooperative**, so honest challenge and trust both need room.',
+        neuroticism: 'This team is **intense**, and works best when risks are turned into decisions early.',
       },
       watchOut: makeWatchOut([
         {
