@@ -88,7 +88,7 @@ const PATTERN_SENTENCES = {
     leansLow: 'This team processes before it speaks; silence is deliberation, not agreement.',
     tight: 'The room shares one rhythm, so air time mostly takes care of itself.',
     spread: 'Some start the conversation, some distill it; air time skews unless someone stewards it.',
-    twoCamps: 'The vocal half decides in the meeting, the reflective half after it. Both decisions count.',
+    twoCamps: 'The vocal half decides in the meeting, the reserved half after it. Both decisions count.',
     outlier: 'One voice carries a different rhythm from the room; make deliberate space for it.',
   },
   agreeableness: {
@@ -100,10 +100,10 @@ const PATTERN_SENTENCES = {
     outlier: 'One person gives and takes feedback very differently from the rest; calibrate before judging.',
   },
   neuroticism: {
-    leansHigh: 'Risks get spotted early here; shared vigilance can tip into shared anxiety under load.',
+    leansHigh: 'Risks get spotted early here; shared intensity can tip into shared anxiety under load.',
     leansLow: 'Pressure stays regulated; early warnings can get waved off as worry, so give them a channel.',
     tight: 'The team reads pressure the same way, so escalations rarely surprise anyone.',
-    spread: 'Calm and vigilant read the same week differently; treat the flag as data and the calm as ballast.',
+    spread: 'Calm and intense read the same week differently; treat the flag as data and the calm as ballast.',
     twoCamps: 'Built-in early warning and built-in ballast; under pressure the halves need a translation layer.',
     outlier: 'One person senses risk on a different frequency; their flag deserves a listen before a verdict.',
   },
@@ -353,9 +353,9 @@ const POLE_VALUE_PHRASES = {
 const GROWTH_EDGE_TITLES = {
   openness: 'A mix of practical + explorative thinkers needs a named decision point',
   conscientiousness: 'A mix of planners + improvisers needs an explicit agreement',
-  extraversion: 'A mix of reflective + expressive voices needs intentional space',
-  agreeableness: 'A mix of challengers + harmonizers needs feedback ground rules',
-  neuroticism: 'A mix of calm + vigilant reads needs a shared risk channel',
+  extraversion: 'A mix of reserved + expressive voices needs intentional space',
+  agreeableness: 'A mix of challengers + connectors needs feedback ground rules',
+  neuroticism: 'A mix of calm + intense reads needs a shared risk channel',
 };
 
 function teamHash(subjects) {

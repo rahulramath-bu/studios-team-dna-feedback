@@ -404,8 +404,8 @@ export function WorkingStylesStage({
         .attr('y2', baseline + 3)
         .attr('stroke', 'rgba(30,26,38,0.28)');
     });
-    // One tag per position so the scale is speakable: "strongly fast",
-    // "leans fast", "flexible"... Text is set per-question in
+    // One tag per position so the scale is speakable: "strong pace",
+    // "moderate pace", "neutral"... Text is set per-question in
     // positionMembers.
     BUCKET_ORDER.forEach((bucket) => {
       svg
@@ -694,13 +694,14 @@ function positionMembers(svg, subjects, item, geometry, focusIds, animate) {
   });
 
   // Two-line tags (modifier over pole word) so neighbours never collide;
-  // every pole word shares the second baseline.
+  // every pole word shares the second baseline. Wording follows the
+  // assessment doc's scale: strong / moderate / neutral / moderate / strong.
   const tags = {
-    5: ['Strongly', item.aPole],
-    4: ['Leans', item.aPole],
-    3: ['', 'Flexible'],
-    2: ['Leans', item.bPole],
-    1: ['Strongly', item.bPole],
+    5: ['Strong', item.scaleA ?? item.aPole],
+    4: ['Moderate', item.scaleA ?? item.aPole],
+    3: ['', 'Neutral'],
+    2: ['Moderate', item.scaleB ?? item.bPole],
+    1: ['Strong', item.scaleB ?? item.bPole],
   };
   svg.selectAll('.wst-tag').each(function setTag() {
     const node = d3.select(this);

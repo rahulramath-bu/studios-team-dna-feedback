@@ -362,24 +362,24 @@ export function getSectionBasis({
    Big Five. Traits explain; they do not drill into items. */
 export const POLE_MEANING = {
   openness: {
-    low: 'stays close to what has worked',
-    high: 'reaches for new angles first',
+    low: 'favors what already works',
+    high: 'reaches for new approaches first',
   },
   conscientiousness: {
-    low: 'starts moving and adjusts',
-    high: 'works from a plan',
+    low: 'keeps it loose and adapts',
+    high: 'prepares and sees things through',
   },
   extraversion: {
-    low: 'processes before speaking',
-    high: 'thinks out loud',
+    low: 'hangs back and listens first',
+    high: 'speaks up and starts conversations',
   },
   agreeableness: {
-    low: 'questions and challenges first',
-    high: 'trusts and cooperates first',
+    low: 'questions and pushes back first',
+    high: 'leads with empathy and keeps people in sync',
   },
   neuroticism: {
-    low: 'stays level under pressure',
-    high: 'senses risk early',
+    low: 'stays steady under pressure',
+    high: 'feels things strongly and reacts readily',
   },
 };
 

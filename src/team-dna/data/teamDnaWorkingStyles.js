@@ -6,7 +6,7 @@ import { getBigFiveScore } from './bigFiveTraits.js';
  * What: the ten "I prefer X rather than Y" items, grouped into the four
  * categories from the assessment doc. Single items are the layer that
  * legitimately shows a distribution (unlike Big Five traits), reported on
- * the 5-point scale as strong / lean / neutral / lean / strong.
+ * the 5-point scale as strong / moderate / neutral / moderate / strong.
  * How: the prototype has no real answers yet, so each member's response is
  * derived deterministically from their Big Five plus a stable per-item
  * jitter. When real assessment data lands, swap `getWorkingPosition` and
@@ -29,6 +29,9 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'work deliberately',
         aPole: 'Fast',
         bPole: 'Deliberate',
+        // Scale nouns from the assessment doc: strong/moderate per pole.
+        scaleA: 'Pace',
+        scaleB: 'Deliberate',
         anchors: [
           { trait: 'conscientiousness', dir: 'low', weight: 0.7 },
           { trait: 'extraversion', dir: 'high', weight: 0.3 },
@@ -41,7 +44,9 @@ export const WORKING_STYLE_CATEGORIES = [
         aWord: 'decide by group consensus',
         bWord: 'have one person decide',
         aPole: 'Consensus',
-        bPole: 'One decider',
+        bPole: 'Unilateral',
+        scaleA: 'Consensus',
+        scaleB: 'Unilateral',
         anchors: [{ trait: 'agreeableness', dir: 'high', weight: 1 }],
       },
     ],
@@ -59,6 +64,8 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'keep it casual',
         aPole: 'Structured',
         bPole: 'Casual',
+        scaleA: 'Structure',
+        scaleB: 'Casual',
         anchors: [{ trait: 'conscientiousness', dir: 'high', weight: 1 }],
       },
       {
@@ -69,6 +76,8 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'touch base occasionally',
         aPole: 'Frequent',
         bPole: 'Occasional',
+        scaleA: 'Frequent',
+        scaleB: 'Occasional',
         anchors: [
           { trait: 'neuroticism', dir: 'high', weight: 0.6 },
           { trait: 'extraversion', dir: 'high', weight: 0.4 },
@@ -89,6 +98,8 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'work mostly async',
         aPole: 'Live',
         bPole: 'Async',
+        scaleA: 'Live',
+        scaleB: 'Async',
         anchors: [{ trait: 'extraversion', dir: 'high', weight: 1 }],
       },
       {
@@ -99,6 +110,8 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'divide it into independent parts',
         aPole: 'Shared',
         bPole: 'Independent',
+        scaleA: 'Shared',
+        scaleB: 'Independent',
         anchors: [
           { trait: 'agreeableness', dir: 'high', weight: 0.6 },
           { trait: 'extraversion', dir: 'high', weight: 0.4 },
@@ -119,6 +132,8 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'soften it',
         aPole: 'Direct',
         bPole: 'Softened',
+        scaleA: 'Direct',
+        scaleB: 'Softened',
         anchors: [{ trait: 'agreeableness', dir: 'low', weight: 1 }],
       },
       {
@@ -129,6 +144,8 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'give them room to resolve',
         aPole: 'Raise it',
         bPole: 'Let it settle',
+        scaleA: 'Raise',
+        scaleB: 'Settle',
         anchors: [
           { trait: 'extraversion', dir: 'high', weight: 0.5 },
           { trait: 'agreeableness', dir: 'low', weight: 0.5 },
@@ -149,6 +166,8 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'juggle several at once',
         aPole: 'One task',
         bPole: 'Juggle',
+        scaleA: 'Single-task',
+        scaleB: 'Multitask',
         anchors: [
           { trait: 'conscientiousness', dir: 'high', weight: 0.7 },
           { trait: 'openness', dir: 'low', weight: 0.3 },
@@ -162,6 +181,8 @@ export const WORKING_STYLE_CATEGORIES = [
         bWord: 'polish it first',
         aPole: 'Early',
         bPole: 'Polished',
+        scaleA: 'Early',
+        scaleB: 'Polished',
         anchors: [
           { trait: 'neuroticism', dir: 'low', weight: 0.5 },
           { trait: 'openness', dir: 'high', weight: 0.5 },
