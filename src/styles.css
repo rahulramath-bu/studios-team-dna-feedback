@@ -11902,16 +11902,21 @@ strong.fvx-role--secondary {
   margin-top: 34px;
 }
 
-/* Static item description: the assessment item with the "I" dropped.
-   Gestalt grouping: it hangs TIGHT under the topic pills (it describes the
-   selected topic), and the insight block below gets the big gap. */
+/* Static item description: the selected topic defined by name. Gestalt
+   grouping: it hangs TIGHT under the topic pills, at the page's standard
+   body size, and the insight block below gets the big gap. */
 .wstage-item-desc {
-  margin: 12px 0 0;
+  margin: 10px 0 0;
   max-width: 820px;
   color: #717070;
-  font-size: 13.5px;
+  font-size: 14px;
   letter-spacing: 0.1px;
-  line-height: 20px;
+  line-height: 21px;
+}
+
+.wstage-item-desc strong {
+  color: #1e1a26;
+  font-weight: 600;
 }
 
 .wstage-svg {

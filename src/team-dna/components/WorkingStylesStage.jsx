@@ -618,10 +618,15 @@ export function WorkingStylesStage({
                   </button>
                 ))}
               </div>
-              {/* Static, deterministic: the assessment item with the "I"
-                  dropped, so the chart has a definition to hang on. */}
+              {/* Static, deterministic: the selected topic defined by name,
+                  dictionary-style, so the line is unmistakably about the
+                  active pill. */}
               {active.description ? (
-                <p className="wstage-item-desc">{active.description}</p>
+                <p className="wstage-item-desc">
+                  <strong>{active.label}</strong> {'\u2014'}{' '}
+                  {active.description.charAt(0).toLowerCase() +
+                    active.description.slice(1)}
+                </p>
               ) : null}
               {readText ? (
                 <>
