@@ -11894,6 +11894,17 @@ strong.fvx-role--secondary {
   margin-top: 26px;
 }
 
+/* Static item description: the assessment item with the "I" dropped. Sits
+   between the topic picker and the insight so the chart has a definition. */
+.wstage-item-desc {
+  margin: 18px 0 0;
+  max-width: 820px;
+  color: #717070;
+  font-size: 13px;
+  letter-spacing: 0.1px;
+  line-height: 19px;
+}
+
 .wstage-svg {
   display: block;
   width: 100%;

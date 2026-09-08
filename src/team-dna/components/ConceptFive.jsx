@@ -742,6 +742,32 @@ function TraitRows({
    discussion questions. */
 /* One conversation-starter per strength pattern: strengths should prompt
    discussion too, not just usage tips. */
+/* Reflection questions: how has this strength shown up for us before?
+   Paired with one application question per the Sep 1 prompting decision
+   (reflect on past use, then apply to current work — two questions total). */
+const STRENGTH_REFLECTIONS = {
+  'openness:high':
+    'When did a fresh angle from this team last change an outcome?',
+  'openness:low':
+    'When did sticking to a proven approach last save us time or pain?',
+  'conscientiousness:high':
+    'Where has our follow-through turned a messy project around?',
+  'conscientiousness:low':
+    'When did our flexibility last turn a surprise into a win?',
+  'extraversion:high':
+    'When did talking something out live last unblock the team?',
+  'extraversion:low':
+    'When did quiet, written thinking last produce our best call?',
+  'agreeableness:high':
+    'Where has early trust-building paid off on past work?',
+  'agreeableness:low':
+    'When did hard pushback last save us from a bad path?',
+  'neuroticism:high':
+    'Which early warning from this team turned out to matter most?',
+  'neuroticism:low':
+    'When did staying calm under pressure last carry a launch?',
+};
+
 const STRENGTH_QUESTIONS = {
   'openness:high':
     'Which current problem deserves a genuinely new approach from us?',
@@ -860,18 +886,22 @@ function OverviewView({
   );
   const traitsLead = getTraitsLead(strips);
 
-  // Two claims per card, then ONE group of three questions each: both
-  // cards prompt conversation the same way, only the heading differs.
+  // Two claims per card, then exactly TWO questions each (Sep 3 decision).
+  // Strengths pair a reflection (how has this helped us before) with an
+  // application (where to use it on current work), both tied to the claims.
   const strengthQuestions = [
+    STRENGTH_REFLECTIONS[itemKey(chem.strengths[0] ?? {})],
     ...chem.strengths
-      .map((item) => STRENGTH_QUESTIONS[itemKey(item)])
-      .filter(Boolean),
-    'Which current project would benefit most from these strengths?',
-  ].slice(0, 3);
-  const growthQuestions = [
-    ...chem.watchOuts.map((item) => GROWTH_QUESTIONS[itemKey(item)]).filter(Boolean),
-    'Which of these would bite first on the current work?',
-  ].slice(0, 3);
+      .slice(1)
+      .map((item) => STRENGTH_QUESTIONS[itemKey(item)]),
+    STRENGTH_QUESTIONS[itemKey(chem.strengths[0] ?? {})],
+  ]
+    .filter(Boolean)
+    .slice(0, 2);
+  const growthQuestions = chem.watchOuts
+    .map((item) => GROWTH_QUESTIONS[itemKey(item)])
+    .filter(Boolean)
+    .slice(0, 2);
 
   return (
     <div className="fivex-stack" aria-label="Team profile">
@@ -1143,8 +1173,8 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
           </div>
           {synthesis ? (
             <div className="fvx-persona">
-              <p className="fvx-persona-title">{synthesis.title}</p>
-              <p className="fvx-persona-body">{firstSentence(personaBody)}</p>
+              {/* No invented persona titles (Sep 3): lead with the two
+                  deterministic team roles, then the generated summary. */}
               {roles ? (
                 <p className="fvx-persona-body">
                   In team meetings, {isOwn ? 'your' : `${name}\u2019s`} primary
@@ -1159,12 +1189,16 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
                   .
                 </p>
               ) : null}
+              <p className="fvx-persona-body">{firstSentence(personaBody)}</p>
             </div>
           ) : null}
-          {/* Separate section, same type system: mono kicker + sans body. */}
+          {/* Separate section, same type system: mono kicker + sans body.
+              "Where you fit" is P1: per-team storage needs its own model
+              (Sep 3), so the block stays in the design tagged P1. */}
           <div className="fvx-fit">
             <p className="fvc-kicker fvc-kicker--tight">
               Where {isOwn ? 'you fit' : `${name} fits`}
+              <span className="demo-new-pill demo-new-pill--p1">P1</span>
             </p>
             <p className="fvx-persona-body fvx-persona-body--flush">
               {ordinal ? (
@@ -1348,10 +1382,9 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
               </strong>
             </div>
           </div>
+          {/* No invented pair names and no "Worth knowing" block (Sep 3):
+              the summary and its best-for line carry the read. */}
           <div className="fvx-persona">
-            <p className="fvx-persona-title">
-              {synthesis?.title ?? meaning.short}
-            </p>
             <p className="fvx-persona-body">
               {synthesis?.summary ??
                 `${firstSentence(meaning.line)}${strengths[0] ? ` ${firstSentence(strengths[0].body)}` : ''}`}
@@ -1364,14 +1397,6 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
               </p>
             ) : null}
           </div>
-          {synthesis ? (
-            <div className="fvx-fit">
-              <p className="fvc-kicker fvc-kicker--tight">Worth knowing</p>
-              <p className="fvx-persona-body fvx-persona-body--flush">
-                {synthesis.watchOut}
-              </p>
-            </div>
-          ) : null}
         </section>
         <section className="fvc">
           <h2 className="fvc-title">
