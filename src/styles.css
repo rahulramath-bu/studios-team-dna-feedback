@@ -357,12 +357,14 @@ html {
   font-size: 8px;
 }
 
+/* P1 pill: bright, so nobody mistakes a P1 block for shipped scope. */
 .demo-new-pill--p1 {
   margin-left: 6px;
   padding: 1px 5px;
-  background: rgba(30, 26, 38, 0.08);
-  color: #717070;
+  background: #ffd60a;
+  color: #1e1a26;
   font-size: 8px;
+  cursor: help;
 }
 
 .monolith-persona-menu-sep {
@@ -11829,6 +11831,12 @@ strong.fvx-role--secondary {
   border-color: transparent;
 }
 
+/* Mouse clicks shouldn't leave the gold focus ring on the pill (it made
+   the same pill look different across tabs); keyboard focus keeps it. */
+.wstage-row:focus:not(:focus-visible) {
+  outline: none;
+}
+
 .wstage-row[data-active] {
   background: #1e1a26;
   border-color: #1e1a26;
@@ -11891,18 +11899,19 @@ strong.fvx-role--secondary {
 }
 
 .wstage-side .wstage-insight-label {
-  margin-top: 26px;
+  margin-top: 34px;
 }
 
-/* Static item description: the assessment item with the "I" dropped. Sits
-   between the topic picker and the insight so the chart has a definition. */
+/* Static item description: the assessment item with the "I" dropped.
+   Gestalt grouping: it hangs TIGHT under the topic pills (it describes the
+   selected topic), and the insight block below gets the big gap. */
 .wstage-item-desc {
-  margin: 18px 0 0;
+  margin: 12px 0 0;
   max-width: 820px;
   color: #717070;
-  font-size: 13px;
+  font-size: 13.5px;
   letter-spacing: 0.1px;
-  line-height: 19px;
+  line-height: 20px;
 }
 
 .wstage-svg {
@@ -11928,7 +11937,7 @@ strong.fvx-role--secondary {
 }
 
 .wstage-read {
-  margin: 18px 0 0;
+  margin: 10px 0 0;
   max-width: 820px;
   color: #1e1a26;
   font-size: 14px;

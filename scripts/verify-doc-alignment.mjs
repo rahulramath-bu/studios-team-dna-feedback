@@ -90,7 +90,7 @@ await checkStale('team');
 ok('team tab poles');
 
 // Walk all 5 working-style categories and every topic; collect scale tags.
-const CATS = ['PACE', 'STRUCTURE', 'COLLABORATION', 'COMMUNICATION', 'APPROACH'];
+const CATS = ['PACE', 'STRUCTURE', 'COLLABORATION', 'FEEDBACK', 'FOCUS'];
 for (const cat of CATS) {
   await page.$$eval(
     '.wstage-cats button, .wstage-tabs button, .wstage button',

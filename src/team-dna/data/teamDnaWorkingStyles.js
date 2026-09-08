@@ -45,7 +45,7 @@ export const WORKING_STYLE_CATEGORIES = [
         stake: 'Meetings drag when consensus people and one-decider people don’t know which game they’re playing.',
         label: 'Decisions',
         description:
-          'Preference to decide by group consensus rather than have one person decide.',
+          'Preference for decisions made by group consensus rather than one person deciding.',
         aWord: 'decide by group consensus',
         bWord: 'have one person decide',
         aPole: 'Consensus',
@@ -66,10 +66,10 @@ export const WORKING_STYLE_CATEGORIES = [
         stake: 'The same plan reads as clarity to one half of this room and as red tape to the other.',
         label: 'Structure',
         description:
-          'Preference for clear structure rather than a casual approach to work.',
+          'Preference for clear structure rather than a more casual approach to work.',
         aWord: 'work from clear structure',
         bWord: 'keep it casual',
-        aPole: 'Structured',
+        aPole: 'Structure',
         bPole: 'Casual',
         scaleA: 'Structure',
         scaleB: 'Casual',
@@ -80,12 +80,12 @@ export const WORKING_STYLE_CATEGORIES = [
         stake: 'The same check-in reads as support to one person and surveillance to another.',
         label: 'Check-ins',
         description:
-          'Preference to check in frequently rather than touch base occasionally.',
+          'Preference for frequent check-ins rather than occasional touchpoints.',
         aWord: 'check in frequently',
         bWord: 'touch base occasionally',
         aPole: 'Frequent',
         bPole: 'Occasional',
-        scaleA: 'Frequent',
+        scaleA: 'Guidance',
         scaleB: 'Occasional',
         anchors: [
           { trait: 'neuroticism', dir: 'high', weight: 0.6 },
@@ -96,20 +96,20 @@ export const WORKING_STYLE_CATEGORIES = [
   },
   {
     key: 'collaboration',
-    label: 'Collaboration',
-    sub: 'How closely the team works together and shares ownership.',
+    label: 'Collaboration & ownership',
+    sub: 'How the team collaborates and shares work.',
     items: [
       {
         key: 'closeness',
         stake: 'A calendar invite feels like collaboration to half this room and interruption to the other half.',
-        label: 'Working together',
+        label: 'Collaboration',
         description:
           'Preference to communicate and work closely with others rather than mostly async.',
         aWord: 'work closely and live',
         bWord: 'work mostly async',
-        aPole: 'Live',
+        aPole: 'Collaboration',
         bPole: 'Async',
-        scaleA: 'Live',
+        scaleA: 'Collaboration',
         scaleB: 'Async',
         anchors: [{ trait: 'extraversion', dir: 'high', weight: 1 }],
       },
@@ -118,13 +118,13 @@ export const WORKING_STYLE_CATEGORIES = [
         stake: 'Sharers feel abandoned when work is divided up; dividers feel crowded when it isn’t.',
         label: 'Ownership',
         description:
-          'Preference for work that is tightly shared with teammates rather than divided into independent parts.',
+          'Preference for work that\u2019s tightly shared with teammates rather than work divided into independent parts.',
         aWord: 'share work tightly',
         bWord: 'divide it into independent parts',
-        aPole: 'Shared',
-        bPole: 'Independent',
-        scaleA: 'Shared',
-        scaleB: 'Independent',
+        aPole: 'Integration',
+        bPole: 'Division',
+        scaleA: 'Integration',
+        scaleB: 'Division',
         anchors: [
           { trait: 'agreeableness', dir: 'high', weight: 0.6 },
           { trait: 'extraversion', dir: 'high', weight: 0.4 },
@@ -134,21 +134,21 @@ export const WORKING_STYLE_CATEGORIES = [
   },
   {
     key: 'communication',
-    label: 'Communication',
-    sub: 'How the team gives feedback and handles disagreement.',
+    label: 'Feedback style & disagreements',
+    sub: 'How the team communicates and handles conflict.',
     items: [
       {
         key: 'directness',
         stake: 'The same sentence lands as honesty for some and harshness for others — name which one you’re using.',
         label: 'Feedback style',
         description:
-          'Preference for feedback that is direct and candid rather than softened.',
+          'Preference for direct, candid communication rather than more indirect and softened communication.',
         aWord: 'give it direct and candid',
         bWord: 'soften it',
         aPole: 'Direct',
-        bPole: 'Softened',
+        bPole: 'Indirect',
         scaleA: 'Direct',
-        scaleB: 'Softened',
+        scaleB: 'Indirect',
         anchors: [{ trait: 'agreeableness', dir: 'low', weight: 1 }],
       },
       {
@@ -156,13 +156,13 @@ export const WORKING_STYLE_CATEGORIES = [
         stake: 'Raisers hear silence as agreement; settlers hear pushing as aggression.',
         label: 'Disagreements',
         description:
-          'Preference to raise disagreements directly rather than give them room to resolve.',
+          'Preference to raise disagreements directly over giving them room to resolve on their own.',
         aWord: 'raise them directly',
         bWord: 'give them room to resolve',
-        aPole: 'Raise it',
-        bPole: 'Let it settle',
+        aPole: 'Raise',
+        bPole: 'Resolve',
         scaleA: 'Raise',
-        scaleB: 'Settle',
+        scaleB: 'Resolve',
         anchors: [
           { trait: 'extraversion', dir: 'high', weight: 0.5 },
           { trait: 'agreeableness', dir: 'low', weight: 0.5 },
@@ -172,7 +172,7 @@ export const WORKING_STYLE_CATEGORIES = [
   },
   {
     key: 'approach',
-    label: 'Approach to work',
+    label: 'Focus & sharing work',
     sub: 'How the team does their work.',
     items: [
       {
@@ -180,13 +180,13 @@ export const WORKING_STYLE_CATEGORIES = [
         stake: 'Switching costs are invisible to jugglers and expensive for one-taskers.',
         label: 'Focus',
         description:
-          'Preference to concentrate on one task rather than juggle several at once.',
+          'Preference to concentrate on one task at a time rather than juggle several at once.',
         aWord: 'concentrate on one task',
         bWord: 'juggle several at once',
-        aPole: 'One task',
-        bPole: 'Juggle',
-        scaleA: 'Single-task',
-        scaleB: 'Multitask',
+        aPole: 'Focus',
+        bPole: 'Juggling',
+        scaleA: 'Focus',
+        scaleB: 'Juggling',
         anchors: [
           { trait: 'conscientiousness', dir: 'high', weight: 0.7 },
           { trait: 'openness', dir: 'low', weight: 0.3 },
@@ -197,13 +197,13 @@ export const WORKING_STYLE_CATEGORIES = [
         stake: 'Early sharers read polish as slowness; polishers read rough drafts as carelessness.',
         label: 'Sharing work',
         description:
-          'Preference to share work early and rough rather than polish it first.',
+          'Preference to share work early and improve it through feedback rather than polish it before showing others.',
         aWord: 'share it early and rough',
         bWord: 'polish it first',
-        aPole: 'Early',
-        bPole: 'Polished',
-        scaleA: 'Early',
-        scaleB: 'Polished',
+        aPole: 'Share early',
+        bPole: 'Polish',
+        scaleA: 'Share early',
+        scaleB: 'Polish',
         anchors: [
           { trait: 'neuroticism', dir: 'low', weight: 0.5 },
           { trait: 'openness', dir: 'high', weight: 0.5 },
@@ -289,6 +289,8 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
       : `**${subject} would rather ${word(firstSide)}** — most of the room goes the other way, so ${isOwn ? 'name your mode out loud' : 'that difference is worth naming out loud'} before it reads as friction.`;
   }
 
+  // Pair reads: direct comparison, and the action is always to AGREE —
+  // never a verdict on whose mode is better (Sep 1 prompting decision).
   const secondSide = sideOfBucket(getWorkingBucket(second, reportItem));
   const a = shortName(first);
   const b = shortName(second);
@@ -296,13 +298,13 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
     return `${a} and ${b} both flex on ${reportItem.label.toLowerCase()}; no agreement needed.`;
   }
   if (firstSide === secondSide) {
-    return `${a} and ${b} both would rather ${word(firstSide)}: aligned here, no friction.`;
+    return `${a} and ${b} both would rather ${word(firstSide)}: aligned here — worth asking what the other mode would catch.`;
   }
   if (firstSide === 'mid' || secondSide === 'mid') {
     const anchored = firstSide === 'mid' ? b : a;
     const anchoredSide = firstSide === 'mid' ? secondSide : firstSide;
     const flexer = firstSide === 'mid' ? a : b;
-    return `${flexer} can go either way; ${anchored} would rather ${word(anchoredSide)}. Easiest: default to ${anchored}'s mode.`;
+    return `${flexer} can go either way; ${anchored} would rather ${word(anchoredSide)}. Agree together which mode this work needs.`;
   }
   return `${a} would rather ${word(firstSide)}, ${b} would rather ${word(secondSide)}. Agree whose mode wins before it matters.`;
 }

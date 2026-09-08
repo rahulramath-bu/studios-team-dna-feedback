@@ -772,17 +772,17 @@ const STRENGTH_QUESTIONS = {
   'openness:high':
     'Which current problem deserves a genuinely new approach from us?',
   'openness:low':
-    'Which proven playbook of ours should we double down on right now?',
+    'Which proven playbook should we double down on now?',
   'conscientiousness:high':
     'Which commitment matters most to protect this quarter?',
   'conscientiousness:low':
-    'Where has our flexibility saved a project recently, and how do we repeat it?',
+    'Where has our flexibility recently saved a project?',
   'extraversion:high':
     'Which stalled question should we just talk out live this week?',
   'extraversion:low':
     'Which decision deserves a written round of thinking before we meet?',
   'agreeableness:high':
-    'Where would early buy-in change the outcome of our current work?',
+    'Where would early buy-in change our current work?',
   'agreeableness:low':
     'Which plan needs our toughest pre-ship critique next?',
   'neuroticism:high':
@@ -803,7 +803,7 @@ const GROWTH_QUESTIONS = {
   'conscientiousness:low':
     'Where does \u201cdone\u201d need a harder definition than it has today?',
   'conscientiousness:wide':
-    'Who defines \u201cdone\u201d on our current work, and does everyone agree?',
+    'Who defines \u201cdone\u201d on our current work?',
   'extraversion:high': 'Who writes the decision down once the discussion ends?',
   'extraversion:low':
     'Where do decisions stall because nobody pushes them out loud?',
@@ -817,7 +817,7 @@ const GROWTH_QUESTIONS = {
     'Which current worry deserves a named owner instead of a vague hope?',
   'neuroticism:low': 'What early-warning signal would we notice too late right now?',
   'neuroticism:wide':
-    'When someone flags a risk, what happens next: owned, logged, or lost?',
+    'When someone flags a risk, what happens next?',
 };
 
 const itemKey = (item) => `${item.traitKey}:${item.type}`;
@@ -995,8 +995,8 @@ function OverviewView({
         <h2 className="fvc-title">How you like to work</h2>
         <p className="fvc-lead">
           How this team actually prefers to work: pace, structure,
-          collaboration, communication, and approach. Pick a topic to see
-          where everyone stands &mdash; and where the room splits, agree on a
+          collaboration, feedback, and focus. Pick a topic to see where
+          everyone stands &mdash; and where the room splits, agree on a
           default.
         </p>
         <section className="fvc">
@@ -1197,8 +1197,13 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
               (Sep 3), so the block stays in the design tagged P1. */}
           <div className="fvx-fit">
             <p className="fvc-kicker fvc-kicker--tight">
-              Where {isOwn ? 'you fit' : `${name} fits`}
-              <span className="demo-new-pill demo-new-pill--p1">P1</span>
+              Where {isOwn ? 'you fit' : `${name} fits`} in this team
+              <span
+                className="demo-new-pill demo-new-pill--p1"
+                title="Not in P0 scope"
+              >
+                P1
+              </span>
             </p>
             <p className="fvx-persona-body fvx-persona-body--flush">
               {ordinal ? (

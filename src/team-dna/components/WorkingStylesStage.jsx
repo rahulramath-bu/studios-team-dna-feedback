@@ -565,7 +565,10 @@ export function WorkingStylesStage({
                 >
                   {label}
                   {id === 'map' ? (
-                    <span className="demo-new-pill demo-new-pill--p1">
+                    <span
+                      className="demo-new-pill demo-new-pill--p1"
+                      title="Not in P0 scope"
+                    >
                       P1
                     </span>
                   ) : null}
