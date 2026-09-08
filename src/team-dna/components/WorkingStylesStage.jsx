@@ -492,8 +492,8 @@ export function WorkingStylesStage({
   }, [active, subjects, geometry, focusKey, compactView]);
 
   const activeRead = readByKey.get(active.key);
-  // Focused views read personally: one person against the room (structured
-  // like the team insight), or a pair against each other (one line).
+  // Focused views read personally: one person against the room, or a pair
+  // against each other. Every view carries exactly ONE insight (Sep 3).
   const focusMembers = focusIds
     .map((id) => subjects.find((member) => member.id === id))
     .filter(Boolean);
@@ -501,14 +501,16 @@ export function WorkingStylesStage({
     activeRead && focusMembers.length > 0
       ? getFocusRead(activeRead, focusMembers, { isOwn: focusIsViewer })
       : null;
-  // Flat string for the coach prompt, whatever shape the read takes.
-  const readText = activeRead
-    ? focusRead
-      ? typeof focusRead === 'string'
-        ? focusRead
-        : [focusRead.headline, ...focusRead.bullets].join(' ')
-      : activeRead.read
-    : null;
+  const readText = activeRead ? (focusRead ?? activeRead.read) : null;
+  // Static heading over the insight — the heading is never the insight.
+  const insightLabel =
+    focusMembers.length === 2
+      ? 'Pair insight'
+      : focusMembers.length === 1
+        ? focusIsViewer
+          ? 'Your insight'
+          : `${focusMembers[0].name.split(' ')[0]}\u2019s insight`
+        : 'Team insight';
 
   const activeCategory =
     WORKING_STYLE_CATEGORIES.find((category) =>
@@ -613,33 +615,18 @@ export function WorkingStylesStage({
                   </button>
                 ))}
               </div>
+              {/* Static, deterministic: the assessment item with the "I"
+                  dropped, so the chart has a definition to hang on. */}
+              {active.description ? (
+                <p className="wstage-item-desc">{active.description}</p>
+              ) : null}
               {readText ? (
                 <>
                   <p className="wstage-group-label wstage-insight-label">
-                    {focusMembers.length > 0 ? 'Insight' : 'Team insight'}
+                    {insightLabel}
                   </p>
-                  {focusRead && typeof focusRead === 'string' ? (
-                    <p className="wstage-read">{renderEmphasis(focusRead)}</p>
-                  ) : (
-                    <>
-                      {/* Same structure everywhere: headline, then bullets. */}
-                      <p className="wstage-read">
-                        {renderEmphasis(
-                          focusRead ? focusRead.headline : activeRead.headline
-                        )}
-                      </p>
-                      <ul className="wsmap-notes">
-                        {(focusRead
-                          ? focusRead.bullets
-                          : activeRead.bullets
-                        ).map((bullet, index) => (
-                          <li key={index} className="wsb-read">
-                            {renderEmphasis(bullet)}
-                          </li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
+                  {/* ONE insight per view: team, person, or pair. */}
+                  <p className="wstage-read">{renderEmphasis(readText)}</p>
                   {onCoachPrompt ? (
                     <CoachFootLink
                       label="Dive deeper with AI coach"

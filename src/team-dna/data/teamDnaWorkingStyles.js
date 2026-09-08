@@ -24,7 +24,10 @@ export const WORKING_STYLE_CATEGORIES = [
       {
         key: 'speed',
         stake: 'This is why deadlines feel tense here: half the room hears “ship it”, the other half hears “rushed”.',
-        label: 'Speed',
+        label: 'Pace',
+        // The assessment item with the "I" dropped — shown as a static
+        // description above the insight (Sep 3 prompting decision).
+        description: 'Preference to move fast rather than work deliberately.',
         aWord: 'move fast',
         bWord: 'work deliberately',
         aPole: 'Fast',
@@ -41,6 +44,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'decisions',
         stake: 'Meetings drag when consensus people and one-decider people don’t know which game they’re playing.',
         label: 'Decisions',
+        description:
+          'Preference to decide by group consensus rather than have one person decide.',
         aWord: 'decide by group consensus',
         bWord: 'have one person decide',
         aPole: 'Consensus',
@@ -60,6 +65,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'clarity',
         stake: 'The same plan reads as clarity to one half of this room and as red tape to the other.',
         label: 'Structure',
+        description:
+          'Preference for clear structure rather than a casual approach to work.',
         aWord: 'work from clear structure',
         bWord: 'keep it casual',
         aPole: 'Structured',
@@ -72,6 +79,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'checkins',
         stake: 'The same check-in reads as support to one person and surveillance to another.',
         label: 'Check-ins',
+        description:
+          'Preference to check in frequently rather than touch base occasionally.',
         aWord: 'check in frequently',
         bWord: 'touch base occasionally',
         aPole: 'Frequent',
@@ -94,6 +103,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'closeness',
         stake: 'A calendar invite feels like collaboration to half this room and interruption to the other half.',
         label: 'Working together',
+        description:
+          'Preference to communicate and work closely with others rather than mostly async.',
         aWord: 'work closely and live',
         bWord: 'work mostly async',
         aPole: 'Live',
@@ -106,6 +117,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'ownership',
         stake: 'Sharers feel abandoned when work is divided up; dividers feel crowded when it isn’t.',
         label: 'Ownership',
+        description:
+          'Preference for work that is tightly shared with teammates rather than divided into independent parts.',
         aWord: 'share work tightly',
         bWord: 'divide it into independent parts',
         aPole: 'Shared',
@@ -128,6 +141,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'directness',
         stake: 'The same sentence lands as honesty for some and harshness for others — name which one you’re using.',
         label: 'Feedback style',
+        description:
+          'Preference for feedback that is direct and candid rather than softened.',
         aWord: 'give it direct and candid',
         bWord: 'soften it',
         aPole: 'Direct',
@@ -140,6 +155,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'conflict',
         stake: 'Raisers hear silence as agreement; settlers hear pushing as aggression.',
         label: 'Disagreements',
+        description:
+          'Preference to raise disagreements directly rather than give them room to resolve.',
         aWord: 'raise them directly',
         bWord: 'give them room to resolve',
         aPole: 'Raise it',
@@ -162,6 +179,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'focus',
         stake: 'Switching costs are invisible to jugglers and expensive for one-taskers.',
         label: 'Focus',
+        description:
+          'Preference to concentrate on one task rather than juggle several at once.',
         aWord: 'concentrate on one task',
         bWord: 'juggle several at once',
         aPole: 'One task',
@@ -177,6 +196,8 @@ export const WORKING_STYLE_CATEGORIES = [
         key: 'sharing',
         stake: 'Early sharers read polish as slowness; polishers read rough drafts as carelessness.',
         label: 'Sharing work',
+        description:
+          'Preference to share work early and rough rather than polish it first.',
         aWord: 'share it early and rough',
         bWord: 'polish it first',
         aPole: 'Early',
@@ -239,9 +260,10 @@ const STANCE = {
 const sideOfBucket = (bucket) => (bucket >= 4 ? 'a' : bucket <= 2 ? 'b' : 'mid');
 
 /**
- * The read for a focused view of one question.
- * One person: their stance against the room's majority. Two people: their
- * stances against each other; the rest of the team is out of frame.
+ * The read for a focused view of one question — always ONE sentence-scale
+ * insight (Sep 3 decision: one insight per view, no bullet stack).
+ * One person: their stance against the room. Two people: their stances
+ * against each other, closing on the "agree on it" action.
  */
 export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
   const word = (side) => (side === 'a' ? reportItem.aWord : reportItem.bWord);
@@ -251,36 +273,20 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
   const shortName = (member) => member.name.split(' ')[0];
 
   if (!second) {
-    // Single focus reads like the team insight: a headline about the
-    // person, the room's distribution, and why the split matters.
+    // One line: where you sit against the room, and what that asks of you.
     const subject = isOwn ? 'You' : shortName(first);
     const their = isOwn ? 'your' : 'their';
-    const roomLine = (excludeSide) => {
-      const aRest = reportItem.aCount - (excludeSide === 'a' ? 1 : 0);
-      const bRest = reportItem.bCount - (excludeSide === 'b' ? 1 : 0);
-      const midRest = reportItem.midCount - (excludeSide === 'mid' ? 1 : 0);
-      const parts = [];
-      if (aRest > 0) parts.push(`**${aRest}** would rather ${reportItem.aWord}`);
-      if (bRest > 0) parts.push(`**${bRest}** would rather ${reportItem.bWord}`);
-      if (midRest > 0) parts.push(`${midRest} flex either way`);
-      return `The rest of the room: ${parts.join(', ')}.`;
-    };
     if (firstSide === 'mid') {
-      return {
-        headline: `**${subject} can go either way** on ${reportItem.label.toLowerCase()} — ${their} default matches whoever ${isOwn ? 'you' : 'they'} work with.`,
-        bullets: [roomLine('mid'), reportItem.stake],
-      };
+      return `**${subject} can go either way** on ${reportItem.label.toLowerCase()} — ${their} default matches whoever ${isOwn ? 'you' : 'they'} work with.`;
     }
     // Majority among everyone else: does the room lean with or against them?
     const withCount =
       (firstSide === 'a' ? reportItem.aCount : reportItem.bCount) - 1;
     const againstCount =
       firstSide === 'a' ? reportItem.bCount : reportItem.aCount;
-    const headline =
-      withCount >= againstCount
-        ? `**${subject} would rather ${word(firstSide)}**, and most of the room leans the same way.`
-        : `**${subject} would rather ${word(firstSide)}** — most of the room goes the other way, so say it out loud.`;
-    return { headline, bullets: [roomLine(firstSide), reportItem.stake] };
+    return withCount >= againstCount
+      ? `**${subject} would rather ${word(firstSide)}**, and most of the room leans the same way — ${isOwn ? 'your' : 'their'} default carries the room's rhythm.`
+      : `**${subject} would rather ${word(firstSide)}** — most of the room goes the other way, so ${isOwn ? 'name your mode out loud' : 'that difference is worth naming out loud'} before it reads as friction.`;
   }
 
   const secondSide = sideOfBucket(getWorkingBucket(second, reportItem));
@@ -304,7 +310,8 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
 /**
  * Team report: per category, per item, the 5-bucket histogram (bins[0] is
  * strongly pole A ... bins[4] strongly pole B, left to right) plus counts
- * and a one-line read.
+ * and ONE insight per item — the distribution described and what it could
+ * mean, in a single paragraph (Sep 3 decision: no headline + bullet stack).
  */
 export function getWorkingReport(subjects) {
   return WORKING_STYLE_CATEGORIES.map((category) => ({
@@ -317,59 +324,35 @@ export function getWorkingReport(subjects) {
       const aCount = bins[0] + bins[1];
       const bCount = bins[3] + bins[4];
       const midCount = bins[2];
-      // Reads come structured like the map's: a headline naming the shape,
-      // then bullets — the room's actual counts (everyone accounted for,
-      // including the flexible middle) and the item's stake line. `read`
-      // keeps the flat one-paragraph version for focused (profile/compare)
-      // contexts.
       const topic = item.label;
-      let headline;
-      let bullets;
+      let read;
       if (aCount > 0 && bCount > 0 && Math.min(aCount, bCount) >= 2) {
-        headline = `${topic} is a genuine split: **${item.aPole.toLowerCase()}** against **${item.bPole.toLowerCase()}**.`;
-        bullets = [
-          `**${aCount} people** would rather **${item.aWord}**, **${bCount}** would rather **${item.bWord}**${
-            midCount > 0 ? `, and ${midCount} flex either way` : ''
-          }.`,
-          item.stake,
-        ];
+        read = `${topic} is a genuine split: **${aCount}** would rather ${item.aWord}, **${bCount}** would rather ${item.bWord}${
+          midCount > 0 ? `, and ${midCount} flex either way` : ''
+        }. ${item.stake}`;
       } else if (aCount > 0 && bCount > 0) {
         const big = aCount > bCount ? 'a' : 'b';
         const bigWord = big === 'a' ? item.aWord : item.bWord;
-        const bigPole = big === 'a' ? item.aPole : item.bPole;
         const bigCount = Math.max(aCount, bCount);
         const smallWord = big === 'a' ? item.bWord : item.aWord;
-        headline = `${topic} is mostly settled: this room defaults **${bigPole.toLowerCase()}**.`;
-        bullets = [
-          `**${bigCount} of ${subjects.length}** default to **${bigWord}**${
-            midCount > 0 ? `, ${midCount} flex either way,` : ''
-          } and one person would still rather **${smallWord}**.`,
-          item.stake,
-        ];
+        read = `${topic} is mostly settled: **${bigCount} of ${subjects.length}** default to ${bigWord}${
+          midCount > 0 ? `, ${midCount} flex either way,` : ''
+        } and one person would still rather ${smallWord}. ${item.stake}`;
       } else if (aCount === 0 && bCount === 0) {
-        headline = `${topic} takes care of itself here.`;
-        bullets = [
-          `Nobody is locked into one mode: everyone flexes with the situation.`,
-        ];
+        read = `${topic} takes care of itself here: nobody is locked into one mode, everyone flexes with the situation.`;
       } else {
-        const domPole = aCount > 0 ? item.aPole : item.bPole;
         const dominantWord = aCount > 0 ? item.aWord : item.bWord;
         const otherWord = aCount > 0 ? item.bWord : item.aWord;
         const domCount = Math.max(aCount, bCount);
-        headline = `${topic} is one culture here: **${domPole.toLowerCase()}**.`;
-        bullets = [
+        read = `${topic} is one culture here: ${
           midCount > 0
-            ? `**${domCount}** would rather **${dominantWord}**${
-                midCount === 1
-                  ? '; one more flexes'
-                  : `; the other ${midCount} flex`
-              }.`
-            : `The whole room would rather **${dominantWord}**.`,
-          `Nobody argues for the “${otherWord}” mode — bring that lens in on purpose when stakes are high.`,
-        ];
+            ? `**${domCount}** would rather ${dominantWord}${
+                midCount === 1 ? ' and one more flexes' : ` and the other ${midCount} flex`
+              }`
+            : `the whole room would rather ${dominantWord}`
+        }. Nobody argues for the “${otherWord}” mode — bring that lens in on purpose when stakes are high.`;
       }
-      const read = `${bullets.join(' ')}`;
-      return { ...item, bins, aCount, bCount, midCount, headline, bullets, read };
+      return { ...item, bins, aCount, bCount, midCount, read };
     }),
   }));
 }
