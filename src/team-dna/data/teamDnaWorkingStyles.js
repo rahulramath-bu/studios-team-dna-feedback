@@ -273,11 +273,11 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
   const shortName = (member) => member.name.split(' ')[0];
 
   if (!second) {
-    // One line: where you sit against the room, and what that asks of you.
+    // One line, in plain user language: where you sit against the room,
+    // and what that means day to day.
     const subject = isOwn ? 'You' : shortName(first);
-    const their = isOwn ? 'your' : 'their';
     if (firstSide === 'mid') {
-      return `**${subject} can go either way** on ${reportItem.label.toLowerCase()} — ${their} default matches whoever ${isOwn ? 'you' : 'they'} work with.`;
+      return `**${subject} can go either way** on ${reportItem.label.toLowerCase()} — ${isOwn ? 'you\u2019ll' : 'they\u2019ll'} likely adapt to whoever ${isOwn ? 'you\u2019re' : 'they\u2019re'} working with.`;
     }
     // Majority among everyone else: does the room lean with or against them?
     const withCount =
@@ -285,8 +285,8 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
     const againstCount =
       firstSide === 'a' ? reportItem.bCount : reportItem.aCount;
     return withCount >= againstCount
-      ? `**${subject} would rather ${word(firstSide)}**, and most of the room leans the same way — ${isOwn ? 'your' : 'their'} default carries the room's rhythm.`
-      : `**${subject} would rather ${word(firstSide)}** — most of the room goes the other way, so ${isOwn ? 'name your mode out loud' : 'that difference is worth naming out loud'} before it reads as friction.`;
+      ? `**${subject} would rather ${word(firstSide)}** — most of the room does too, so this mode will feel natural here.`
+      : `**${subject} would rather ${word(firstSide)}**, but most of the room leans the other way — worth saying out loud so it doesn\u2019t read as friction.`;
   }
 
   // Pair reads: direct comparison, and the action is always to AGREE —
