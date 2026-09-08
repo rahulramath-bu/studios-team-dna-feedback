@@ -623,7 +623,7 @@ export function WorkingStylesStage({
                   active pill. */}
               {active.description ? (
                 <p className="wstage-item-desc">
-                  <strong>{active.label}</strong> {'\u2014'}{' '}
+                  <strong>{active.label}:</strong>{' '}
                   {active.description.charAt(0).toLowerCase() +
                     active.description.slice(1)}
                 </p>
