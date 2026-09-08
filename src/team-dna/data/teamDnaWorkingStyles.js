@@ -139,7 +139,7 @@ export const WORKING_STYLE_CATEGORIES = [
     items: [
       {
         key: 'directness',
-        stake: 'The same sentence lands as honesty for some and harshness for others — name which one you’re using.',
+        stake: 'The same sentence lands as honesty for some and harshness for others: name which one you’re using.',
         label: 'Feedback style',
         description:
           'Preference for direct, candid communication rather than more indirect and softened communication.',
@@ -277,7 +277,7 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
     // and what that means day to day.
     const subject = isOwn ? 'You' : shortName(first);
     if (firstSide === 'mid') {
-      return `**${subject} can go either way** on ${reportItem.label.toLowerCase()} — ${isOwn ? 'you\u2019ll' : 'they\u2019ll'} likely adapt to whoever ${isOwn ? 'you\u2019re' : 'they\u2019re'} working with.`;
+      return `**${subject} can go either way** on ${reportItem.label.toLowerCase()}. ${isOwn ? 'You\u2019ll' : 'They\u2019ll'} likely adapt to whoever ${isOwn ? 'you\u2019re' : 'they\u2019re'} working with.`;
     }
     // Majority among everyone else: does the room lean with or against them?
     const withCount =
@@ -285,8 +285,8 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
     const againstCount =
       firstSide === 'a' ? reportItem.bCount : reportItem.aCount;
     return withCount >= againstCount
-      ? `**${subject} would rather ${word(firstSide)}** — most of the room does too, so this mode will feel natural here.`
-      : `**${subject} would rather ${word(firstSide)}**, but most of the room leans the other way — worth saying out loud so it doesn\u2019t read as friction.`;
+      ? `**${subject} would rather ${word(firstSide)}**. Most of the room does too, so this mode will feel natural here.`
+      : `**${subject} would rather ${word(firstSide)}**, but most of the room leans the other way. ${isOwn ? 'Say it out loud' : 'Worth naming out loud'} so it doesn\u2019t read as friction.`;
   }
 
   // Pair reads: direct comparison, and the action is always to AGREE —
@@ -298,7 +298,7 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
     return `${a} and ${b} both flex on ${reportItem.label.toLowerCase()}; no agreement needed.`;
   }
   if (firstSide === secondSide) {
-    return `${a} and ${b} both would rather ${word(firstSide)}: aligned here — worth asking what the other mode would catch.`;
+    return `${a} and ${b} both would rather ${word(firstSide)}: aligned here. Worth asking what the other mode would catch.`;
   }
   if (firstSide === 'mid' || secondSide === 'mid') {
     const anchored = firstSide === 'mid' ? b : a;
@@ -352,7 +352,7 @@ export function getWorkingReport(subjects) {
                 midCount === 1 ? ' and one more flexes' : ` and the other ${midCount} flex`
               }`
             : `the whole room would rather ${dominantWord}`
-        }. Nobody argues for the “${otherWord}” mode — bring that lens in on purpose when stakes are high.`;
+        }. Nobody argues for the “${otherWord}” mode. Bring that lens in on purpose when stakes are high.`;
       }
       return { ...item, bins, aCount, bCount, midCount, read };
     }),
