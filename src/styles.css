@@ -3305,6 +3305,15 @@ button.team-management-row {
   transform: translateY(-1px);
 }
 
+.bu-button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.bu-button:disabled:hover {
+  transform: none;
+}
+
 .bu-button:focus-visible {
   outline: 2px solid var(--ring);
   outline-offset: 3px;

@@ -79,9 +79,9 @@ await pickViewAs('half finished');
 console.log('[half]', JSON.stringify(await railInfo()));
 await page.screenshot({ path: '/tmp/state-half-team.png' });
 
-// Generate anyway -> generating -> ready content.
+// Generate now -> generating -> ready content.
 await page.$$eval('button', (els) => {
-  els.find((el) => el.textContent.trim() === 'Generate anyway')?.click();
+  els.find((el) => el.textContent.trim() === 'Generate now')?.click();
 });
 await sleep(700);
 await page.screenshot({ path: '/tmp/state-half-generating.png' });
