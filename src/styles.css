@@ -10278,78 +10278,96 @@ button.team-management-row {
 
 /* ── Pre-threshold states ─────────────────────────────────────────────── */
 
-.fvx-wait-count {
-  margin: 0 0 10px;
+/* One card, the original waiting state's bones: kicker + count tag,
+   serif title, a segmented progress bar (one segment per person, unlock
+   point marked), then a single action row. */
+.fvx-wait {
+  max-width: 760px;
+}
+
+.fvx-wait-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fvx-wait-head .fvc-kicker {
+  margin: 0;
+}
+
+.fvx-wait-tag {
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(30, 26, 38, 0.06);
   color: #1e1a26;
-  font-size: 14px;
-  line-height: 21px;
+  font-family: var(--label-font);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
-.fvx-wait-count strong {
-  font-family: var(--heading-display-font);
-  font-size: 28px;
-  font-weight: 400;
-  line-height: 1;
-  margin-right: 2px;
+.fvx-wait .fvc-title {
+  margin-top: 16px;
+  max-width: 560px;
 }
 
-.fvx-wait-track {
-  height: 6px;
-  margin-bottom: 16px;
-  border-radius: 999px;
+.fvx-wait-seg {
+  position: relative;
+  margin-top: 32px;
+  padding-bottom: 22px;
+}
+
+.fvx-wait-segments {
+  display: flex;
+  gap: 4px;
+  height: 10px;
+}
+
+.fvx-wait-segment {
+  flex: 1;
+  border-radius: 3px;
   background: rgba(30, 26, 38, 0.08);
-  overflow: hidden;
 }
 
-.fvx-wait-fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: #1e1a26;
-  transition: width 0.6s ease;
+.fvx-wait-segment[data-done] {
+  background: #ce0058;
 }
 
-.fvx-wait-actions {
+/* Threshold marker: a hairline at the unlock boundary with a mono label
+   hanging under it. */
+.fvx-wait-unlock {
+  position: absolute;
+  top: -6px;
+  padding-top: 24px;
+  border-left: 1px dashed rgba(30, 26, 38, 0.45);
+  transform: translateX(-2px);
+  padding-left: 8px;
+  color: #717070;
+  font-family: var(--label-font);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.fvx-wait-foot {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 24px;
-}
-
-.fvx-wait-demo {
-  margin-top: 16px;
-}
-
-.fvx-wait-list {
-  display: grid;
+  align-items: center;
   gap: 16px;
-  margin: 16px 0 0;
-  padding: 0;
-  list-style: none;
-  color: rgba(var(--team-dna-copy-rgb), 0.78);
-  font-size: 14px;
-  line-height: 21px;
-}
-
-.fvx-wait-list strong {
-  color: #1e1a26;
-  font-weight: 600;
+  margin-top: 24px;
 }
 
 .fvx-wait-note {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+  color: #717070;
+  font-size: 14px;
+  line-height: 21px;
 }
 
-/* Ghost rows: the shape of what's coming, with nothing plotted. */
-.fva-rows--ghost {
-  margin-top: 24px;
-  opacity: 0.55;
-}
-
-.fvx-team-pending .fvc-title {
-  max-width: 520px;
+.fvx-wait-demo {
+  margin-left: auto;
 }
 
 /* Generating: quiet shimmer bars in the card's own rhythm. */

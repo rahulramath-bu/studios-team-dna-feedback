@@ -592,6 +592,7 @@ function InsightPageContent({
     ? {
         completedCount: completedSubjects.length,
         totalCount: members.length,
+        roster: members,
         isGenerating: isGenerating && lifecycle?.target?.scope === 'team',
         canGenerateTeam: Boolean(teamTarget?.canGenerateTeam),
         viewerDone: Boolean(viewerDone),
