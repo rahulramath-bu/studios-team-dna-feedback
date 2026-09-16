@@ -10293,53 +10293,40 @@ button.team-management-row {
 
 /* ── Pre-threshold states ─────────────────────────────────────────────── */
 
-/* The team's empty state uses the profile's two-box grid. Left box: the
-   progress bar (one segment per person, unlock point marked) and the
-   actions. Nothing else is added. */
-.fvx-wait-seg {
-  position: relative;
-  margin-top: 28px;
-  padding-bottom: 22px;
-}
-
-.fvx-wait-segments {
-  display: flex;
-  gap: 4px;
-  height: 10px;
-}
-
-.fvx-wait-segment {
-  flex: 1;
-  border-radius: 3px;
-  background: rgba(30, 26, 38, 0.08);
-}
-
-.fvx-wait-segment[data-done] {
-  background: #ce0058;
-}
-
-/* Threshold marker: a hairline at the unlock boundary with a mono label
-   hanging under it. */
-.fvx-wait-unlock {
-  position: absolute;
-  top: -6px;
-  padding-top: 24px;
-  padding-left: 8px;
-  border-left: 1px dashed rgba(30, 26, 38, 0.45);
-  transform: translateX(-2px);
-  color: #717070;
-  font-family: var(--label-font);
-  font-size: 10px;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
+/* The team's empty state uses the profile's two-box grid and the design
+   system's own parts (progress track, buttons, icon). Only the lock
+   treatment and the action spacing are added. */
 .fvx-wait-actions {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 24px;
+}
+
+.fvx-locked-icon {
+  display: inline-grid;
+  width: 36px;
+  height: 36px;
+  margin-bottom: 16px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(var(--team-dna-ink-rgb), 0.06);
+  color: #1e1a26;
+}
+
+.fvx-locked-foot {
+  margin-top: 24px;
+  padding-top: 24px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+.fvx-locked-note {
+  margin: 12px 0 0;
+  max-width: 460px;
+  color: #717070;
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 21px;
 }
 
 /* Generating: quiet shimmer bars in the card's own rhythm. */
