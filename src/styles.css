@@ -10293,18 +10293,46 @@ button.team-management-row {
 
 /* ── Pre-threshold states ─────────────────────────────────────────────── */
 
-/* The team's empty state reuses section 01 as-is; these are the only
-   additions: the strip of people still to finish (in the archetype-mix
-   slot) and the action row at the foot of the signature card. */
-.fvx-wait-faces {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
+/* The team's empty state uses the profile's two-box grid. Left box: the
+   progress bar (one segment per person, unlock point marked) and the
+   actions. Nothing else is added. */
+.fvx-wait-seg {
+  position: relative;
+  margin-top: 28px;
+  padding-bottom: 22px;
 }
 
-.fvx-wait-faces .dxp-face {
-  opacity: 0.55;
-  filter: saturate(0.2);
+.fvx-wait-segments {
+  display: flex;
+  gap: 4px;
+  height: 10px;
+}
+
+.fvx-wait-segment {
+  flex: 1;
+  border-radius: 3px;
+  background: rgba(30, 26, 38, 0.08);
+}
+
+.fvx-wait-segment[data-done] {
+  background: #ce0058;
+}
+
+/* Threshold marker: a hairline at the unlock boundary with a mono label
+   hanging under it. */
+.fvx-wait-unlock {
+  position: absolute;
+  top: -6px;
+  padding-top: 24px;
+  padding-left: 8px;
+  border-left: 1px dashed rgba(30, 26, 38, 0.45);
+  transform: translateX(-2px);
+  color: #717070;
+  font-family: var(--label-font);
+  font-size: 10px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .fvx-wait-actions {
@@ -10312,11 +10340,6 @@ button.team-management-row {
   flex-wrap: wrap;
   gap: 8px;
   margin-top: 24px;
-}
-
-/* Rows shown before the team read exists: same grid, nothing to open. */
-.fva-row--static {
-  cursor: default;
 }
 
 /* Generating: quiet shimmer bars in the card's own rhythm. */
