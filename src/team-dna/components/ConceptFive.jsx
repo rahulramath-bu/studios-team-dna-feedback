@@ -611,18 +611,17 @@ export function ConceptFive({
 
 /* ── Pre-threshold states (V5 language) ──────────────────────────────────── */
 
-/** Team tab before the team read exists: the profile's two-box grid, kept
- *  to the minimum. Left: what's needed (one line, the progress bar with
- *  the unlock point) and the actions. Right: one line saying the insights
- *  land here once it unlocks. The rail above already shows who's done.
- *  Two states: below the threshold, and at the threshold (Generate). */
+/** Team tab before the team read exists: the profile's two-box grid,
+ *  design-system parts only. Narrow box: the count (how many have
+ *  finished) on the product's own progress track, plus your way to your
+ *  profile. Wide box: the locked insights, what unlocks them, and (once
+ *  enough people are in) the Generate action with what it does. */
 function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
   const completed = readiness?.completedCount ?? allSubjects.length;
   const total = readiness?.totalCount ?? completed;
-  const needed = Math.max(0, TEAM_READY_THRESHOLD - completed);
-  const atThreshold = needed === 0;
+  const atThreshold = completed >= TEAM_READY_THRESHOLD;
   const viewerDone = allSubjects.some((member) => member.id === viewerId);
-  const unlockPct = total > 0 ? (TEAM_READY_THRESHOLD / total) * 100 : 0;
+  const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
 
   return (
     <div className="fivex-stack" aria-label="Team profile">
@@ -630,40 +629,23 @@ function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
         <section className="fvc fvc--id">
           <p className="fvc-kicker">Team profile</p>
           <h2 className="fvc-title">
-            {atThreshold
-              ? 'Ready to generate.'
-              : `Waiting on ${needed} more ${needed === 1 ? 'person' : 'people'}.`}
+            {completed} of {total} have finished.
           </h2>
           <div
-            className="fvx-wait-seg"
-            role="img"
-            aria-label={`${completed} of ${total} finished. Unlocks at ${TEAM_READY_THRESHOLD}.`}
+            className="insight-waiting-progress"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={total}
+            aria-valuenow={completed}
           >
-            <div className="fvx-wait-segments">
-              {Array.from({ length: total }, (_, index) => (
-                <span
-                  key={index}
-                  className="fvx-wait-segment"
-                  data-done={index < completed || undefined}
-                />
-              ))}
+            <div className="insight-waiting-progress-track">
+              <div
+                className="insight-waiting-progress-fill"
+                style={{ width: `${pct}%` }}
+              />
             </div>
-            {total > TEAM_READY_THRESHOLD ? (
-              <span className="fvx-wait-unlock" style={{ left: `${unlockPct}%` }}>
-                Unlocks at {TEAM_READY_THRESHOLD}
-              </span>
-            ) : null}
           </div>
           <div className="fvx-wait-actions">
-            {atThreshold && readiness?.onGenerate ? (
-              <button
-                type="button"
-                className="bu-button bu-button--primary"
-                onClick={() => readiness.onGenerate()}
-              >
-                Generate anyway
-              </button>
-            ) : null}
             {viewerDone ? (
               <button
                 type="button"
@@ -683,15 +665,37 @@ function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
             )}
           </div>
         </section>
-        <section className="fvc">
+        <section className="fvc fvx-locked">
+          <span className="fvx-locked-icon" aria-hidden="true">
+            <BetterUpIcon name="Lock" size={18} />
+          </span>
           <h2 className="fvc-title">
-            Team insights appear here once{' '}
-            {atThreshold ? 'you generate the profile' : 'it unlocks'}.
+            Team insights unlock once everyone has finished.
           </h2>
           <p className="fvc-lead">
             Who you are together, strengths and growth areas, and how you like
             to work.
           </p>
+          {atThreshold && readiness?.onGenerate ? (
+            <div className="fvx-locked-foot">
+              <button
+                type="button"
+                className="bu-button bu-button--primary"
+                onClick={() => readiness.onGenerate()}
+              >
+                Generate anyway
+              </button>
+              <p className="fvx-locked-note">
+                Builds the team profile from the {completed} who have finished.
+                It updates as the rest finish.
+              </p>
+            </div>
+          ) : (
+            <p className="fvx-locked-note">
+              You can generate early once {TEAM_READY_THRESHOLD} people have
+              finished.
+            </p>
+          )}
         </section>
       </div>
     </div>
