@@ -808,7 +808,7 @@ function makeTeamTrySections() {
       body: 'End every discussion by writing down the one thing the team actually decided.',
     },
     {
-      body: 'Give each strength a clear job — who explores, who builds, who pressure-tests.',
+      body: 'Give each strength a clear job: who explores, who builds, who pressure-tests.',
     },
     {
       body: 'Before a handoff, say what "done" means in one plain sentence.',
@@ -1034,7 +1034,7 @@ export function makeMockTeamDnaGeneratedInsights({ team, members }) {
       isEditable: true,
       summary: [
         {
-          text: `${team.name} is an ideas-first team with a wide range in how people like to work. It will see more options than most groups — the trade-off is that it needs clear decisions and clean handoffs so all that idea-generation actually turns into finished work.`,
+          text: `${team.name} is an ideas-first team with a wide range in how people like to work. It will see more options than most groups. The trade-off is that it needs clear decisions and clean handoffs so all that idea-generation actually turns into finished work.`,
         },
       ],
       spectrumReads: {

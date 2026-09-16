@@ -174,7 +174,7 @@ function WorkingMap({ subjects, onCoachPrompt }) {
           }
         : {
             ids: null,
-            text: `Nobody sits outside it — smooth, but no one here ever argues for the other modes. Borrow a contrarian for big bets.`,
+            text: `Nobody sits outside it. Smooth, but no one here ever argues for the other modes. Borrow a contrarian for big bets.`,
           },
       { ids: null, text: `Where it bites: ${contestedItem.stake}` },
     ];
@@ -197,7 +197,7 @@ function WorkingMap({ subjects, onCoachPrompt }) {
           : xItem.bPole;
       closing = {
         ids: null,
-        text: `The camps already agree on ${agreedItem.label.toLowerCase()} — nearly everyone leans **${agreedPole.toLowerCase()}**. The real split is ${splitItem.label.toLowerCase()}: ${splitItem.stake}`,
+        text: `The camps already agree on ${agreedItem.label.toLowerCase()}: nearly everyone leans **${agreedPole.toLowerCase()}**. The real split is ${splitItem.label.toLowerCase()}. ${splitItem.stake}`,
       };
     } else {
       closing = {
@@ -208,11 +208,11 @@ function WorkingMap({ subjects, onCoachPrompt }) {
     notes = [
       {
         ids: idsInQuad(first[0]),
-        text: `**${first[1]} people** work **${quadPhrase[first[0]]}** — they ${pair.scenes[first[0]]}.`,
+        text: `**${first[1]} people** work **${quadPhrase[first[0]]}**: they ${pair.scenes[first[0]]}.`,
       },
       {
         ids: idsInQuad(second[0]),
-        text: `**${second[1]}** work **${quadPhrase[second[0]]}** — they ${pair.scenes[second[0]]}.`,
+        text: `**${second[1]}** work **${quadPhrase[second[0]]}**: they ${pair.scenes[second[0]]}.`,
       },
       closing,
     ];

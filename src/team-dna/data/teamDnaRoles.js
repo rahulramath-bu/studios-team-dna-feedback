@@ -18,7 +18,7 @@ export const ROLE_BY_TRAIT_POLE = {
     gift: 'momentum',
     blurb: 'brings the voice, the visibility, and the social momentum',
     strength:
-      'Speaks up, starts conversations, and gets discussion going — the social momentum that pulls others in.',
+      'Speaks up, starts conversations, and gets discussion going: the social momentum that pulls others in.',
     workWith:
       'Give them room to open the discussion, and protect space for quieter teammates before the pace sets in.',
   },
@@ -29,7 +29,7 @@ export const ROLE_BY_TRAIT_POLE = {
     strength:
       'Hangs back before jumping in and speaks with intention rather than volume, creating room for other voices.',
     workWith:
-      'Ask for their read directly — they often hold a useful view back until it feels fully formed.',
+      'Ask for their read directly. They often hold a useful view back until it feels fully formed.',
   },
   openness_high: {
     name: 'Explorer',
@@ -45,7 +45,7 @@ export const ROLE_BY_TRAIT_POLE = {
     gift: 'grounding',
     blurb: 'trusts what works and keeps the group anchored to the reliable',
     strength:
-      'The grounding force and the reality check on new proposals — the one who asks whether an idea will actually hold up.',
+      'The grounding force and the reality check on new proposals: the one who asks whether an idea will actually hold up.',
     workWith:
       'Bring them in to pressure-test feasibility, and give new ideas a little room before asking them to ground it.',
   },
@@ -54,7 +54,7 @@ export const ROLE_BY_TRAIT_POLE = {
     gift: 'follow-through',
     blurb: 'prepares, digs in, and sees things through',
     strength:
-      'Comes ready and carries tasks all the way to completion — who you count on to close the loop and deliver dependable work.',
+      'Comes ready and carries tasks all the way to completion: who you count on to close the loop and deliver dependable work.',
     workWith:
       'Hand them ownership and a clear definition of done, and agree on the minimum structure so process stays light.',
   },
@@ -63,7 +63,7 @@ export const ROLE_BY_TRAIT_POLE = {
     gift: 'adaptability',
     blurb: 'keeps it loose and stays comfortable when things shift',
     strength:
-      'Brings adaptability and a light touch — doesn\u2019t seize up when the plan changes underneath them.',
+      'Brings adaptability and a light touch, and doesn\u2019t seize up when the plan changes underneath them.',
     workWith:
       'Give them room to adapt, paired with one or two firm anchors so flexibility does not become drift.',
   },
@@ -81,7 +81,7 @@ export const ROLE_BY_TRAIT_POLE = {
     gift: 'constructive friction',
     blurb: 'says the hard thing and stress-tests ideas',
     strength:
-      'Willing to question, disagree, and push back — surfacing what others hesitate to name keeps the thinking honest.',
+      'Willing to question, disagree, and push back. Surfacing what others hesitate to name keeps the thinking honest.',
     workWith:
       'Welcome the challenge and ask for the most precise version, framed so it is easy for the room to receive.',
   },
@@ -99,7 +99,7 @@ export const ROLE_BY_TRAIT_POLE = {
     gift: 'visible investment',
     blurb: 'feels things strongly and brings urgency to the work',
     strength:
-      'Raises the emotional signal — the investment and passion others can feel, which drives momentum on the things that matter.',
+      'Raises the emotional signal: the investment and passion others can feel, which drives momentum on the things that matter.',
     workWith:
       'Point their energy at the work that matters most, and read the intensity as investment rather than alarm.',
   },
@@ -197,14 +197,14 @@ export function getPairGuidanceCards(first, second) {
 
   const workBest = sameLead
     ? [
-        `Because you share a lead, divide the work by your second strengths — let ${a} carry the ${firstRoles.secondary.gift} side and ${b} the ${secondRoles.secondary.gift} side.`,
+        `Because you share a lead, divide the work by your second strengths: let ${a} carry the ${firstRoles.secondary.gift} side and ${b} the ${secondRoles.secondary.gift} side.`,
         `Name the growth opportunity you both share out loud, and assign one of you to watch for it on each piece of work.`,
         `Decide up front who owns the final call so two similar instincts don't quietly compete.`,
       ]
     : [
-        `Use this pair on the same problem when it needs both ${firstRoles.primary.gift} and ${secondRoles.primary.gift} — putting those two strengths together is the point of pairing ${a} and ${b}.`,
+        `Use this pair on the same problem when it needs both ${firstRoles.primary.gift} and ${secondRoles.primary.gift}. Putting those two strengths together is the point of pairing ${a} and ${b}.`,
         `Decide up front who owns the final call so your different instincts don't pull the work in two directions.`,
-        `Treat the moments you disagree as coverage, not friction — it usually means both angles are finally on the table.`,
+        `Treat the moments you disagree as coverage, not friction. It usually means both angles are finally on the table.`,
       ];
 
   return [

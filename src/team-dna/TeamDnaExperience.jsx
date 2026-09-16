@@ -228,7 +228,10 @@ export function TeamDnaExperience({
   const isTabsPage = pageVariation === 'tabs';
   const tabsPageReady = isTabsPage && conceptReadyCount >= 3;
   const onePageReady = pageVariation === 'one' && conceptReadyCount >= 3;
-  const fivePageReady = pageVariation === 'five' && conceptReadyCount >= 3;
+  // V5 keeps its shell (name, rail, tabs) from the very first completed
+  // assessment: pre-threshold states render inside the same three tabs
+  // instead of falling back to the original layout.
+  const fivePageReady = pageVariation === 'five';
   // Compare keeps the classic two-pane interaction on the tab concepts.
   // V5 is full-page on EVERY lens: all three tabs share one format and the
   // avatar rail is the only selector, so the left face field never renders.
@@ -466,6 +469,8 @@ export function TeamDnaExperience({
   // person's profile. Compare: build the pair in place — tap to add,
   // tap again to remove, third pick swaps out the older selection.
   const handleOneFaceClick = (memberId) => {
+    // Pending people are visible on the rail but never selectable.
+    if (!selectableMemberIds.has(memberId)) return;
     if (tabsLens === 'compare') {
       setSelectedIds((current) => {
         if (current.includes(memberId)) {
@@ -629,7 +634,7 @@ export function TeamDnaExperience({
           teamName={dataset.team.name}
           teamType={dataset.team.teamType}
           memberCount={dataset.members.length}
-          members={completedRailMembers}
+          members={dataset.members}
           selectedIds={selectedIds}
           viewerId={currentViewerMemberId}
           onFaceClick={handleOneFaceClick}
@@ -701,6 +706,7 @@ export function TeamDnaExperience({
         onProfileCopySave={onProfileCopySave}
         onStartAssessment={onStartAssessment}
         onDemoAdvance={onDemoAdvance}
+        onSelectLens={handleOneLensSelect}
       />
     </section>
   );

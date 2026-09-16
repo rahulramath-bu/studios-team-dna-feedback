@@ -276,6 +276,15 @@ export function getFocusRead(reportItem, focusMembers, { isOwn = false } = {}) {
     // One line, in plain user language: where you sit against the room,
     // and what that means day to day.
     const subject = isOwn ? 'You' : shortName(first);
+    const roomSize = reportItem.aCount + reportItem.bCount + reportItem.midCount;
+    // Before the team read exists there is no room to compare against:
+    // state the preference on its own.
+    if (roomSize < 3) {
+      if (firstSide === 'mid') {
+        return `**${subject} can go either way** on ${reportItem.label.toLowerCase()}. Once the team finishes, this shows how that fits the room.`;
+      }
+      return `**${subject} would rather ${word(firstSide)}.** Once the team finishes, this shows how that fits the room.`;
+    }
     if (firstSide === 'mid') {
       return `**${subject} can go either way** on ${reportItem.label.toLowerCase()}. ${isOwn ? 'You\u2019ll' : 'They\u2019ll'} likely adapt to whoever ${isOwn ? 'you\u2019re' : 'they\u2019re'} working with.`;
     }
