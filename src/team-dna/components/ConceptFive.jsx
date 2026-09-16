@@ -638,8 +638,8 @@ function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
             </p>
             <p className="fvl-line">
               {atThreshold
-                ? 'You can generate the team profile now, or wait for the rest.'
-                : `${TEAM_READY_THRESHOLD} people need to finish before you can generate.`}
+                ? 'You can generate the team profile now, or we\u2019ll do it once everyone has finished.'
+                : 'We\u2019ll generate the team profile once everyone has finished.'}
             </p>
             <div
               className="insight-waiting-progress fvx-progress"
@@ -661,21 +661,23 @@ function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
               ) : null}
             </div>
           </div>
-          {atThreshold && readiness?.onGenerate ? (
-            <div className="fvl-foot">
-              <button
-                type="button"
-                className="bu-button bu-button--primary"
-                onClick={() => readiness.onGenerate()}
-              >
-                Generate anyway
-              </button>
-              <p className="fvx-info">
-                <BetterUpIcon name="Info" size={13} />
-                Anyone who finishes later is added automatically.
-              </p>
-            </div>
-          ) : null}
+          {/* Always here so the action is learnable; disabled until the
+              minimum is in. */}
+          <div className="fvl-foot">
+            <button
+              type="button"
+              className="bu-button bu-button--primary"
+              disabled={!atThreshold || !readiness?.onGenerate}
+              title={
+                atThreshold
+                  ? undefined
+                  : `${TEAM_READY_THRESHOLD} people need to finish first`
+              }
+              onClick={() => readiness?.onGenerate?.()}
+            >
+              Generate now
+            </button>
+          </div>
         </section>
 
         <section className="fvc fvc--id">
@@ -684,17 +686,15 @@ function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
             Team insights
           </p>
           <div className="fvl-item">
-            <p className="fvl-title">Not ready yet</p>
+            <p className="fvl-title">What your team is like as a group</p>
             <p className="fvl-line">
-              This is what your team is like as a group.{' '}
-              {atThreshold
-                ? 'It unlocks when you generate it.'
-                : 'It unlocks when everyone has finished.'}
+              Everyone&rsquo;s assessments read together: the personality you
+              add up to, what that mix is good at, and how you like to work.
             </p>
           </div>
           {/* The page's own chapters, so the showcase IS the structure. */}
           <div className="fvl-actions">
-            <p className="fvl-actions-label">What you&rsquo;ll get</p>
+            <p className="fvl-actions-label">Once generated, you&rsquo;ll see</p>
             <ol className="fvx-toc">
               <li>
                 <span className="fvx-chapnum">01</span>Who you are together
