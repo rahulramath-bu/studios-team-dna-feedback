@@ -6,6 +6,10 @@ import { ConceptLensBar } from './components/ConceptTabs.jsx';
 import { ConceptOneBar } from './components/ConceptOne.jsx';
 import { ConceptFiveBar } from './components/ConceptFive.jsx';
 import { getInsightForSelection } from './data/teamDnaAdapter.js';
+import {
+  resolveTeamDnaGenerationLifecycle,
+  shouldUseGeneratedTeamDnaInsight,
+} from './data/teamDnaGenerationLifecycle.mock.js';
 import { useTeamDnaSelection } from './hooks/useTeamDnaSelection.js';
 
 const INTRO_CHROME_REVEAL_MS = 1200;
@@ -232,6 +236,26 @@ export function TeamDnaExperience({
   // assessment: pre-threshold states render inside the same three tabs
   // instead of falling back to the original layout.
   const fivePageReady = pageVariation === 'five';
+  // The TEAM read's lifecycle, independent of what's selected: V5's
+  // individual and compare tabs also need to know whether the team profile
+  // has been generated (team average, "where you fit").
+  const teamLifecycle = useMemo(
+    () =>
+      resolveTeamDnaGenerationLifecycle(
+        dataset,
+        [],
+        generationStatusByTargetId ?? {}
+      ),
+    [dataset, generationStatusByTargetId]
+  );
+  const teamReadiness = useMemo(
+    () => ({
+      lifecycle: teamLifecycle,
+      generated: shouldUseGeneratedTeamDnaInsight(teamLifecycle),
+      generating: teamLifecycle.status === 'pending',
+    }),
+    [teamLifecycle]
+  );
   // Compare keeps the classic two-pane interaction on the tab concepts.
   // V5 is full-page on EVERY lens: all three tabs share one format and the
   // avatar rail is the only selector, so the left face field never renders.
@@ -707,6 +731,7 @@ export function TeamDnaExperience({
         onStartAssessment={onStartAssessment}
         onDemoAdvance={onDemoAdvance}
         onSelectLens={handleOneLensSelect}
+        teamReadiness={teamReadiness}
       />
     </section>
   );
