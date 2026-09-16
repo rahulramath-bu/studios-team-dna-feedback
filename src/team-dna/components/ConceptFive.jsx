@@ -12,12 +12,10 @@ import {
 import { BetterUpIcon } from './BetterUpIcon.jsx';
 import { TeamShapeContributions } from './TeamShapeContributions.jsx';
 import { BIG_FIVE_TRAITS, getBigFiveScore } from '../data/bigFiveTraits.js';
-import { getPairDistance } from '../data/teamReadModel.js';
 import {
   getTraitStrips,
   getChemistryModel,
   getProfileModel,
-  getComparePairSuggestions,
   getPairMeaning,
   POLE_MEANING,
 } from '../data/conceptReadModel.js';
@@ -118,11 +116,15 @@ export function ConceptFiveBar({
   // Individual it runs until the first tap; on Compare it keeps nudging
   // whoever can still complete the pair.
   const [tapHint, setTapHint] = useState({ cycle: 0, memberId: null });
+  // People who haven't finished stay on the rail (dimmed) but can't be
+  // picked or nudged: only completed profiles are selectable.
+  const isPending = (member) => member.assessmentComplete === false;
+  const selectable = members.filter((member) => !isPending(member));
   const hintableKey = (
     lens === 'profile' && !touchedLenses.profile
-      ? members.map((member) => member.id)
-      : lens === 'compare' && selectedIds.length < 2
-        ? members
+      ? selectable.map((member) => member.id)
+      : lens === 'compare' && selectedIds.length < 2 && selectable.length >= 2
+        ? selectable
             .filter((member) => !selectedIds.includes(member.id))
             .map((member) => member.id)
         : []
@@ -175,12 +177,16 @@ export function ConceptFiveBar({
   const onFaceEnter = (member) => (event) => {
     setHoverTip({
       id: member.id,
-      name: member.name,
+      // Pending people get the plain reason instead of a bare name.
+      name: isPending(member)
+        ? `${member.name} has not finished yet`
+        : member.name,
       x: event.clientX,
       y: event.clientY,
     });
     if (
       pickingSecond &&
+      !isPending(member) &&
       member.id !== selectedIds[0] &&
       railRef.current &&
       faceRefs.current[selectedIds[0]] &&
@@ -396,13 +402,21 @@ export function ConceptFiveBar({
           const { member } = item;
           const active = railInteractive && selectedIds.includes(member.id);
           const hinted = tapHint.memberId === member.id;
-          if (!railInteractive) {
-            // Team tab: the rail just shows who's on the team.
+          if (!railInteractive || isPending(member)) {
+            // Team tab: the rail just shows who's on the team. Pending
+            // people render this way on every tab: visible, dimmed, and
+            // not pickable until they finish.
             return (
               <span
                 key={member.id}
                 className="onex-rail-face"
                 data-static
+                data-pending={isPending(member) || undefined}
+                aria-label={
+                  isPending(member)
+                    ? `${member.name}, assessment not finished`
+                    : member.name
+                }
                 onMouseEnter={onFaceEnter(member)}
                 onMouseMove={onFaceMove}
                 onMouseLeave={onFaceLeave}
@@ -504,6 +518,10 @@ export function ConceptFiveBar({
   );
 }
 
+/* Team results need three completed assessments before the team read
+   exists. Below that, the V5 shell stays put and each tab explains itself. */
+export const TEAM_READY_THRESHOLD = 3;
+
 export function ConceptFive({
   scope,
   lens = 'overview',
@@ -512,20 +530,36 @@ export function ConceptFive({
   viewerId,
   insight,
   teamName,
+  readiness,
   onCoachPrompt,
   onSelectMember,
-  onSelectPair,
+  onSelectLens,
 }) {
+  // Team readiness: enough people finished AND the team read isn't mid-
+  // generation. The lifecycle comes from the same adapter the original
+  // waiting states used, so the demo controls drive both looks.
+  const completedCount = readiness?.completedCount ?? allSubjects.length;
+  const teamReady =
+    completedCount >= TEAM_READY_THRESHOLD && !readiness?.isGenerating;
+  const viewer = allSubjects.find((member) => member.id === viewerId);
+
   if (lens === 'profile') {
-    const person =
-      (scope === 'person' ? subjects[0] : null) ??
-      allSubjects.find((member) => member.id === viewerId) ??
-      allSubjects[0];
+    const person = (scope === 'person' ? subjects[0] : null) ?? viewer ?? allSubjects[0];
+    if (!person) {
+      return (
+        <ProfileLockedView
+          readiness={readiness}
+          onStartAssessment={readiness?.onStartAssessment}
+        />
+      );
+    }
     return (
       <ProfileView
         person={person}
         allSubjects={allSubjects}
         isOwn={person?.id === viewerId}
+        teamReady={teamReady}
+        readiness={readiness}
         onCoachPrompt={onCoachPrompt}
       />
     );
@@ -547,7 +581,20 @@ export function ConceptFive({
         subjects={subjects}
         allSubjects={allSubjects}
         viewerId={viewerId}
-        onSelectPair={onSelectPair}
+        readiness={readiness}
+      />
+    );
+  }
+
+  if (!teamReady) {
+    return readiness?.isGenerating ? (
+      <TeamGeneratingView teamName={teamName} readiness={readiness} />
+    ) : (
+      <TeamWaitingView
+        teamName={teamName}
+        readiness={readiness}
+        viewer={viewer}
+        onSelectLens={onSelectLens}
       />
     );
   }
@@ -561,6 +608,169 @@ export function ConceptFive({
       onCoachPrompt={onCoachPrompt}
       onSelectMember={onSelectMember}
     />
+  );
+}
+
+/* ── Pre-threshold states (V5 language) ──────────────────────────────────── */
+
+/** Team tab before three people have finished. Not locked, not greyed:
+ *  an honest card that shows progress, says what unblocks it, and sends
+ *  you to the one thing that IS ready, your own profile. */
+function TeamWaitingView({ teamName, readiness, viewer, onSelectLens }) {
+  const completed = readiness?.completedCount ?? 0;
+  const total = readiness?.totalCount ?? 0;
+  const needed = Math.max(0, TEAM_READY_THRESHOLD - completed);
+  const viewerDone = Boolean(viewer);
+  const pct = total > 0 ? Math.min(100, Math.round((completed / total) * 100)) : 0;
+  const pendingOthers = Math.max(0, total - completed);
+
+  return (
+    <div className="fivex-stack" aria-label="Team profile waiting">
+      <section className="fvg" id="fvsec-waiting">
+        <p className="fvx-chapnum">01</p>
+        <h2 className="fvc-title">
+          {teamName ? `${teamName}\u2019s profile is on its way.` : 'Your team profile is on its way.'}
+        </h2>
+        <p className="fvc-lead">
+          Team DNA generates once {TEAM_READY_THRESHOLD} people have completed
+          the assessment. {needed === 1 ? 'One more person' : `${needed} more people`}{' '}
+          {needed === 1 ? 'needs' : 'need'} to finish, then the team signature,
+          archetype mix, and working styles appear here.
+        </p>
+        <div className="fivex-profile">
+          <section className="fvc fvc--id">
+            <p className="fvc-kicker">Progress</p>
+            <p className="fvx-wait-count">
+              <strong>{completed}</strong> of {total} completed
+            </p>
+            <div className="fvx-wait-track" aria-hidden="true">
+              <span className="fvx-wait-fill" style={{ width: `${pct}%` }} />
+            </div>
+            <p className="fvx-persona-body">
+              {pendingOthers > 0
+                ? `Waiting on ${pendingOthers} ${pendingOthers === 1 ? 'teammate' : 'teammates'}. Completed people show in color in the bar above; pending people are dimmed.`
+                : 'Everyone has finished. The team read is being prepared.'}
+            </p>
+            <div className="fvx-wait-actions">
+              {viewerDone ? (
+                <button
+                  type="button"
+                  className="bu-button bu-button--primary"
+                  onClick={() => onSelectLens?.('profile')}
+                >
+                  See your profile
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  className="bu-button bu-button--primary"
+                  onClick={() => readiness?.onStartAssessment?.()}
+                >
+                  Start your assessment
+                </button>
+              )}
+              {readiness?.canGenerateTeam ? (
+                <button
+                  type="button"
+                  className="bu-button bu-button--secondary"
+                  onClick={() => readiness?.onGenerate?.()}
+                >
+                  Generate now
+                </button>
+              ) : null}
+            </div>
+            {readiness?.onDemoAdvance && viewerDone && pendingOthers > 0 ? (
+              <button
+                type="button"
+                className="insight-demo-advance fvx-wait-demo"
+                onClick={() => readiness.onDemoAdvance()}
+                title="Demo only: skip ahead as if everyone has finished"
+              >
+                <span className="insight-demo-advance-tag">Demo</span>
+                Skip to results
+                <span aria-hidden="true">&rarr;</span>
+              </button>
+            ) : null}
+          </section>
+          <section className="fvc">
+            <p className="fvc-kicker">What you will see here</p>
+            <h2 className="fvc-title">Three reads on the team</h2>
+            <ul className="fvx-wait-list">
+              <li>
+                <strong>Who you are together.</strong> The team signature, the
+                archetype mix, and where everyone lands on the five traits.
+              </li>
+              <li>
+                <strong>Strengths and growth areas.</strong> What this mix is
+                naturally good at, where the same habits work against you, and
+                questions to talk through as a team.
+              </li>
+              <li>
+                <strong>How you like to work.</strong> Pace, structure,
+                collaboration, feedback, and focus, with one insight per topic
+                on where the room splits.
+              </li>
+            </ul>
+            {viewerDone ? (
+              <p className="fvx-persona-body fvx-wait-note">
+                Your own profile is ready now: your archetype, your strengths
+                and growth areas, and how you like to work.
+              </p>
+            ) : null}
+          </section>
+        </div>
+      </section>
+    </div>
+  );
+}
+
+/** Team tab while the LLM read is being generated. */
+function TeamGeneratingView({ teamName, readiness }) {
+  const total = readiness?.totalCount ?? 0;
+  return (
+    <div className="fivex-stack" aria-label="Generating team profile">
+      <section className="fvg" id="fvsec-generating" aria-busy="true">
+        <p className="fvx-chapnum">01</p>
+        <h2 className="fvc-title">
+          Generating {teamName ? `${teamName}\u2019s` : 'your team\u2019s'} profile.
+        </h2>
+        <p className="fvc-lead">
+          Synthesizing {total > 0 ? `${total} assessments` : 'the team\u2019s assessments'}{' '}
+          into the team signature, archetype mix, and working styles. This
+          takes about a minute.
+        </p>
+        <section className="fvc fvx-generating">
+          <span className="fvx-shimmer fvx-shimmer--title" />
+          <span className="fvx-shimmer" />
+          <span className="fvx-shimmer fvx-shimmer--short" />
+        </section>
+      </section>
+    </div>
+  );
+}
+
+/** Individual tab when the viewer has not finished their own assessment. */
+function ProfileLockedView({ readiness, onStartAssessment }) {
+  return (
+    <div className="fivex-stack" aria-label="Your profile">
+      <section className="fvg">
+        <h2 className="fvc-title">Your profile appears once you finish.</h2>
+        <p className="fvc-lead">
+          Complete the assessment to see your archetype, your strengths and
+          growth areas, and how you like to work.
+          {readiness?.totalCount
+            ? ` ${readiness.completedCount ?? 0} of ${readiness.totalCount} teammates have already finished.`
+            : ''}
+        </p>
+        <button
+          type="button"
+          className="bu-button bu-button--primary"
+          onClick={() => onStartAssessment?.()}
+        >
+          Start your assessment
+        </button>
+      </section>
+    </div>
   );
 }
 
@@ -996,8 +1206,7 @@ function OverviewView({
         <p className="fvc-lead">
           How this team actually prefers to work: pace, structure,
           collaboration, feedback, and focus. Pick a topic to see where
-          everyone stands &mdash; and where the room splits, agree on a
-          default.
+          everyone stands. Where the room splits, agree on a default.
         </p>
         <section className="fvc">
           {/* The section coach foot lives inside the stage: it only shows
@@ -1092,7 +1301,14 @@ function getTraitsLead(strips) {
 
 /* ── Lens 2 · Individual profiles ────────────────────────────────────────── */
 
-function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
+function ProfileView({
+  person,
+  allSubjects,
+  isOwn,
+  teamReady = true,
+  readiness,
+  onCoachPrompt,
+}) {
   if (!person) return null;
   const model = getProfileModel(person, allSubjects);
   const name = firstName(person);
@@ -1194,7 +1410,9 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
           ) : null}
           {/* Separate section, same type system: mono kicker + sans body.
               "Where you fit" is P1: per-team storage needs its own model
-              (Sep 3), so the block stays in the design tagged P1. */}
+              (Sep 3), so the block stays in the design tagged P1. It needs
+              the team read, so it waits for the threshold. */}
+          {teamReady ? (
           <div className="fvx-fit">
             <p className="fvc-kicker fvc-kicker--tight">
               Where {isOwn ? 'you fit' : `${name} fits`} in this team
@@ -1223,8 +1441,42 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
             </p>
             {leanLine ? <p className="fvx-persona-body">{leanLine}</p> : null}
           </div>
+          ) : null}
         </section>
 
+        {!teamReady ? (
+          /* Before the threshold there is no team average to sit next to;
+             say so plainly and name what unblocks it. */
+          <section className="fvc fvx-team-pending">
+            <p className="fvc-kicker">Next to the team</p>
+            <h2 className="fvc-title">
+              {isOwn ? 'Your place in the team' : `${name}\u2019s place in the team`}{' '}
+              appears once {TEAM_READY_THRESHOLD} people finish.
+            </h2>
+            <p className="fvc-lead">
+              {readiness?.completedCount ?? allSubjects.length} of{' '}
+              {readiness?.totalCount ?? allSubjects.length} have completed the
+              assessment. When the team profile generates, this card shows
+              where {isOwn ? 'you sit' : `${name} sits`} on each of the five
+              traits against the team average.
+            </p>
+            <div className="fva-rows fva-rows--ghost" aria-hidden="true">
+              {BIG_FIVE_TRAITS.map((trait) => (
+                <div className="fvp-row" key={trait.key}>
+                  <span className="fva-name">{trait.label}</span>
+                  <span className="fva-pole">{trait.lowLabel}</span>
+                  <span className="fva-mini fvp-mini">
+                    <span className="fva-cap" />
+                    <span className="fva-cap fva-cap--end" />
+                  </span>
+                  <span className="fva-pole fva-pole--right">
+                    {trait.highLabel}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : (
         <section className="fvc">
           <h2 className="fvc-title">
             {isOwn ? 'You, next to the team' : `${name}, next to the team`}
@@ -1265,6 +1517,7 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
             ))}
           </div>
         </section>
+        )}
       </div>
 
       <section className="fvg">
@@ -1311,14 +1564,24 @@ function ProfileView({ person, allSubjects, isOwn, onCoachPrompt }) {
           How {isOwn ? 'you like' : `${name} likes`} to work
         </h2>
         <p className="fvc-lead">
-          How {isOwn ? 'you prefer' : `${name} prefers`} to get work done,
-          highlighted against the rest of the team. Where{' '}
-          {isOwn ? 'you sit' : `${name} sits`} apart from the room, saying it
-          out loud turns friction into an easy agreement.
+          {teamReady ? (
+            <>
+              How {isOwn ? 'you prefer' : `${name} prefers`} to get work done,
+              highlighted against the rest of the team. Where{' '}
+              {isOwn ? 'you sit' : `${name} sits`} apart from the room, saying
+              it out loud turns friction into an easy agreement.
+            </>
+          ) : (
+            <>
+              How {isOwn ? 'you prefer' : `${name} prefers`} to get work done.
+              Once the team finishes, each topic also shows where{' '}
+              {isOwn ? 'you sit' : `${name} sits`} against the room.
+            </>
+          )}
         </p>
         <section className="fvc">
           {/* The coach link lives inside the stage panel, under the
-              insight, as "Dive deeper" — same as the team view. */}
+              insight, as "Dive deeper", same as the team view. */}
           <WorkingStylesStage
             subjects={allSubjects}
             focusIds={[person.id]}
@@ -1521,91 +1784,65 @@ function CompareDuo({ pair, allSubjects, onCoachPrompt }) {
   );
 }
 
-/* ONE picker, whether zero or one face is chosen: instruction up top with
-   the animated how-it-works vignette on the right, suggested pairs below.
-   A chosen person seeds the suggestions, so nothing jumps when you tap a
-   face. */
-function ComparePicker({ scope, subjects, allSubjects, viewerId, onSelectPair }) {
+/* The compare empty state, whether zero or one face is chosen. No
+   suggested pairs (Sep 8 decision): just three clear beats, do the thing,
+   learn what happens, see the value, with the animated vignette as the
+   demonstration. Locks with a plain explanation while fewer than two
+   people have finished. */
+function ComparePicker({ scope, subjects, allSubjects, viewerId, readiness }) {
   const anchor = scope === 'person' ? subjects[0] : null;
-  let pairs = [];
-  if (anchor) {
-    const others = allSubjects.filter((other) => other.id !== anchor.id);
-    let closest = null;
-    let contrast = null;
-    others.forEach((other) => {
-      const distance = getPairDistance(anchor, other);
-      if (!closest || distance < closest.distance)
-        closest = { member: other, distance };
-      if (!contrast || distance > contrast.distance)
-        contrast = { member: other, distance };
-    });
-    if (contrast) {
-      pairs.push({
-        a: anchor,
-        b: contrast.member,
-        tag: 'Sharpest contrast',
-        line: 'The most different defaults: slower, and the widest coverage.',
-      });
-    }
-    if (closest) {
-      pairs.push({
-        a: anchor,
-        b: closest.member,
-        tag: 'Closest match',
-        line: 'Nearly the same defaults: fast together, with a shared blind side.',
-      });
-    }
-  } else {
-    pairs = getComparePairSuggestions(allSubjects, 3, viewerId);
-  }
-  const anchorName = anchor
+  const completedCount = allSubjects.length;
+  const totalCount = readiness?.totalCount ?? completedCount;
+  const locked = completedCount < 2;
+  const anchorLead = anchor
     ? anchor.id === viewerId
-      ? 'You\u2019re'
-      : `${firstName(anchor)} is`
+      ? 'You\u2019re in.'
+      : `${firstName(anchor)} is in.`
     : null;
 
   return (
     <div className="fivex-stack" aria-label="Compare profiles">
       <section className="fvx-pick fvx-pick--page">
-        {/* Two columns, echoing the profile grid: the invitation reads
-            first on the left (title, how it works, the animated vignette
-            as illustration); the ready-made pairs act as shortcuts on the
-            right. */}
         <div className="fvx-pick-cols">
           <div className="fvx-pick-intro">
-            <h2 className="fvc-title">Pick any two people.</h2>
-            <p className="fvc-lead">
-              {anchor ? (
-                <>
-                  {anchorName} in &mdash; tap one more face above, or jump
-                  into a suggested pair.
-                </>
-              ) : (
-                <>
-                  Tap two faces in the bar above. You&rsquo;ll get one read
-                  on the pair: what they cover together, where it rubs, and
-                  the agreement worth making.
-                </>
-              )}
-            </p>
-            <PairHintVisual members={pickHintMembers(allSubjects)} />
+            <h2 className="fvc-title">
+              {locked
+                ? 'Compare unlocks once two people have finished.'
+                : 'Pick any two people.'}
+            </h2>
+            <ol className="fvx-steps">
+              <li>
+                {locked ? (
+                  <>
+                    <strong>Waiting on the team.</strong> {completedCount} of{' '}
+                    {totalCount} have completed the assessment. Once two are
+                    in, tap any two faces in the bar above.
+                  </>
+                ) : anchor ? (
+                  <>
+                    <strong>{anchorLead} Tap one more face</strong> in the bar
+                    above to complete the pair.
+                  </>
+                ) : (
+                  <>
+                    <strong>Tap two faces in the bar above.</strong> Any two
+                    teammates, in any order.
+                  </>
+                )}
+              </li>
+              <li>
+                <strong>Watch them pair up.</strong> The two slide together
+                and the rest of the team steps back, so you can see how they
+                sit against each other.
+              </li>
+              <li>
+                <strong>Get one read on the pair.</strong> What they cover
+                together, where it rubs, and the agreement worth making
+                before it matters.
+              </li>
+            </ol>
           </div>
-          <div className="fvx-pick-list">
-            <p className="fvc-kicker">Pairs worth a look</p>
-            <div className="mapx-pairings onex-pairings">
-              {pairs.map((pair) => (
-                <PairRow
-                  key={`${pair.a.id}-${pair.b.id}`}
-                  a={pair.a}
-                  b={pair.b}
-                  tag={pair.tag}
-                  line={pair.line}
-                  viewerId={viewerId}
-                  onSelectPair={onSelectPair}
-                />
-              ))}
-            </div>
-          </div>
+          <PairHintVisual members={pickHintMembers(allSubjects)} />
         </div>
       </section>
     </div>
@@ -1705,34 +1942,3 @@ function PairHintVisual({ members }) {
   );
 }
 
-function PairRow({ a, b, tag, line, viewerId, onSelectPair }) {
-  return (
-    <button
-      type="button"
-      className="mapx-pairing"
-      onClick={() => onSelectPair?.(a.id, b.id)}
-    >
-      <span className="tabx-pair-faces">
-        <Face member={a} size={30} />
-        <Face member={b} size={30} />
-      </span>
-      <span className="mapx-pairing-copy">
-        <strong>
-          {tag} {'\u00b7'} {a.id === viewerId ? 'You' : firstName(a)} &amp;{' '}
-          {b.id === viewerId ? 'you' : firstName(b)}
-        </strong>
-        {line}
-      </span>
-      <svg className="mapx-pairing-arrow" viewBox="0 0 16 16" aria-hidden="true">
-        <path
-          d="M6 4l4 4-4 4"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-    </button>
-  );
-}

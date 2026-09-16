@@ -845,7 +845,7 @@ export function getBasisStory(item, subjects, sectionKind = 'strengths') {
       trait,
       pattern,
       prompt: trait.promptPlural,
-      countLine: `${ends.high.length} of ${total} land toward ${trait.highLabel.toLowerCase()}, ${ends.low.length} toward ${trait.lowLabel.toLowerCase()} — a genuine split, ${Math.round(pattern.spread)} points end to end.`,
+      countLine: `${ends.high.length} of ${total} land toward ${trait.highLabel.toLowerCase()}, ${ends.low.length} toward ${trait.lowLabel.toLowerCase()}: a genuine split, ${Math.round(pattern.spread)} points end to end.`,
       whyLine:
         item.type === 'complement'
           ? `Two clear leans in opposite directions cover more ground than either could alone. That contrast is the strength this line names.`
@@ -877,7 +877,7 @@ export function getBasisStory(item, subjects, sectionKind = 'strengths') {
   const whyLine =
     sectionKind === 'growth'
       ? `A strength overextended: when this much of a team defaults to ${valuePhrase}, the same lean creates a shared blind side. This flag watches that edge.`
-      : `When this many people share the same lean, the team gets ${valuePhrase} by default — no one has to carry it alone. That is what this line describes.`;
+      : `When this many people share the same lean, the team gets ${valuePhrase} by default. No one has to carry it alone, and that is what this line describes.`;
 
   return {
     trait,

@@ -407,7 +407,7 @@ export function getSpectrumPositionLine(member, trait, allSubjects) {
     return side === 'high' ? bScore - aScore : aScore - bScore;
   });
   const rank = ranked.findIndex((other) => other.id === member.id) + 1;
-  return `${score} of 100 — ${ordinal(rank)} of ${allSubjects.length} toward ${poleLabel.toLowerCase()}.`;
+  return `${score} of 100, ${ordinal(rank)} of ${allSubjects.length} toward ${poleLabel.toLowerCase()}.`;
 }
 
 /* ── The Map ─────────────────────────────────────────────────────────────── */
@@ -598,13 +598,13 @@ export function getMapBullets({ model, allSubjects }) {
     bullets.push({
       key: 'clusters',
       strong: `A cluster of ${largest.members.length}`,
-      tail: `share similar defaults around ${largest.homeLabel} — fast together, with the same blind side.`,
+      tail: `share similar defaults around ${largest.homeLabel}: fast together, with the same blind side.`,
     });
   } else {
     bullets.push({
       key: 'clusters',
       strong: 'No tight clusters',
-      tail: 'on these axes — everyone works from a noticeably different mix.',
+      tail: 'on these axes: everyone works from a noticeably different mix.',
     });
   }
 
@@ -614,7 +614,7 @@ export function getMapBullets({ model, allSubjects }) {
   bullets.push({
     key: 'divide',
     strong: `Widest split: ${FRIENDLY_TRAIT_WORD[divide.trait.key].toLowerCase()}`,
-    tail: `— ${Math.round(divide.spread)} points from ${divide.trait.lowLabel.toLowerCase()} to ${divide.trait.highLabel.toLowerCase()}.`,
+    tail: `, ${Math.round(divide.spread)} points from ${divide.trait.lowLabel.toLowerCase()} to ${divide.trait.highLabel.toLowerCase()}.`,
   });
 
   if (openQuadrants.length > 0) {
@@ -629,7 +629,7 @@ export function getMapBullets({ model, allSubjects }) {
     bullets.push({
       key: 'open',
       strong: 'Every corner covered',
-      tail: '— rare range. The trade-off: agreement takes longer.',
+      tail: ', a rare range. The trade-off: agreement takes longer.',
     });
   }
 
@@ -904,7 +904,7 @@ export function getComparePairSuggestions(allSubjects, count = 3, viewerId = nul
       suggestions.push({
         ...viewerContrast,
         tag: 'Your sharpest contrast',
-        line: 'Covers what you don\u2019t \u2014 the pairing that stretches you most.',
+        line: 'Covers what you don\u2019t: the pairing that stretches you most.',
       });
     }
     return suggestions.slice(0, count);

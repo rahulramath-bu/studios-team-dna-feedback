@@ -10268,6 +10268,136 @@ button.team-management-row {
   transform: none;
 }
 
+/* People who haven't finished: on the rail so the roster reads complete,
+   but dimmed and inert until their assessment is in. */
+.fivex-rail .onex-rail-face[data-pending] {
+  opacity: 0.32;
+  filter: saturate(0.15);
+  cursor: not-allowed;
+}
+
+/* ── Pre-threshold states ─────────────────────────────────────────────── */
+
+.fvx-wait-count {
+  margin: 0 0 10px;
+  color: #1e1a26;
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.fvx-wait-count strong {
+  font-family: var(--heading-display-font);
+  font-size: 28px;
+  font-weight: 400;
+  line-height: 1;
+  margin-right: 2px;
+}
+
+.fvx-wait-track {
+  height: 6px;
+  margin-bottom: 16px;
+  border-radius: 999px;
+  background: rgba(30, 26, 38, 0.08);
+  overflow: hidden;
+}
+
+.fvx-wait-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: #1e1a26;
+  transition: width 0.6s ease;
+}
+
+.fvx-wait-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.fvx-wait-demo {
+  margin-top: 16px;
+}
+
+.fvx-wait-list {
+  display: grid;
+  gap: 16px;
+  margin: 16px 0 0;
+  padding: 0;
+  list-style: none;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 14px;
+  line-height: 21px;
+}
+
+.fvx-wait-list strong {
+  color: #1e1a26;
+  font-weight: 600;
+}
+
+.fvx-wait-note {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Ghost rows: the shape of what's coming, with nothing plotted. */
+.fva-rows--ghost {
+  margin-top: 24px;
+  opacity: 0.55;
+}
+
+.fvx-team-pending .fvc-title {
+  max-width: 520px;
+}
+
+/* Generating: quiet shimmer bars in the card's own rhythm. */
+.fvx-generating {
+  display: grid;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.fvx-shimmer {
+  display: block;
+  height: 14px;
+  width: 100%;
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(30, 26, 38, 0.06) 0%,
+    rgba(30, 26, 38, 0.12) 50%,
+    rgba(30, 26, 38, 0.06) 100%
+  );
+  background-size: 200% 100%;
+  animation: fvx-shimmer 1.4s ease-in-out infinite;
+}
+
+.fvx-shimmer--title {
+  height: 22px;
+  width: 42%;
+}
+
+.fvx-shimmer--short {
+  width: 64%;
+}
+
+@keyframes fvx-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .fvx-shimmer {
+    animation: none;
+  }
+}
+
 /* Motion owns the button's transform (the slide to center and the pair
    scale-up). All CSS transform effects — hover lift, tap-me pulse — live on
    the inner layer so the two systems never fight. */
@@ -11161,10 +11291,14 @@ button.team-management-row {
 /* Two columns on the profile grid's rhythm: invitation + vignette left,
    suggested pairs right. Columns stretch so the vignette can center in
    the space the rows define. */
+/* Compare empty state: the instruction column left (title + three beats:
+   do, learn, value), the animated vignette right as the demonstration,
+   vertically centered against the copy. Collapses to one column narrow. */
 .fvx-pick-cols {
   display: grid;
-  grid-template-columns: minmax(0, 380px) minmax(0, 1fr);
-  gap: 72px;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 64px;
+  align-items: center;
   max-width: 1080px;
 }
 
@@ -11173,53 +11307,55 @@ button.team-management-row {
   flex-direction: column;
 }
 
-/* Guaranteed air between the copy and the centered vignette, even when
-   only two suggestion rows define the column height. */
-.fvx-pick-intro .fvc-lead {
-  margin-bottom: 30px;
-}
-
-/* The vignette centers in the leftover space beside the rows, so the two
-   columns read as one composed block instead of a short one and a tall
-   one. Scaled a touch for presence; the box keeps its layout size. */
-.fvx-pick-intro .fvx-hint {
-  margin: auto;
-  transform: scale(1.18);
-}
-
-/* Optical top alignment: the mono kicker hangs on the serif title's
-   cap height. */
-.fvx-pick-list {
-  max-width: 640px;
-  padding-top: 6px;
-}
-
-.fvx-pick-list > .fvc-kicker {
-  margin-bottom: 4px;
-  padding-bottom: 12px;
-  border-bottom: 0.5px solid rgba(0, 0, 0, 0.08);
-}
-
-.fvx-pick-list .mapx-pairings {
+/* The three beats: mono step numbers on the 8-pt grid, bold lead-in that
+   names the action, one plain line after it. */
+.fvx-steps {
   display: grid;
-  gap: 10px;
-  margin-top: 14px;
+  gap: 16px;
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: fvx-step;
 }
 
-.fvx-pick-list .mapx-pairing {
-  padding: 16px 20px;
-  border-radius: 12px;
-  background: #ffffff;
-  box-shadow: 0 2px 4px -1px rgba(26, 26, 26, 0.12);
+.fvx-steps li {
+  position: relative;
+  padding-left: 32px;
+  color: rgba(var(--team-dna-copy-rgb), 0.78);
+  font-size: 14px;
+  letter-spacing: 0.1px;
+  line-height: 21px;
+  counter-increment: fvx-step;
 }
 
-.fvx-pick-list .mapx-pairing + .mapx-pairing {
-  border-top: 0;
+.fvx-steps li::before {
+  content: counter(fvx-step);
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: inline-grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(30, 26, 38, 0.06);
+  color: #1e1a26;
+  font-family: var(--label-font);
+  font-size: 10px;
+  font-weight: 500;
+  line-height: 1;
 }
 
-.fvx-pick-list .mapx-pairing:hover {
-  background: #ffffff;
-  box-shadow: 0 5px 12px -3px rgba(26, 26, 26, 0.18);
+.fvx-steps li strong {
+  color: #1e1a26;
+  font-weight: 600;
+}
+
+/* The vignette centers in its column, scaled a touch for presence; the
+   box keeps its layout size. */
+.fvx-pick-cols .fvx-hint {
+  margin: 0 auto;
+  transform: scale(1.18);
 }
 
 .fvx-hint {

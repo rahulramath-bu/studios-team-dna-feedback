@@ -286,6 +286,7 @@ export function InsightPanel({
   onProfileCopySave,
   onStartAssessment,
   onDemoAdvance,
+  onSelectLens,
 }) {
   const scrollRef = useRef(null);
   const resetScrollAfterExit = () => {
@@ -337,6 +338,7 @@ export function InsightPanel({
                   onProfileCopySave={onProfileCopySave}
                   onStartAssessment={onStartAssessment}
                   onDemoAdvance={onDemoAdvance}
+                  onSelectLens={onSelectLens}
                   revealMode={revealMode}
                 />
               </AnimatePresence>
@@ -367,6 +369,7 @@ function InsightPage({
   onProfileCopySave,
   onStartAssessment,
   onDemoAdvance,
+  onSelectLens,
   revealMode,
 }) {
   return (
@@ -406,6 +409,7 @@ function InsightPage({
       onProfileCopySave={onProfileCopySave}
       onStartAssessment={onStartAssessment}
       onDemoAdvance={onDemoAdvance}
+      onSelectLens={onSelectLens}
       revealMode={revealMode}
     />
     </motion.article>
@@ -431,6 +435,7 @@ function InsightPageContent({
   onProfileCopySave,
   onStartAssessment,
   onDemoAdvance,
+  onSelectLens,
   revealMode,
 }) {
   const lifecycle = insight.generationLifecycle;
@@ -579,6 +584,29 @@ function InsightPageContent({
     lifecycle?.target?.scope === 'team' &&
     viewerDone &&
     othersPending;
+  // V5 renders its own waiting / generating / locked states inside the
+  // same three-tab shell, so the original waiting cards step aside for it.
+  const isFive = pageVariation === 'five' && revealMode !== 'selfReview';
+  const teamTarget = lifecycle?.target?.scope === 'team' ? lifecycle.target : null;
+  const fiveReadiness = isFive
+    ? {
+        completedCount: completedSubjects.length,
+        totalCount: members.length,
+        isGenerating: isGenerating && lifecycle?.target?.scope === 'team',
+        canGenerateTeam: Boolean(teamTarget?.canGenerateTeam),
+        viewerDone: Boolean(viewerDone),
+        onStartAssessment,
+        onDemoAdvance: showDemoAdvance ? onDemoAdvance : null,
+        onGenerate: teamTarget?.canGenerateTeam
+          ? () =>
+              onLifecycleAction?.({
+                type: 'teamDnaInsightGenerationRequested',
+                target: teamTarget,
+                status: lifecycle.status,
+              })
+          : null,
+      }
+    : null;
 
   return (
     <>
@@ -589,7 +617,7 @@ function InsightPageContent({
           onLifecycleAction={onLifecycleAction}
         />
       )}
-      {isHardNotReady ? (
+      {isHardNotReady && !isFive ? (
         <InsightWaitingState
           lifecycle={lifecycle}
           members={members}
@@ -599,7 +627,7 @@ function InsightPageContent({
           onStartAssessment={onStartAssessment}
         />
       ) : null}
-      {showDemoAdvance ? (
+      {showDemoAdvance && !isFive ? (
         <button
           type="button"
           className="insight-demo-advance"
@@ -611,10 +639,10 @@ function InsightPageContent({
           <span aria-hidden="true">&rarr;</span>
         </button>
       ) : null}
-      {isGenerating ? (
+      {isGenerating && !isFive ? (
         <InsightGeneratingState lifecycle={lifecycle} teamName={teamName} />
       ) : null}
-      {isHardNotReady || isGenerating ? null : isDepthPageActive ? (
+      {isFive || (!isHardNotReady && !isGenerating && isDepthPageActive) ? (
         /* Page concepts own the whole column on every scope: each presents
            the same data through a different, self-contained system. */
         <TeamDepthPage
@@ -627,9 +655,11 @@ function InsightPageContent({
           viewerId={currentViewerMemberId}
           isOwnProfile={isOwnProfile}
           teamName={teamName}
+          readiness={fiveReadiness}
           onCoachPrompt={onCoachPrompt}
           onSelectMember={onSelectMember}
           onSelectPair={onSelectPair}
+          onSelectLens={onSelectLens}
         />
       ) : (
         <>

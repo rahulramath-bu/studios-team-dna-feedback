@@ -677,11 +677,15 @@ export function TeamDepthPage({
   viewerId,
   isOwnProfile = false,
   teamName,
+  readiness,
   onCoachPrompt,
   onSelectMember,
   onSelectPair,
+  onSelectLens,
 }) {
-  if (!subjects.length) return null;
+  // V5 owns its pre-threshold states (waiting, generating, locked), so it
+  // renders even when nobody has finished yet.
+  if (!subjects.length && variation !== 'five') return null;
 
   if (variation === 'map') {
     return (
@@ -745,9 +749,10 @@ export function TeamDepthPage({
         isOwnProfile={isOwnProfile}
         insight={insight}
         teamName={teamName}
+        readiness={readiness}
         onCoachPrompt={onCoachPrompt}
         onSelectMember={onSelectMember}
-        onSelectPair={onSelectPair}
+        onSelectLens={onSelectLens}
       />
     );
   }
