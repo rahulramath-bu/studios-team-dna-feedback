@@ -10293,14 +10293,57 @@ button.team-management-row {
 
 /* ── Pre-threshold states ─────────────────────────────────────────────── */
 
-/* The team's empty state: two ListCards built from existing parts. Only
-   the pill-with-icon, the chapter list, and the info line are added. */
+/* The team's empty state: the profile grid with ListCard parts inside.
+   Only the pill-with-icon, the minimum marker on the product's progress
+   track, the chapter list, and the info line are added. */
 .fvs-badge--icon {
   gap: 5px;
 }
 
-.fvl .insight-waiting-progress {
+/* Inside the flex card the pill must not stretch to the card's width. */
+.fvc--id .fvs-badge {
+  align-self: flex-start;
+}
+
+.fvc .fvl-item {
+  padding-top: 22px;
+}
+
+/* Generate belongs with the bar, not at the card's foot. */
+.fvx-progress-card .fvl-foot {
+  margin-top: 0;
+  padding-top: 8px;
+}
+
+.fvc .fvl-actions {
+  margin-top: 22px;
+}
+
+.fvc .fvl-foot {
+  padding-top: 24px;
+}
+
+.fvx-progress {
+  position: relative;
   margin-top: 18px;
+  padding-bottom: 18px;
+}
+
+/* The minimum for generating early: a hairline tick on the track with a
+   small mono label under it, only while the team is under it. */
+.fvx-progress-min {
+  position: absolute;
+  top: -3px;
+  padding-top: 14px;
+  padding-left: 6px;
+  border-left: 1px solid rgba(var(--team-dna-ink-rgb), 0.4);
+  color: #717070;
+  font-family: var(--label-font);
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 /* The page's chapters as a list: mono number, then the chapter name. */
