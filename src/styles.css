@@ -310,6 +310,21 @@ html {
   box-shadow: 0 16px 38px rgba(var(--team-dna-ink-rgb), 0.16);
 }
 
+.monolith-persona-menu-sep {
+  height: 1px;
+  margin: 5px 4px;
+  background: rgba(var(--team-dna-ink-rgb), 0.08);
+}
+
+.monolith-persona-menu-label {
+  padding: 4px 10px 2px;
+  color: rgba(var(--team-dna-ink-rgb), 0.55);
+  font-family: var(--label-font);
+  font-size: 9px;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
 .monolith-persona-menu-item {
   display: flex;
   align-items: center;
@@ -10278,96 +10293,30 @@ button.team-management-row {
 
 /* ── Pre-threshold states ─────────────────────────────────────────────── */
 
-/* One card, the original waiting state's bones: kicker + count tag,
-   serif title, a segmented progress bar (one segment per person, unlock
-   point marked), then a single action row. */
-.fvx-wait {
-  max-width: 760px;
-}
-
-.fvx-wait-head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.fvx-wait-head .fvc-kicker {
-  margin: 0;
-}
-
-.fvx-wait-tag {
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: rgba(30, 26, 38, 0.06);
-  color: #1e1a26;
-  font-family: var(--label-font);
-  font-size: 10px;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.fvx-wait .fvc-title {
-  margin-top: 16px;
-  max-width: 560px;
-}
-
-.fvx-wait-seg {
-  position: relative;
-  margin-top: 32px;
-  padding-bottom: 22px;
-}
-
-.fvx-wait-segments {
-  display: flex;
-  gap: 4px;
-  height: 10px;
-}
-
-.fvx-wait-segment {
-  flex: 1;
-  border-radius: 3px;
-  background: rgba(30, 26, 38, 0.08);
-}
-
-.fvx-wait-segment[data-done] {
-  background: #ce0058;
-}
-
-/* Threshold marker: a hairline at the unlock boundary with a mono label
-   hanging under it. */
-.fvx-wait-unlock {
-  position: absolute;
-  top: -6px;
-  padding-top: 24px;
-  border-left: 1px dashed rgba(30, 26, 38, 0.45);
-  transform: translateX(-2px);
-  padding-left: 8px;
-  color: #717070;
-  font-family: var(--label-font);
-  font-size: 10px;
-  letter-spacing: 0.6px;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.fvx-wait-foot {
+/* The team's empty state reuses section 01 as-is; these are the only
+   additions: the strip of people still to finish (in the archetype-mix
+   slot) and the action row at the foot of the signature card. */
+.fvx-wait-faces {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 16px;
+  gap: 6px;
+}
+
+.fvx-wait-faces .dxp-face {
+  opacity: 0.55;
+  filter: saturate(0.2);
+}
+
+.fvx-wait-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
   margin-top: 24px;
 }
 
-.fvx-wait-note {
-  color: #717070;
-  font-size: 14px;
-  line-height: 21px;
-}
-
-.fvx-wait-demo {
-  margin-left: auto;
+/* Rows shown before the team read exists: same grid, nothing to open. */
+.fva-row--static {
+  cursor: default;
 }
 
 /* Generating: quiet shimmer bars in the card's own rhythm. */

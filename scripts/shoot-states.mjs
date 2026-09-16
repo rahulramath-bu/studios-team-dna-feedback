@@ -10,7 +10,7 @@ const browser = await puppeteer.launch({
   executablePath: CHROME,
 });
 const page = await browser.newPage();
-await page.setViewport({ width: 1440, height: 950, deviceScaleFactor: 1.5 });
+await page.setViewport({ width: 1440, height: 1000, deviceScaleFactor: 1.5 });
 await page.evaluateOnNewDocument(() => {
   sessionStorage.setItem('teamDnaPageVariation', 'five');
 });
@@ -25,54 +25,78 @@ const clickTab = (label) =>
     label
   );
 
-const shootState = async (mode, tag) => {
-  await page.goto(`${BASE}?demo=${mode}`, { waitUntil: 'domcontentloaded' });
-  await sleep(1800);
-  const hasTabs = await page.$('.fivex-tab');
-  console.log(`[${tag}] V5 tabs present:`, !!hasTabs);
-  await page.screenshot({ path: `/tmp/state-${tag}-team.png` });
-  await clickTab('Individual');
+const pickViewAs = async (label) => {
+  await page.$$eval('.monolith-persona-menu-trigger', (triggers) => {
+    triggers.find((t) => t.textContent.includes('View as'))?.click();
+  });
+  await sleep(250);
+  await page.$$eval(
+    '.monolith-persona-menu-item',
+    (items, target) => {
+      items.find((item) => item.textContent.includes(target))?.click();
+    },
+    label
+  );
   await sleep(1400);
-  await page.screenshot({ path: `/tmp/state-${tag}-individual.png` });
-  await clickTab('Compare');
-  await sleep(1200);
-  await page.screenshot({ path: `/tmp/state-${tag}-compare.png` });
-  const railInfo = await page.evaluate(() => ({
-    total: document.querySelectorAll('.fivex-rail .onex-rail-face').length,
-    pending: document.querySelectorAll('.fivex-rail [data-pending]').length,
-    text: document.body.innerText.includes('\u2014') ? 'HAS EM DASH' : 'no em dash',
-  }));
-  console.log(`[${tag}] rail:`, JSON.stringify(railInfo));
 };
 
-await shootState('waiting', 'waiting');
-await shootState('enough-to-generate', 'threshold');
+const railInfo = () =>
+  page.evaluate(() => ({
+    total: document.querySelectorAll('.fivex-rail .onex-rail-face').length,
+    pending: document.querySelectorAll('.fivex-rail [data-pending]').length,
+    banner: !!document.querySelector('.insight-lifecycle-status'),
+    emDash: document.body.innerText.includes('\u2014'),
+    viewAs: [...document.querySelectorAll('.monolith-persona-menu-trigger')]
+      .find((t) => t.textContent.includes('View as'))
+      ?.querySelector('.monolith-persona-menu-value')?.textContent,
+  }));
 
-// Full sample team: compare empty state redesign.
+// Sample team, fully complete.
 await page.goto(BASE, { waitUntil: 'domcontentloaded' });
 await sleep(1500);
 await page.$$eval('button', (els) => {
   els.find((el) => el.textContent.includes('Try with sample data'))?.click();
 });
 await page.waitForSelector('.fivex-tab', { timeout: 15000 });
-await sleep(600);
-await clickTab('Compare');
-await sleep(900);
-const pre = await page.$('.fivex-rail button.onex-rail-face[data-active]');
-if (pre) {
-  await pre.click();
-  await sleep(400);
-}
-await sleep(2400);
-await page.screenshot({ path: '/tmp/state-full-compare-empty.png' });
-const faces = await page.$$('.fivex-rail button.onex-rail-face');
-await faces[2].click();
+await sleep(800);
+console.log('[full]', JSON.stringify(await railInfo()));
+
+// View as -> only you finished.
+await pickViewAs('only you finished');
+console.log('[one]', JSON.stringify(await railInfo()));
+await page.screenshot({ path: '/tmp/state-one-team.png' });
+await clickTab('Individual');
 await sleep(1200);
-await page.screenshot({ path: '/tmp/state-full-compare-one.png' });
-const dash = await page.evaluate(() =>
-  document.body.innerText.includes('\u2014') ? 'HAS EM DASH' : 'no em dash'
-);
-console.log('[full] compare picker:', dash);
+await page.screenshot({ path: '/tmp/state-one-individual.png' });
+await clickTab('Compare');
+await sleep(1200);
+await page.screenshot({ path: '/tmp/state-one-compare.png' });
+await clickTab('Team');
+await sleep(600);
+
+// View as -> half finished: Generate anyway state.
+await pickViewAs('half finished');
+console.log('[half]', JSON.stringify(await railInfo()));
+await page.screenshot({ path: '/tmp/state-half-team.png' });
+
+// Generate anyway -> generating -> ready content.
+await page.$$eval('button', (els) => {
+  els.find((el) => el.textContent.trim() === 'Generate anyway')?.click();
+});
+await sleep(700);
+await page.screenshot({ path: '/tmp/state-half-generating.png' });
+await sleep(3200);
+const afterGen = await page.evaluate(() => ({
+  hasSignature: !!document.querySelector('#fvsec-hero .fvc--id h3'),
+  title: document.querySelector('#fvsec-hero .fvc--id h3')?.textContent,
+  sections: document.querySelectorAll('.fvg').length,
+}));
+console.log('[half after generate]', JSON.stringify(afterGen));
+await page.screenshot({ path: '/tmp/state-half-generated.png' });
+
+// Back to Manager: everyone complete again.
+await pickViewAs('Manager');
+console.log('[back to all]', JSON.stringify(await railInfo()));
 
 await browser.close();
 console.log('done');

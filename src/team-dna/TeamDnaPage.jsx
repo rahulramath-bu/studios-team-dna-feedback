@@ -572,6 +572,9 @@ export function TeamDnaPage() {
   // copy.
   const [coachOnboarding, setCoachOnboarding] = useState(null);
   const [activeSurface, setActiveSurface] = useState(null);
+  // Demo-only: which sample-team completion scenario the "View as" menu has
+  // applied ('all' | 'one' | 'half').
+  const [teamStateScenario, setTeamStateScenario] = useState('all');
   const [profileCopyEditsByMemberId, setProfileCopyEditsByMemberId] = useState(
     {}
   );
@@ -850,6 +853,26 @@ export function TeamDnaPage() {
             : 'pending';
 
     setGenerationStatusForTarget(action.target, nextStatus, action.type);
+
+    // Prototype simulation of the backend job: a requested generation (or
+    // refresh) completes on its own after a moment, the same way the demo
+    // fast-forward does. In the real product the API drives this transition.
+    if (
+      action.type === 'teamDnaInsightGenerationRequested' ||
+      action.type === 'teamDnaTeamInsightRefreshRequested'
+    ) {
+      if (demoGenerationTimerRef.current) {
+        window.clearTimeout(demoGenerationTimerRef.current);
+      }
+      demoGenerationTimerRef.current = window.setTimeout(() => {
+        setGenerationStatusForTarget(
+          action.target,
+          'ready',
+          'teamDnaInsightGenerationSucceeded'
+        );
+        demoGenerationTimerRef.current = null;
+      }, DEMO_GENERATION_MS);
+    }
   };
 
   const handleProfileCopySave = ({
@@ -1260,18 +1283,80 @@ export function TeamDnaPage() {
     setEmptyDevState((current) => ({ ...current, canManageTeam: true }));
   };
 
+  // Demo-only: the sample team's pre-generation states, viewed as its
+  // manager. Mutates the same member assessment data the real product uses
+  // and lands on a fresh sample-team record (no generation override), so
+  // the lifecycle resolver derives the waiting / generate-anyway state.
+  //   'one'  -> only the viewer has finished
+  //   'half' -> the viewer plus half the roster (enough to Generate anyway)
+  //   'all'  -> everyone finished (back to the ready team read)
+  const applyTeamStateScenario = (scenario) => {
+    const memberIds = sampleTeamRecord.memberEmployeeIds;
+    const viewerId = memberIds.includes(currentViewerMemberId)
+      ? currentViewerMemberId
+      : memberIds[0];
+    const others = memberIds.filter((memberId) => memberId !== viewerId);
+    const half = Math.ceil(memberIds.length / 2);
+    const completedIds = new Set(
+      scenario === 'one'
+        ? [viewerId]
+        : scenario === 'half'
+          ? [viewerId, ...others.slice(0, half - 1)]
+          : memberIds
+    );
+
+    setTeamManagementOverlay(null);
+    setShowTeamCreatedConfirmation(false);
+    setActiveSurface(null);
+    setEmptyDevState((current) => ({ ...current, canManageTeam: true }));
+    setMemberAssessmentStates(
+      memberIds.map((memberId) => ({
+        memberId,
+        assessmentComplete: completedIds.has(memberId),
+      }))
+    );
+    setTeamRecords((current) => ({
+      ...current,
+      [sampleTeamRecord.id]: createTeamRecordState(
+        sampleTeamRecord,
+        organizationEmployees,
+        teamDnaResultsByEmployeeId
+      ),
+    }));
+    setActiveTeamId(sampleTeamRecord.id);
+    setTeamStateScenario(scenario);
+  };
+
   // Demo-only: subtle nav toggle between the manager hub and the direct-report
   // hub. Direct report defaults to the one-team state (the View Team DNA CTA);
   // the scenario sub-bar then lets the reviewer try no-team / 1 / 2 teams.
-  const viewerPersona = canManageTeam ? 'manager' : 'member';
+  const teamStateActive =
+    canManageTeam &&
+    teamStateScenario !== 'all' &&
+    activeTeamId === sampleTeamRecord.id;
+  const viewerPersona = teamStateActive
+    ? `manager-${teamStateScenario}`
+    : canManageTeam
+      ? 'manager'
+      : 'member';
   const selectViewerPersona = (persona) => {
+    if (persona === 'manager-one' || persona === 'manager-half') {
+      applyTeamStateScenario(persona.replace('manager-', ''));
+      return;
+    }
+
     if (persona === 'manager') {
+      if (teamStateActive) {
+        applyTeamStateScenario('all');
+        return;
+      }
       if (canManageTeam) return;
       resetToManagerScenario();
       return;
     }
 
     if (!canManageTeam) return;
+    setTeamStateScenario('all');
     applyLandingScenario('single');
   };
 

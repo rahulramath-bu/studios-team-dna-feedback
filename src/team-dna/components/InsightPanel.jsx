@@ -287,6 +287,7 @@ export function InsightPanel({
   onStartAssessment,
   onDemoAdvance,
   onSelectLens,
+  teamReadiness,
 }) {
   const scrollRef = useRef(null);
   const resetScrollAfterExit = () => {
@@ -339,6 +340,7 @@ export function InsightPanel({
                   onStartAssessment={onStartAssessment}
                   onDemoAdvance={onDemoAdvance}
                   onSelectLens={onSelectLens}
+                  teamReadiness={teamReadiness}
                   revealMode={revealMode}
                 />
               </AnimatePresence>
@@ -370,6 +372,7 @@ function InsightPage({
   onStartAssessment,
   onDemoAdvance,
   onSelectLens,
+  teamReadiness,
   revealMode,
 }) {
   return (
@@ -410,6 +413,7 @@ function InsightPage({
       onStartAssessment={onStartAssessment}
       onDemoAdvance={onDemoAdvance}
       onSelectLens={onSelectLens}
+      teamReadiness={teamReadiness}
       revealMode={revealMode}
     />
     </motion.article>
@@ -436,6 +440,7 @@ function InsightPageContent({
   onStartAssessment,
   onDemoAdvance,
   onSelectLens,
+  teamReadiness,
   revealMode,
 }) {
   const lifecycle = insight.generationLifecycle;
@@ -587,31 +592,37 @@ function InsightPageContent({
   // V5 renders its own waiting / generating / locked states inside the
   // same three-tab shell, so the original waiting cards step aside for it.
   const isFive = pageVariation === 'five' && revealMode !== 'selfReview';
-  const teamTarget = lifecycle?.target?.scope === 'team' ? lifecycle.target : null;
+  // The TEAM read's lifecycle (not the current selection's), so every tab
+  // agrees on whether the team profile exists yet.
+  const teamLifecycle = teamReadiness?.lifecycle ?? null;
+  const teamTarget = teamLifecycle?.target ?? null;
   const fiveReadiness = isFive
     ? {
         completedCount: completedSubjects.length,
         totalCount: members.length,
         roster: members,
-        isGenerating: isGenerating && lifecycle?.target?.scope === 'team',
+        teamGenerated: teamReadiness ? teamReadiness.generated : true,
+        isGenerating: Boolean(teamReadiness?.generating),
         canGenerateTeam: Boolean(teamTarget?.canGenerateTeam),
         viewerDone: Boolean(viewerDone),
         onStartAssessment,
-        onDemoAdvance: showDemoAdvance ? onDemoAdvance : null,
         onGenerate: teamTarget?.canGenerateTeam
           ? () =>
               onLifecycleAction?.({
                 type: 'teamDnaInsightGenerationRequested',
                 target: teamTarget,
-                status: lifecycle.status,
+                status: teamLifecycle.status,
               })
           : null,
       }
     : null;
+  // V5's waiting card carries the Generate action itself, so the original
+  // lifecycle banner steps aside while the team read is not ready.
+  const hideLifecycleBanner = isFive && lifecycle?.status === 'not_ready';
 
   return (
     <>
-      {isGenerating ? null : (
+      {isGenerating || hideLifecycleBanner ? null : (
         <InsightLifecycleStatus
           lifecycle={lifecycle}
           canManageTeam={canManageTeam}

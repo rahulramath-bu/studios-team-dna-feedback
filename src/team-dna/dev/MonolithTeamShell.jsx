@@ -169,12 +169,20 @@ const PERSONA_OPTIONS = [
   { id: 'member', label: 'Direct report' },
 ];
 
+// Demo-only: the sample team's pre-generation states, as the manager, so a
+// reviewer can see the empty states without creating a team.
+const TEAM_STATE_OPTIONS = [
+  { id: 'manager-one', label: 'Manager · only you finished' },
+  { id: 'manager-half', label: 'Manager · half finished' },
+];
+
 function MonolithPersonaToggle({ viewerPersona, onSelectPersona }) {
   const [open, setOpen] = useState(false);
   const rootRef = useRef(null);
   const activeLabel =
-    PERSONA_OPTIONS.find((option) => option.id === viewerPersona)?.label ??
-    PERSONA_OPTIONS[0].label;
+    [...PERSONA_OPTIONS, ...TEAM_STATE_OPTIONS].find(
+      (option) => option.id === viewerPersona
+    )?.label ?? PERSONA_OPTIONS[0].label;
 
   useEffect(() => {
     if (!open) return undefined;
@@ -233,6 +241,21 @@ function MonolithPersonaToggle({ viewerPersona, onSelectPersona }) {
           aria-label="Demo: view hub as"
         >
           {PERSONA_OPTIONS.map((option) => (
+            <button
+              key={option.id}
+              type="button"
+              role="menuitemradio"
+              aria-checked={option.id === viewerPersona}
+              className="monolith-persona-menu-item"
+              data-active={option.id === viewerPersona || undefined}
+              onClick={() => handleSelect(option.id)}
+            >
+              {option.label}
+            </button>
+          ))}
+          <div className="monolith-persona-menu-sep" role="separator" />
+          <span className="monolith-persona-menu-label">Team DNA states</span>
+          {TEAM_STATE_OPTIONS.map((option) => (
             <button
               key={option.id}
               type="button"
