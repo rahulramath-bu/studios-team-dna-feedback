@@ -638,8 +638,8 @@ function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
             </p>
             <p className="fvl-line">
               {atThreshold
-                ? 'Enough to generate early, or wait for everyone.'
-                : `At least ${TEAM_READY_THRESHOLD} needed to generate early.`}
+                ? 'You can generate the team profile now, or wait for the rest.'
+                : `${TEAM_READY_THRESHOLD} people need to finish before you can generate.`}
             </p>
             <div
               className="insight-waiting-progress fvx-progress"
@@ -672,8 +672,7 @@ function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
               </button>
               <p className="fvx-info">
                 <BetterUpIcon name="Info" size={13} />
-                Builds the profile from the {completed} who have finished. It
-                updates as the rest finish.
+                Anyone who finishes later is added automatically.
               </p>
             </div>
           ) : null}
@@ -685,13 +684,12 @@ function TeamWaitingView({ allSubjects, viewerId, readiness, onSelectLens }) {
             Team insights
           </p>
           <div className="fvl-item">
-            <p className="fvl-title">
-              {atThreshold
-                ? 'Locked until you generate'
-                : 'Locked until everyone is in'}
-            </p>
+            <p className="fvl-title">Not ready yet</p>
             <p className="fvl-line">
-              Three reads on the team, built from everyone&rsquo;s assessment.
+              This is what your team is like as a group.{' '}
+              {atThreshold
+                ? 'It unlocks when you generate it.'
+                : 'It unlocks when everyone has finished.'}
             </p>
           </div>
           {/* The page's own chapters, so the showcase IS the structure. */}
