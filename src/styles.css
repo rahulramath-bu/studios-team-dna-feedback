@@ -10293,40 +10293,60 @@ button.team-management-row {
 
 /* ── Pre-threshold states ─────────────────────────────────────────────── */
 
-/* The team's empty state uses the profile's two-box grid and the design
-   system's own parts (progress track, buttons, icon). Only the lock
-   treatment and the action spacing are added. */
-.fvx-wait-actions {
+/* The team's empty state: two ListCards built from existing parts. Only
+   the pill-with-icon, the chapter list, and the info line are added. */
+.fvs-badge--icon {
+  gap: 5px;
+}
+
+.fvl .insight-waiting-progress {
+  margin-top: 18px;
+}
+
+/* The page's chapters as a list: mono number, then the chapter name. */
+.fvx-toc {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 24px;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.fvx-locked-icon {
-  display: inline-grid;
-  width: 36px;
-  height: 36px;
-  margin-bottom: 16px;
-  place-items: center;
-  border-radius: 999px;
-  background: rgba(var(--team-dna-ink-rgb), 0.06);
+.fvx-toc li {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
   color: #1e1a26;
-}
-
-.fvx-locked-foot {
-  margin-top: 24px;
-  padding-top: 24px;
-  border-top: 0.5px solid rgba(0, 0, 0, 0.08);
-}
-
-.fvx-locked-note {
-  margin: 12px 0 0;
-  max-width: 460px;
-  color: #717070;
-  font-size: 14px;
+  font-size: 13.5px;
   letter-spacing: 0.1px;
-  line-height: 21px;
+  line-height: 20px;
+}
+
+.fvx-toc .fvx-chapnum {
+  margin: 0;
+  width: 18px;
+}
+
+/* Info line: small, light, with the info glyph. */
+.fvx-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  color: rgba(var(--team-dna-ink-rgb), 0.55);
+  font-size: 12.5px;
+  letter-spacing: 0.1px;
+  line-height: 18px;
+}
+
+.fvx-info svg {
+  flex: none;
+  margin-top: 2.5px;
+}
+
+.fvl-foot .bu-button + .fvx-info {
+  margin-top: 12px;
 }
 
 /* Generating: quiet shimmer bars in the card's own rhythm. */
